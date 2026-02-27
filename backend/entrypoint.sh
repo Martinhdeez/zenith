@@ -1,12 +1,12 @@
 #!/bin/bash
-# Entrypoint script for backend container
+# Entrypoint script for Zenith backend container
 # Runs database migrations and starts the application
 set -e
 
-echo "🚀 Starting DevArena Backend..."
+echo "🚀 Starting Zenith Backend..."
 echo "================================"
 
-# Wait for database to be ready (already handled by depends_on healthcheck, but extra safety)
+# Wait for database to be ready (extra safety on top of depends_on healthcheck)
 echo "⏳ Waiting for database connection..."
 python -c "
 import time

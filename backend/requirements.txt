@@ -16,11 +16,18 @@ argon2-cffi==23.1.0
 # Environment
 python-dotenv==1.0.0
 
-# Database & ORM
+# Database & ORM (PostgreSQL relacional)
 sqlalchemy==2.0.36
 asyncpg==0.30.0
 alembic==1.14.0
 greenlet==3.1.1
+
+# Vector Database (Qdrant para búsqueda AI)
+qdrant-client>=1.7.0
+
+# AI / LangChain
+langchain>=0.3.0
+langchain-community>=0.3.0
 
 # Testing
 pytest==8.3.4

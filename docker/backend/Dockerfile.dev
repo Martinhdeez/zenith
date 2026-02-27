@@ -7,7 +7,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
 
 # Instalar dependencias del sistema necesarias
-# build-essential y libpq-dev son necesarios para psycopg2/asyncpg
+# build-essential y libpq-dev son necesarios para asyncpg
 # curl es necesario para el healthcheck
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
@@ -16,14 +16,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Crear usuario no-root para mayor seguridad
-# UID 1000 es el estándar para el primer usuario en sistemas Linux
 RUN useradd -m -u 1000 appuser
 
 # Establecer directorio de trabajo
 WORKDIR /app
 
 # Copiar solo requirements.txt primero para aprovechar la caché de Docker
-# Si las dependencias no cambian, esta capa se reutiliza
 COPY --chown=appuser:appuser requirements.txt .
 
 # Instalar dependencias Python
@@ -40,7 +38,6 @@ COPY --chown=appuser:appuser entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
 
 # Healthcheck para verificar que FastAPI está respondiendo
-# Esto permite a Docker saber cuándo el servicio está realmente listo
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 

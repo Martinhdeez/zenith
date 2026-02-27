@@ -9,12 +9,16 @@ if getenv("ENV_FILE") is not None:
 class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
     
-    PROJECT_NAME: str = "DevArena"
+    PROJECT_NAME: str = "Zenith"
     VERSION: str = "1.0.0"
     DEBUG: bool = True
     
-    # Database
-    DATABASE_URL: str # .env
+    # Database (PostgreSQL)
+    DATABASE_URL: str  # .env
+    
+    # Vector Database (Qdrant)
+    QDRANT_HOST: str = "qdrant"
+    QDRANT_PORT: int = 6333
     
     # Security
     JWT_SECRET: str  # .env
