@@ -1,16 +1,18 @@
-FROM postgres:17-alpine
+FROM pgvector/pgvector:pg17
 
-# Instalar tzdata para configuración de timezone
-RUN apk add --no-cache tzdata
+# Instalar dependencias necesarias (basado en Debian-slim)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    tzdata \
+    && rm -rf /var/lib/apt/lists/*
 
 # Configurar timezone
 ENV TZ=Europe/Madrid
 
-# Healthcheck para verificar que PostgreSQL está listo
+# Healthcheck
 HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=3 \
     CMD pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-postgres} || exit 1
 
-# Configuración de logs detallados para desarrollo
+# Configuración de logs para desarrollo
 CMD ["postgres", \
      "-c", "log_statement=all", \
      "-c", "log_destination=stderr", \

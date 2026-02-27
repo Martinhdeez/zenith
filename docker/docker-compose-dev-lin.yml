@@ -1,5 +1,5 @@
 services:
-  # Base de datos PostgreSQL (datos relacionales: usuarios, metadatos, etc.)
+  # Base de datos PostgreSQL con extensión pgvector (relacional + vectorial)
   db:
     build:
       context: ./db
@@ -18,6 +18,7 @@ services:
     networks:
       - zenith_network
     healthcheck:
+      # Usando $$ para evitar interpolación temprana de Docker Compose env vars
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 10s
       timeout: 5s
@@ -26,28 +27,6 @@ services:
     labels:
       - "com.zenith.environment=development"
       - "com.zenith.service=database"
-
-  # Base de datos vectorial Qdrant (búsqueda AI de archivos)
-  qdrant:
-    image: qdrant/qdrant:latest
-    container_name: zenith_qdrant
-    restart: unless-stopped
-    ports:
-      - "${QDRANT_PORT:-6333}:6333"
-      - "${QDRANT_GRPC_PORT:-6334}:6334"
-    volumes:
-      - qdrant_data:/qdrant/storage
-    networks:
-      - zenith_network
-    healthcheck:
-      test: ["CMD-SHELL", "bash -c ':> /dev/tcp/127.0.0.1/6333'"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 15s
-    labels:
-      - "com.zenith.environment=development"
-      - "com.zenith.service=vector-db"
 
   # Backend FastAPI
   backend:
@@ -59,16 +38,16 @@ services:
     env_file:
       - ../backend/.env.dev
     volumes:
-      # Hot-reload: sincroniza cambios de código en tiempo real
+      # Sincronización de código en tiempo real
       - ../backend:/app
-      # Evitar sobrescribir las dependencias instaladas en el contenedor
+      # Volumen para almacenamiento físico de archivos (Drive)
+      - zenith_storage:/app/storage
+      # Cache de dependencias
       - backend_cache:/app/.venv
     ports:
       - "${BACKEND_PORT:-8000}:8000"
     depends_on:
       db:
-        condition: service_healthy
-      qdrant:
         condition: service_healthy
     networks:
       - zenith_network
@@ -82,7 +61,7 @@ services:
       - "com.zenith.environment=development"
       - "com.zenith.service=backend"
 
-# Red personalizada para aislamiento
+# Red personalizada
 networks:
   zenith_network:
     driver: bridge
@@ -92,7 +71,8 @@ networks:
 volumes:
   postgres_data:
     name: zenith_dev_postgres_data
-  qdrant_data:
-    name: zenith_dev_qdrant_data
+  # Almacenamiento para archivos de Google Drive
+  zenith_storage:
+    name: zenith_dev_storage
   backend_cache:
     name: zenith_dev_backend_cache
