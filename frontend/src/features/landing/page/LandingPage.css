@@ -3,6 +3,7 @@
   min-height: 100vh;
   overflow: visible;
   color: var(--text-primary);
+  --sidebar-space: 344px;
   --primary: #c95f58;
   --primary-strong: #e07a6d;
   --accent: #e07a6d;
@@ -19,8 +20,18 @@
   display: flex;
   flex-direction: column;
   gap: 72px;
+  margin-left: var(--sidebar-space);
+  padding-right: min(2vw, 28px);
 }
 
 .landing.is-modal-open .landing-content {
   pointer-events: none;
+}
+
+@media (max-width: 980px) {
+  .landing-content {
+    margin-left: 0;
+    padding-right: 0;
+    gap: 56px;
+  }
 }

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import TopBar from '../../shared/components/TopBar.jsx'
+import SideBar from '../../shared/components/SideBar.jsx'
 import ChallengesHeader from '../components/challengesHeader/ChallengesHeader.jsx'
 import ChallengesFilters from '../components/challengesFilters/ChallengesFilters.jsx'
 import ChallengesList from '../components/challengesList/ChallengesList.jsx'
@@ -27,12 +27,7 @@ function ChallengesPage({ userName, onSignOut }) {
 
   return (
     <div className="challenges-page">
-      <TopBar
-        links={[{ href: '#challenges-header', label: 'Challenges' }]}
-        showActions={false}
-        userName={userName}
-        onSignOut={onSignOut}
-      />
+      <SideBar isAuthenticated onSignOut={onSignOut} />
 
       <main className="challenges-page__content">
         <section id="challenges-header">

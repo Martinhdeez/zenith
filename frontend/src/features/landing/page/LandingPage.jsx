@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import TopBar from '../../shared/components/TopBar.jsx'
+import SideBar from '../../shared/components/SideBar.jsx'
 import Footer from '../../shared/components/Footer.jsx'
 import ParticlesBackground from '../components/particlesBackground/ParticlesBackground.jsx'
 import Hero from '../components/hero/Hero.jsx'
@@ -80,7 +80,7 @@ function LandingPage() {
     <div className={`landing ${isModalOpen ? 'is-modal-open' : ''}`}>
       <ParticlesBackground />
       <div className="landing-content">
-        <TopBar onSignUp={openRegister} onSignIn={openLogin} />
+        <SideBar isAuthenticated={false} onLogin={openLogin} onRegister={openRegister} />
         <Hero words={typewriterWords} onStart={openRegister} />
         <FeaturesSection featureCards={featureCards} />
         <CtaSection onSignUp={openRegister} onSignIn={openLogin} />
