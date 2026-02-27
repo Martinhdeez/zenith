@@ -6,6 +6,7 @@ function Hero({ words, onStart }) {
     <main className="hero hero-centered" id="overview">
       <div className="hero-copy hero-copy-centered">
         <p className="eyebrow">Digital brain platform</p>
+        <p className="hero-brand">Zenith</p>
         <h1>
           Capture. Organize.
           <span className="accent">Activate your Digital Brain.</span>

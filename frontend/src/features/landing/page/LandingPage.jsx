@@ -7,7 +7,7 @@ import FeaturesSection from '../components/featuresSection/FeaturesSection.jsx'
 import CtaSection from '../components/ctaSection/CtaSection.jsx'
 import Register from '../../auth/components/register/Register.jsx'
 import Login from '../../auth/components/login/Login.jsx'
-import ChallengesPage from '../../challenges/page/ChallengesPage.jsx'
+import HomePage from '../../home/page/HomePage.jsx'
 import { featureCards, typewriterWords } from './landingData.js'
 import './LandingPage.css'
 
@@ -73,7 +73,7 @@ function LandingPage() {
   }
 
   if (currentUser) {
-    return <ChallengesPage userName={currentUser.username} onSignOut={handleSignOut} />
+    return <HomePage userName={currentUser.username} onSignOut={handleSignOut} />
   }
 
   return (
