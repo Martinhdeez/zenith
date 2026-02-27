@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+  # Base de datos PostgreSQL
+  db:
+    build:
+      context: ./db
+      dockerfile: Dockerfile.dev
+    container_name: devarena_db
+    restart: unless-stopped
+    env_file:
+      - ../backend/.env.dev
+    environment:
+      # Configuración adicional de PostgreSQL
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8"
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      # Persistencia de datos
+      - postgres_data:/var/lib/postgresql/data
+      # Scripts de inicialización (read-only)
+      - ./db/init-scripts:/docker-entrypoint-initdb.d:ro
+    networks:
+      - devarena_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    labels:
+      - "com.devarena.environment=development"
+      - "com.devarena.service=database"
+
+  # Backend FastAPI
+  backend:
+    build:
+      context: ../backend
+      dockerfile: ../docker/backend/Dockerfile.dev
+    container_name: devarena_backend
+    restart: unless-stopped
+    env_file:
+      - ../backend/.env.dev
+    volumes:
+      # Hot-reload: sincroniza cambios de código en tiempo real
+      - ../backend:/app
+      # Evitar sobrescribir las dependencias instaladas en el contenedor
+      - backend_cache:/app/.venv
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    depends_on:
+      db:
+        # Espera a que PostgreSQL esté healthy antes de iniciar
+        condition: service_healthy
+    networks:
+      - devarena_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    labels:
+      - "com.devarena.environment=development"
+      - "com.devarena.service=backend"
+
+# Red personalizada para aislamiento
+networks:
+  devarena_network:
+    driver: bridge
+    name: devarena_dev_network
+
+# Volúmenes persistentes
+volumes:
+  postgres_data:
+    name: devarena_dev_postgres_data
+  backend_cache:
+    name: devarena_dev_backend_cache

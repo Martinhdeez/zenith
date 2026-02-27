@@ -1,0 +1,36 @@
+﻿.cta {
+  padding: 0 6vw 80px;
+}
+
+.cta-card {
+  background: linear-gradient(120deg, rgba(98, 240, 255, 0.18), rgba(255, 179, 91, 0.16));
+  border-radius: 26px;
+  padding: 48px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: var(--shadow);
+  display: grid;
+  gap: 18px;
+  width: min(1100px, 100%);
+  margin: 0 auto;
+  text-align: center;
+}
+
+.cta-card h2 {
+  margin: 0;
+  font-size: clamp(2rem, 3.2vw, 3.2rem);
+}
+
+.cta-card p {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.cta-card .hero-actions {
+  justify-content: center;
+}
+
+@media (max-width: 720px) {
+  .cta-card {
+    padding: 32px;
+  }
+}

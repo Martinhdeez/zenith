@@ -1,0 +1,22 @@
+# Variables de entorno
+.env
+.env.dev
+.env.local
+!.env.example
+
+# Python/FastAPI específico
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Bases de datos locales
+*.db
+*.sqlite*
+
+# IDEs
+.vscode/
+.idea/
+
+# Logs
+*.log

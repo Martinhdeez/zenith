@@ -1,0 +1,48 @@
+FROM python:3.12-slim
+
+# Variables de entorno para optimizar Python en contenedores
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# Instalar dependencias del sistema necesarias
+# build-essential y libpq-dev son necesarios para psycopg2/asyncpg
+# curl es necesario para el healthcheck
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libpq-dev \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Crear usuario no-root para mayor seguridad
+# UID 1000 es el estándar para el primer usuario en sistemas Linux
+RUN useradd -m -u 1000 appuser
+
+# Establecer directorio de trabajo
+WORKDIR /app
+
+# Copiar solo requirements.txt primero para aprovechar la caché de Docker
+# Si las dependencias no cambian, esta capa se reutiliza
+COPY --chown=appuser:appuser requirements.txt .
+
+# Instalar dependencias Python
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copiar el resto del código de la aplicación
+COPY --chown=appuser:appuser . .
+
+# Cambiar al usuario no-root
+USER appuser
+
+# Copiar script de entrypoint
+COPY --chown=appuser:appuser entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+
+# Healthcheck para verificar que FastAPI está respondiendo
+# Esto permite a Docker saber cuándo el servicio está realmente listo
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+# Usar entrypoint que ejecuta migraciones antes de iniciar la app
+ENTRYPOINT ["/app/entrypoint.sh"]

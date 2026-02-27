@@ -1,0 +1,20 @@
+﻿.typewriter {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.typewriter-caret {
+  margin-left: 6px;
+  color: var(--accent);
+  animation: blink 1s steps(2, start) infinite;
+}
+
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}

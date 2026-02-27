@@ -1,0 +1,11 @@
+﻿.particles-background {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.particles-canvas {
+  width: 100% !important;
+  height: 100% !important;
+}

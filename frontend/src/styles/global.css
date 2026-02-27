@@ -1,0 +1,35 @@
+﻿.btn {
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 12px 22px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  background: transparent;
+  color: inherit;
+}
+
+.btn.primary {
+  background: linear-gradient(130deg, var(--primary), var(--primary-strong));
+  color: #041321;
+  box-shadow: 0 14px 30px rgba(52, 200, 255, 0.25);
+}
+
+.btn.secondary {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.btn.ghost {
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.btn.full {
+  width: 100%;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 30px rgba(3, 12, 26, 0.3);
+}

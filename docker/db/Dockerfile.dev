@@ -1,0 +1,28 @@
+FROM postgres:17-alpine
+
+# Instalar tzdata para configuración de timezone
+RUN apk add --no-cache tzdata
+
+# Configurar timezone (ajusta según tu región)
+ENV TZ=Europe/Madrid
+
+# Copiar scripts de inicialización
+# Los scripts en /docker-entrypoint-initdb.d/ se ejecutan automáticamente
+#COPY ./init-scripts/ /docker-entrypoint-initdb.d/
+
+# Healthcheck para verificar que PostgreSQL está listo para aceptar conexiones
+# Esto es crucial para depends_on en docker-compose
+HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=3 \
+    CMD pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-postgres} || exit 1
+
+# Configuración de logs detallados para desarrollo
+# log_statement=all: registra todas las queries
+# log_connections/disconnections: útil para debugging
+# log_duration: muestra cuánto tarda cada query
+CMD ["postgres", \
+     "-c", "log_statement=all", \
+     "-c", "log_destination=stderr", \
+     "-c", "logging_collector=off", \
+     "-c", "log_connections=on", \
+     "-c", "log_disconnections=on", \
+     "-c", "log_duration=on"]
