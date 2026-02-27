@@ -7,22 +7,19 @@ from app.features.challenge.router import language_router
 from app.features.chat.router import router as chat_router
 
 app = FastAPI(
-    title="DevArena API",
-    description="API para la plataforma DevArena",
+    title="Zenith API",
+    description="API para la plataforma zenith",
     version="1.0.0"
 )
 
 # Register routers
 app.include_router(auth_router, prefix="/api/auth", tags=["auth"])
 app.include_router(user_router, prefix="/api/users", tags=["users"])
-app.include_router(challenge_router, prefix="/api/challenges", tags=["challenges"])
-app.include_router(language_router, prefix="/api/languages", tags=["languages"])
-app.include_router(chat_router, prefix="/api/chat", tags=["chat"])
 
 
 @app.get("/")
 async def root():
-    return {"message": "DevArena API - Bienvenido"}
+    return {"message": "Zenith API - Bienvenido"}
 
 
 @app.get("/health")
