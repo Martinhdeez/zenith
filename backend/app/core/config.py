@@ -1,7 +1,7 @@
 from os import getenv
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-ENV_FILE = ".env.dev"  # Default to development
+ENV_FILE = ".env.dev"
 if getenv("ENV_FILE") is not None:
     ENV_FILE = getenv("ENV_FILE")
 
@@ -13,15 +13,14 @@ class Settings(BaseSettings):
     VERSION: str = "1.0.0"
     DEBUG: bool = True
     
-    # Database (PostgreSQL)
-    DATABASE_URL: str  # .env
+    # Database (PostgreSQL + pgvector)
+    DATABASE_URL: str
     
-    # Vector Database (Qdrant)
-    QDRANT_HOST: str = "qdrant"
-    QDRANT_PORT: int = 6333
+    # Almacenamiento físico de archivos
+    STORAGE_PATH: str = "/app/storage"
     
     # Security
-    JWT_SECRET: str  # .env
+    JWT_SECRET: str
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     

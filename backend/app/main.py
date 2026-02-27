@@ -1,11 +1,12 @@
 from fastapi import FastAPI
+from app.features.auth.router import router as auth_router
+from app.features.user.router import router as user_router
 
 app = FastAPI(
     title="Zenith API",
     description="API para Zenith - Gestión de archivos con IA",
     version="1.0.0"
 )
-
 
 @app.get("/")
 async def root():
@@ -19,3 +20,7 @@ async def health_check():
     Usado por Docker healthcheck.
     """
     return {"status": "healthy", "service": "zenith-backend"}
+
+# incluir routers
+app.include_router(auth_router, prefix="/auth", tags=["auth"])
+app.include_router(user_router, prefix="/users", tags=["users"])
