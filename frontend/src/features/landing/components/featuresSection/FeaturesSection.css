@@ -1,4 +1,4 @@
-﻿.features {
+.features {
   padding: 0 6vw;
   display: flex;
   flex-direction: column;
@@ -62,7 +62,7 @@
   width: 48px;
   height: 48px;
   border-radius: 14px;
-  background: rgba(98, 240, 255, 0.18);
+  background: rgba(201, 95, 88, 0.2);
   display: grid;
   place-items: center;
   color: var(--primary);

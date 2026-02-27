@@ -1,7 +1,8 @@
-﻿import './Footer.css'
+import './Footer.css'
 
 const defaultLinks = [
-  { href: '#challenges', label: 'Challenges' },
+  { href: '#overview', label: 'Overview' },
+  { href: '#paths', label: 'Workflow' },
 ]
 
 function Footer({ links = defaultLinks, copyright }) {
@@ -20,7 +21,7 @@ function Footer({ links = defaultLinks, copyright }) {
 }
 
 Footer.defaultProps = {
-  copyright: '(c) 2026 DevArena. All rights reserved.',
+  copyright: '(c) 2026 Zenith. All rights reserved.',
 }
 
 export default Footer

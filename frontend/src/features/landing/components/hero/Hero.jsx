@@ -1,39 +1,25 @@
-﻿import TypewriterText from '../typewriterText/TypewriterText.jsx'
+import TypewriterText from '../typewriterText/TypewriterText.jsx'
 import './Hero.css'
 
-function HeroStats({ stats }) {
+function Hero({ words, onStart }) {
   return (
-    <div className="hero-stats">
-      {stats.map((stat) => (
-        <div key={stat.label} className="stat-card">
-          <div className="stat-value">{stat.value}</div>
-          <div className="stat-label">{stat.label}</div>
-        </div>
-      ))}
-    </div>
-  )
-}
-
-function Hero({ words, stats, onStart }) {
-  return (
-    <main className="hero hero-centered" id="challenges">
+    <main className="hero hero-centered" id="overview">
       <div className="hero-copy hero-copy-centered">
-        <p className="eyebrow">Coding challenge platform</p>
+        <p className="eyebrow">Digital brain platform</p>
         <h1>
-          Compete. Learn.
-          <span className="accent">Master the code.</span>
+          Capture. Organize.
+          <span className="accent">Activate your Digital Brain.</span>
         </h1>
         <p className="hero-subtitle">
-          Train with <TypewriterText words={words} /> challenges{' '}
-          <span>, level up, and build your portfolio with real solutions.</span>
+          Turn <TypewriterText words={words} /> into structured knowledge{' '}
+          <span>you can reuse whenever you need it.</span>
         </p>
         <div className="hero-actions">
           <button className="btn primary" type="button" onClick={onStart}>
-            Start now
+            Try demo
           </button>
-          <button className="btn secondary">Explore arena</button>
+          <button className="btn secondary">See workflow</button>
         </div>
-        <HeroStats stats={stats} />
         <div className="scroll-indicator">
           <span>Scroll to explore</span>
           <span className="scroll-arrow">v</span>

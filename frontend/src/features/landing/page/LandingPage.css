@@ -3,6 +3,14 @@
   min-height: 100vh;
   overflow: visible;
   color: var(--text-primary);
+  --primary: #c95f58;
+  --primary-strong: #e07a6d;
+  --accent: #e07a6d;
+}
+
+.landing .btn.primary {
+  color: #230f0f;
+  box-shadow: 0 14px 30px rgba(201, 95, 88, 0.3);
 }
 
 .landing-content {

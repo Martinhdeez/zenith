@@ -76,9 +76,9 @@ function Login({ isOpen = true, onClose, onSignUp, onLoginSuccess }) {
           x
         </button>
         <div className="login-header">
-          <div className="login-badge">DA</div>
+          <div className="login-badge">ZE</div>
           <h2>Sign in</h2>
-          <p>Access your DevArena account and keep competing.</p>
+          <p>Access your Zenith account and keep competing.</p>
         </div>
 
         <form className="login-form" onSubmit={handleSubmit}>

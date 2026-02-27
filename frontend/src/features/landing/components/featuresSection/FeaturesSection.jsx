@@ -1,4 +1,4 @@
-﻿import iconChallenges from '../../../../assets/icons/challenges.svg'
+import iconChallenges from '../../../../assets/icons/challenges.svg'
 import iconFeedback from '../../../../assets/icons/feedback.svg'
 import iconCommunity from '../../../../assets/icons/community.svg'
 import iconTracks from '../../../../assets/icons/tracks.svg'
@@ -15,8 +15,7 @@ function FeaturesSection({ featureCards }) {
   return (
     <section className="features" id="paths">
       <div className="section-header">
-        <p className="eyebrow">Designed to learn faster</p>
-        <h2>Everything you need to grow as a dev</h2>
+        <h2>From scattered input to reusable knowledge</h2>
       </div>
       <div className="feature-grid">
         {featureCards.map((feature) => (

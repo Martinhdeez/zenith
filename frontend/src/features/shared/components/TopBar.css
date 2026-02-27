@@ -1,4 +1,4 @@
-﻿.topbar {
+.topbar {
   position: sticky;
   top: 0;
   z-index: 50;
@@ -78,7 +78,7 @@
   place-items: center;
   font-size: 0.85rem;
   font-weight: 700;
-  color: #041321;
+  color: #2b0908;
   background: linear-gradient(135deg, var(--primary), var(--primary-strong));
 }
 

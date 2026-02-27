@@ -1,8 +1,9 @@
-﻿import './TopBar.css'
+import './TopBar.css'
 import userIcon from '../../../assets/icons/user.svg'
 
 const navLinks = [
-  { href: '#challenges', label: 'Challenges' },
+  { href: '#overview', label: 'Overview' },
+  { href: '#paths', label: 'Workflow' },
 ]
 
 function TopBar({ links = navLinks, showActions = true, onSignUp, onSignIn, userName, onSignOut }) {
@@ -11,7 +12,7 @@ function TopBar({ links = navLinks, showActions = true, onSignUp, onSignIn, user
   return (
     <header className="topbar">
       <div className="topbar-inner">
-        <div className="logo">DevArena</div>
+        <div className="logo">Zenith</div>
         <nav className="topbar-nav">
           {links.map((link) => (
             <a key={link.href} href={link.href}>

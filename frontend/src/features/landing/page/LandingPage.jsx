@@ -8,7 +8,7 @@ import CtaSection from '../components/ctaSection/CtaSection.jsx'
 import Register from '../../auth/components/register/Register.jsx'
 import Login from '../../auth/components/login/Login.jsx'
 import ChallengesPage from '../../challenges/page/ChallengesPage.jsx'
-import { featureCards, stats, typewriterWords } from './landingData.js'
+import { featureCards, typewriterWords } from './landingData.js'
 import './LandingPage.css'
 
 function LandingPage() {
@@ -81,7 +81,7 @@ function LandingPage() {
       <ParticlesBackground />
       <div className="landing-content">
         <TopBar onSignUp={openRegister} onSignIn={openLogin} />
-        <Hero words={typewriterWords} stats={stats} onStart={openRegister} />
+        <Hero words={typewriterWords} onStart={openRegister} />
         <FeaturesSection featureCards={featureCards} />
         <CtaSection onSignUp={openRegister} onSignIn={openLogin} />
         <Footer />
