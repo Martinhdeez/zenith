@@ -58,7 +58,7 @@ async def search_files(
     stmt = (
         select(File, distance_expr.label("distance"))
         .where(File.embedding.isnot(None))
-        .where(distance_expr <= 0.85)  # Threshold: more permissive to allow LLM to rerank
+        .where(distance_expr <= 0.75)  # Threshold: balanced (0.65 too tight, 0.85 too loose)
         .order_by(distance_expr)
     )
 
