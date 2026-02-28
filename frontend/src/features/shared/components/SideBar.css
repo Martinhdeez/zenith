@@ -428,15 +428,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
 }
 
 .sidebar--graph-mode .sidebar-menu-link--active {
-  background: rgba(138, 99, 255, 0.1);
-  color: #b08cff;
-  border: 1px solid rgba(138, 99, 255, 0.2);
-  box-shadow: inset 0 0 20px rgba(138, 99, 255, 0.05);
+  background: rgba(255, 133, 122, 0.1);
+  color: #ff857a;
+  border: 1px solid rgba(255, 133, 122, 0.2);
+  box-shadow: inset 0 0 20px rgba(255, 133, 122, 0.05);
 }
 
 .sidebar--graph-mode .sidebar-menu-link--active .sidebar-menu-icon {
-  color: #b08cff;
-  filter: drop-shadow(0 0 8px rgba(138, 99, 255, 0.5));
+  color: #ff857a;
+  filter: drop-shadow(0 0 8px rgba(255, 133, 122, 0.5));
 }
 
 .sidebar--graph-mode .sidebar-new {
