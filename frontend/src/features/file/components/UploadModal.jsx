@@ -329,7 +329,7 @@ function UploadModal({ currentPath = '/', onUpload, onClose }) {
           {(smartState === 'confirming' || smartState === 'suggesting') && (
             <div className={`upload-modal__confirmation ${smartState === 'suggesting' ? 'is-loading' : ''}`}>
               <div className="confirmation-header">
-                <svg className={smartState === 'suggesting' ? 'spin' : ''} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#72fba1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg className={smartState === 'suggesting' ? 'spin' : ''} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ff857a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   {smartState === 'suggesting' ? (
                     <path d="M21 12a9 9 0 1 1-6.219-8.56" />
                   ) : (

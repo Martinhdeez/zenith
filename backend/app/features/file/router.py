@@ -468,6 +468,10 @@ async def search(
 # Download
 # ──────────────────────────────────────────────
 
+import cloudinary
+import cloudinary.utils
+import httpx
+
 @router.get("/{file_id}/download", response_model=FileContent)
 async def download_file(
     file_id: int,
@@ -491,13 +495,47 @@ async def download_file(
         )
 
     try:
-        import httpx
         async with httpx.AsyncClient() as client:
-            # Cloudinary URLs are usually public, but we add a User-Agent just in case
+            # First attempt: Direct fetch (as Cloudinary URLs are usually public)
             response = await client.get(file_obj.url, follow_redirects=True, timeout=30.0)
             
+            # If 401, asset might be "authenticated" or "private". Try signed URL.
+            if response.status_code == 401:
+                logger.warning("Direct fetch for file %s returned 401. Attempting signed URL fallback.", file_id)
+                cloudinary.config(cloudinary_url=settings.CLOUDINARY_URL)
+                
+                # Cloudinary SDK generates a signature for restricted assets
+                res_type = _resolve_resource_type(file_obj)
+                
+                # Use public_id and original format to regenerate a signed URL
+                # Note: 'authenticated' type is common if security is enabled
+                signed_url, _ = cloudinary.utils.cloudinary_url(
+                    file_obj.cloudinary_public_id,
+                    resource_type=res_type,
+                    secure=True, 
+                    sign_url=True,
+                    # We try both public and authenticated if we are unsure
+                    type="upload" 
+                )
+                
+                logger.info("Retrying with signed URL: %s", signed_url)
+                response = await client.get(signed_url, follow_redirects=True, timeout=30.0)
+                
+                # If still failing, try type='authenticated' as a last resort
+                if response.status_code == 401:
+                    signed_url_auth, _ = cloudinary.utils.cloudinary_url(
+                        file_obj.cloudinary_public_id,
+                        resource_type=res_type,
+                        secure=True, 
+                        sign_url=True,
+                        type="authenticated" 
+                    )
+                    logger.info("Retrying with authenticated signed URL: %s", signed_url_auth)
+                    response = await client.get(signed_url_auth, follow_redirects=True, timeout=30.0)
+            
             if response.status_code != 200:
-                logger.error(f"Download from Cloudinary failed with status {response.status_code}: {response.text}")
+                logger.error("Download from Cloudinary failed for file %s (ID: %s). Status: %s. Response: %s", 
+                             file_obj.name, file_id, response.status_code, response.text[:200])
                 raise HTTPException(
                     status_code=status.HTTP_502_BAD_GATEWAY,
                     detail=f"Cloudinary returned error {response.status_code}: {response.reason_phrase}"

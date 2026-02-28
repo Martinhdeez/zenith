@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { fileService } from '../services/fileService'
 import ReactMarkdown from 'react-markdown'
 import StudyPanel from './StudyPanel.jsx'
+import PdfViewer from './PdfViewer.jsx'
 import './FilePreviewModal.css'
 
 /**
@@ -44,16 +45,31 @@ function FilePreviewModal({ file, onClose }) {
       const res = await fileService.downloadFile(file.id);
       
       if (isPdf) {
-        const b64 = res.content.replace(/^data:.*?;base64,/, '').replace(/\s/g, '');
-        const binary = window.atob(b64);
-        const bytes = new Uint8Array(binary.length);
-        for (let i = 0; i < binary.length; i++) {
-          bytes[i] = binary.charCodeAt(i);
+        try {
+          // Robust base64 to blob conversion for PDFs
+          const b64 = res.content.replace(/^data:.*?;base64,/, '').replace(/\s/g, '');
+          const byteCharacters = window.atob(b64);
+          const byteArrays = [];
+          
+          // Process in chunks for better performance with large PDFs
+          for (let offset = 0; offset < byteCharacters.length; offset += 512) {
+            const slice = byteCharacters.slice(offset, offset + 512);
+            const byteNumbers = new Array(slice.length);
+            for (let i = 0; i < slice.length; i++) {
+              byteNumbers[i] = slice.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            byteArrays.push(byteArray);
+          }
+          
+          const blob = new Blob(byteArrays, { type: 'application/pdf' });
+          const url = URL.createObjectURL(blob);
+          setPdfUrl(url);
+          return;
+        } catch (pdfErr) {
+          console.error('PDF Data Processing Error:', pdfErr);
+          throw new Error('Failed to process PDF data for preview.');
         }
-        const blob = new Blob([bytes], { type: 'application/pdf' });
-        const url = URL.createObjectURL(blob);
-        setPdfUrl(url);
-        return;
       }
 
       const raw = res?.content || '';
@@ -184,12 +200,7 @@ function FilePreviewModal({ file, onClose }) {
 
                   {isPdf && pdfUrl && (
                     <div className="preview-content preview-content--pdf">
-                      <iframe 
-                        src={pdfUrl} 
-                        title={file.name}
-                        width="100%" 
-                        height="100%" 
-                      />
+                      <PdfViewer url={pdfUrl} fileName={file.name} />
                     </div>
                   )}
 
