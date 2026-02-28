@@ -5,6 +5,7 @@ Stores conversation history between users and the AI assistant.
 from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey
 from sqlalchemy.sql import func
 from app.core.database import Base
+from app.features.user.model import User  # noqa: F401
 
 
 class ChatMessage(Base):

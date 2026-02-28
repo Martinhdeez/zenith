@@ -188,16 +188,23 @@ async def chat_with_assistant(
 
     try:
         # Save user message
+        print(f"DEBUG: Saving user message for user {user_id}")
         await chat_repo.add_message(user_id=user_id, role="user", content=message)
         
+        print(f"DEBUG: Calling OpenAI with {len(messages)} messages")
         response = await llm.ainvoke(messages)
         reply = response.content
+        print(f"DEBUG: Received AI reply: {reply[:50]}...")
         
         # Save assistant message
+        print(f"DEBUG: Saving assistant message")
         await chat_repo.add_message(user_id=user_id, role="assistant", content=reply, files_used=file_count)
         
         return reply, file_count
     except Exception as e:
+        print(f"DEBUG ERROR: Chat failed: {str(e)}")
+        import traceback
+        traceback.print_exc()
         logger.error("AI chat call failed: %s", e)
         return (
             "Lo siento, hubo un error al comunicarme con el servicio de IA. "
