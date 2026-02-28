@@ -48,6 +48,7 @@
   text-shadow: 0 14px 34px rgba(3, 9, 20, 0.48);
   display: inline-flex;
   align-items: center;
+  
 }
 
 .hero-brand-z {
@@ -62,6 +63,10 @@
 
 .hero-brand-rest {
   transform: translateY(0.01em);
+   background: linear-gradient(90deg, #ffffff 0%, #c95f58 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .hero h1 {
