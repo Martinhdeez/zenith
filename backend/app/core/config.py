@@ -16,6 +16,9 @@ class Settings(BaseSettings):
     # Database (PostgreSQL + pgvector)
     DATABASE_URL: str
     
+    # OpenAI
+    OPENAI_API_KEY: str
+    
     # Almacenamiento físico de archivos
     STORAGE_PATH: str = "/app/storage"
     

@@ -33,8 +33,7 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 # Import all models here so Alembic can detect them
 from app.features.user.model import User  # noqa
-# from app.features.challenge.model import Challenge, ChallengeAnswer, Language  # noqa
-# from app.features.chat.model import ChatMessage # noqa
+from app.features.file.model import File  # noqa
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,

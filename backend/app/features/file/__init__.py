@@ -1,7 +1,6 @@
 """
-User feature module.
+File feature module.
 """
-from .model import User
-from .schemas import UserCreate, UserUpdate, UserRead
+from .model import File
 
-__all__ = ["User", "UserCreate", "UserUpdate", "UserRead"]
+__all__ = ["File"]
