@@ -441,7 +441,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 .dashboard-toolbar--graph-mode .search-input {
   width: 160px;
-  transition: width 0.3s ease;
 }
 
 .dashboard-toolbar--graph-mode .search-input input {
@@ -453,7 +452,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 }
 
 .dashboard-toolbar--graph-mode .search-input input:focus {
-  width: 220px;
   background: rgba(255, 255, 255, 0.06);
   border-color: rgba(138, 99, 255, 0.4);
   box-shadow: 0 0 0 2px rgba(138, 99, 255, 0.15);
