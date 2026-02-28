@@ -1,23 +1,29 @@
 """
 AI Chat Service — Zenith AI Assistant.
 
-Conversational assistant powered by GPT-4o that has full context
-of the user's files and can answer questions about them.
+Conversational assistant powered by GPT-4o that uses semantic search
+(embeddings + pgvector) to find the most relevant files as context,
+plus a general overview of all user files.
 """
 import logging
 from typing import List, Optional
+from collections import Counter
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 
 from app.features.openai.client import get_llm
+from app.features.openai.search import search_files
 from app.features.file.model import File
 
 logger = logging.getLogger(__name__)
 
+# Max relevant files to retrieve via semantic search
+TOP_K_RELEVANT = 10
+
 
 SYSTEM_PROMPT = """You are Zenith AI, the user's personal assistant for their cloud storage.
-You already know ALL their files — where they are, what type they are, and what they contain.
+You use semantic search to find the most relevant files for each question.
 
 Your #1 goal: help the user find the information they need as fast as possible.
 
@@ -25,7 +31,7 @@ When the user asks something:
 - If it relates to a file they have, immediately point them to it (name, path, and a brief description).
 - If multiple files could be relevant, list the best matches ranked by relevance.
 - If you're not sure which file they mean, suggest the most likely ones and ask to narrow down.
-- If the file doesn't exist in their inventory, say so clearly and suggest alternatives if possible.
+- If the file doesn't exist in what you can see, say so clearly and suggest alternatives if possible.
 
 You can also:
 - Summarize what files they have in a folder or topic.
@@ -35,42 +41,104 @@ You can also:
 Rules:
 - ALWAYS respond in the SAME LANGUAGE the user writes in.
 - Be concise and direct — no unnecessary filler.
-- NEVER invent files that don't exist in the inventory.
+- NEVER invent files that don't exist.
 - Use markdown formatting when it helps readability (bold for filenames, lists for multiple results).
 
-── USER'S FILE INVENTORY ──
-{file_context}
+── GENERAL FILE OVERVIEW ──
+{file_overview}
+───────────────────────────
+
+── MOST RELEVANT FILES (semantic search results for the user's question) ──
+{relevant_files}
 ───────────────────────────
 """
 
 
-async def _build_file_context(db: AsyncSession, user_id: int) -> str:
+async def _build_file_overview(db: AsyncSession, user_id: int) -> str:
     """
-    Query all files belonging to the user and build a text summary
-    that will be injected into the system prompt.
+    Build a compact overview of the user's entire file collection:
+    total count, folder structure, and file type distribution.
     """
     stmt = (
         select(File)
         .where(File.user_id == user_id)
-        .order_by(File.path.asc(), File.file_type.asc(), File.name.asc())
     )
     result = await db.execute(stmt)
-    files = result.scalars().all()
+    files = list(result.scalars().all())
 
     if not files:
         return "The user has no files yet."
 
+    total = len(files)
+    dirs = [f for f in files if f.file_type == "dir"]
+    regular_files = [f for f in files if f.file_type != "dir"]
+
+    # Folder listing
+    folder_lines = []
+    for d in dirs:
+        full_path = f"{d.path.rstrip('/')}/{d.name}" if d.path != "/" else f"/{d.name}"
+        folder_lines.append(f"  📁 {full_path}")
+
+    # File type distribution
+    type_counts = Counter(f.mime_type or "unknown" for f in regular_files)
+    type_lines = [f"  • {mime}: {count}" for mime, count in type_counts.most_common(10)]
+
+    # Total size
+    total_size = sum(f.size or 0 for f in regular_files)
+    size_mb = total_size / (1024 * 1024)
+
+    overview = f"Total: {total} items ({len(regular_files)} files, {len(dirs)} folders), {size_mb:.1f} MB\n"
+
+    if folder_lines:
+        overview += "Folders:\n" + "\n".join(folder_lines) + "\n"
+
+    if type_lines:
+        overview += "File types:\n" + "\n".join(type_lines)
+
+    return overview
+
+
+async def _search_relevant_files(
+    message: str,
+    db: AsyncSession,
+    user_id: int,
+) -> tuple[str, int]:
+    """
+    Use semantic search (embeddings + pgvector) to find the files
+    most relevant to the user's message.
+
+    Returns:
+        Tuple of (formatted text with relevant files, count of files found).
+    """
+    try:
+        results = await search_files(
+            query=message,
+            db=db,
+            user_id=user_id,
+            top_k=TOP_K_RELEVANT,
+            deep=False,
+        )
+    except Exception as e:
+        logger.warning("Semantic search failed in chat: %s", e)
+        return "Semantic search unavailable.", 0
+
+    if not results:
+        return "No relevant files found for this query.", 0
+
     lines = []
-    for f in files:
+    for i, r in enumerate(results, 1):
+        f = r.file
         icon = "📁" if f.file_type == "dir" else "📄"
-        size_str = f"{f.size} bytes" if f.size else ""
+        size_str = f" ({f.size} bytes)" if f.size else ""
         desc_str = f" — {f.description}" if f.description else ""
+        similarity_pct = max(0, (1 - r.distance)) * 100
         lines.append(
-            f"{icon} {f.path.rstrip('/')}/{f.name} "
-            f"[{f.mime_type or f.file_type}] {size_str}{desc_str}"
+            f"{i}. {icon} **{f.name}** at `{f.path}` "
+            f"[{f.mime_type or f.file_type}]{size_str}{desc_str} "
+            f"(relevance: {similarity_pct:.0f}%)"
         )
 
-    return "\n".join(lines)
+    return "\n".join(lines), len(results)
 
 
 async def chat_with_assistant(
@@ -80,7 +148,8 @@ async def chat_with_assistant(
     history: Optional[List[dict]] = None,
 ) -> tuple[str, int]:
     """
-    Send a message to GPT-4o with the user's full file context.
+    Send a message to GPT-4o using embeddings-based semantic search
+    to find relevant files as context.
 
     Args:
         message: The user's current message.
@@ -91,17 +160,28 @@ async def chat_with_assistant(
     Returns:
         Tuple of (AI reply text, number of files used as context).
     """
-    file_context = await _build_file_context(db, user_id)
-    file_count = file_context.count("\n") + 1 if file_context != "The user has no files yet." else 0
+    # 1. Build general file overview
+    file_overview = await _build_file_overview(db, user_id)
 
-    system_message = {"role": "system", "content": SYSTEM_PROMPT.format(file_context=file_context)}
-    messages = [system_message]
+    # 2. Semantic search — find the most relevant files via embeddings
+    relevant_files, file_count = await _search_relevant_files(message, db, user_id)
 
+    # 3. Build message list
+    system_content = SYSTEM_PROMPT.format(
+        file_overview=file_overview,
+        relevant_files=relevant_files,
+    )
+    messages = [{"role": "system", "content": system_content}]
+
+    # Add conversation history if provided
     if history:
         for msg in history:
             messages.append({"role": msg["role"], "content": msg["content"]})
+
+    # Add current user message
     messages.append({"role": "user", "content": message})
 
+    # 4. Call GPT-4o
     llm = get_llm()
 
     try:
