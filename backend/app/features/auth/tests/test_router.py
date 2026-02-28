@@ -37,7 +37,7 @@ async def test_login_with_username(test_client: AsyncClient, db_session: AsyncSe
     })
     
     # Login with username
-    response = await test_client.post("/auth/token", data={
+    response = await test_client.post("/api/auth/token", data={
         "username": "testuser",
         "password": "password123"
     })
@@ -63,7 +63,7 @@ async def test_login_with_email(test_client: AsyncClient, db_session: AsyncSessi
     })
     
     # Login with email
-    response = await test_client.post("/auth/token", data={
+    response = await test_client.post("/api/auth/token", data={
         "username": "emailuser@example.com",  # OAuth2 form uses "username" field
         "password": "password123"
     })
@@ -88,7 +88,7 @@ async def test_login_with_invalid_password(test_client: AsyncClient, db_session:
     })
     
     # Try login with wrong password
-    response = await test_client.post("/auth/token", data={
+    response = await test_client.post("/api/auth/token", data={
         "username": "user",
         "password": "wrongpassword"
     })
@@ -100,7 +100,7 @@ async def test_login_with_invalid_password(test_client: AsyncClient, db_session:
 @pytest.mark.asyncio
 async def test_login_with_nonexistent_user(test_client: AsyncClient):
     """Test login fails with non-existent user."""
-    response = await test_client.post("/auth/token", data={
+    response = await test_client.post("/api/auth/token", data={
         "username": "nonexistent",
         "password": "password123"
     })
@@ -123,7 +123,7 @@ async def test_login_with_inactive_user(test_client: AsyncClient, db_session: As
     })
     
     # Try login
-    response = await test_client.post("/auth/token", data={
+    response = await test_client.post("/api/auth/token", data={
         "username": "inactive",
         "password": "password123"
     })
@@ -146,7 +146,7 @@ async def test_login_token_can_be_used(test_client: AsyncClient, db_session: Asy
     })
     
     # Login to get token
-    login_response = await test_client.post("/auth/token", data={
+    login_response = await test_client.post("/api/auth/token", data={
         "username": "tokenuser",
         "password": "password123"
     })
@@ -156,7 +156,7 @@ async def test_login_token_can_be_used(test_client: AsyncClient, db_session: Asy
     
     # Use token to access protected endpoint
     me_response = await test_client.get(
-        "/users/me",
+        "/api/users/me",
         headers={"Authorization": f"Bearer {token}"}
     )
     
@@ -176,7 +176,7 @@ async def test_google_login_success(test_client: AsyncClient, db_session: AsyncS
         "given_name": "Google",
     }
     
-    response = await test_client.post("/auth/google", json={
+    response = await test_client.post("/api/auth/google", json={
         "credential": "valid_mock_token"
     })
     
@@ -199,7 +199,7 @@ async def test_google_login_invalid_token(test_client: AsyncClient, mocker):
     mock_verify = mocker.patch("app.features.auth.router.id_token.verify_oauth2_token")
     mock_verify.side_effect = ValueError("Invalid token signature")
     
-    response = await test_client.post("/auth/google", json={
+    response = await test_client.post("/api/auth/google", json={
         "credential": "invalid_mock_token"
     })
     
