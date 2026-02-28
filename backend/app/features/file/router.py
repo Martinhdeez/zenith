@@ -78,6 +78,10 @@ async def upload_file(
                 detail="File must be provided when file_type is 'file'",
             )
         try:
+            # Force .ogg to be treated as audio/ogg if it's not already
+            if file.filename and file.filename.lower().endswith(".ogg"):
+                file.content_type = "audio/ogg"
+                
             # Transcribe audio or video before Cloudinary upload (needs file bytes)
             transcription = None
             if file.content_type and is_transcribable(file.content_type):

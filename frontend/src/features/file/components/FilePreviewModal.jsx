@@ -19,7 +19,7 @@ function FilePreviewModal({ file, onClose }) {
                 ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(file.format?.toLowerCase());
   const isPdf = file.mime_type === 'application/pdf' || file.format?.toLowerCase() === 'pdf';
   const isVideo = !isPdf && !isImage && (file.mime_type?.startsWith('video/') ||
-                ['mp4', 'webm', 'ogg', 'mov', 'avi', 'mkv'].includes(file.format?.toLowerCase()));
+                (['mp4', 'webm', 'mov', 'avi', 'mkv'].includes(file.format?.toLowerCase()) && file.format?.toLowerCase() !== 'ogg'));
   const isAudio = !isPdf && !isImage && !isVideo && (file.mime_type?.startsWith('audio/') ||
                 ['mp3', 'wav', 'ogg', 'flac', 'aac', 'm4a', 'wma'].includes(file.format?.toLowerCase()));
   
