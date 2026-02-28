@@ -202,14 +202,95 @@
   text-align: left;
 }
 
-.preview-content--text pre {
+.preview-content--text pre,
+.rendered-markdown {
   margin: 0;
-  font-family: 'Fira Code', var(--font-mono);
+  font-family: inherit;
   font-size: 1rem;
   line-height: 1.7;
   color: #e0e7f1;
   white-space: pre-wrap;
   word-wrap: break-word;
+}
+
+.preview-content--text pre {
+  font-family: 'Fira Code', var(--font-mono);
+}
+
+/* ── Rendered Markdown Styling ── */
+.rendered-markdown h1,
+.rendered-markdown h2,
+.rendered-markdown h3 {
+  color: #ff857a;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  font-weight: 800;
+}
+
+.rendered-markdown h1 { font-size: 2.2rem; border-bottom: 2px solid rgba(255, 133, 122, 0.2); padding-bottom: 0.5rem; }
+.rendered-markdown h2 { font-size: 1.8rem; border-bottom: 1px solid rgba(255, 133, 122, 0.1); padding-bottom: 0.3rem; }
+.rendered-markdown h3 { font-size: 1.4rem; }
+
+.rendered-markdown p {
+  margin-bottom: 1.2rem;
+  font-size: 1.05rem;
+  opacity: 0.9;
+}
+
+.rendered-markdown ul,
+.rendered-markdown ol {
+  margin-bottom: 1.5rem;
+  padding-left: 1.5rem;
+}
+
+.rendered-markdown li {
+  margin-bottom: 0.5rem;
+}
+
+.rendered-markdown blockquote {
+  border-left: 4px solid #ff857a;
+  background: rgba(255, 133, 122, 0.05);
+  margin: 1.5rem 0;
+  padding: 1rem 1.5rem;
+  border-radius: 0 12px 12px 0;
+  font-style: italic;
+}
+
+.rendered-markdown code {
+  background: rgba(255, 255, 255, 0.08);
+  padding: 0.2rem 0.4rem;
+  border-radius: 6px;
+  font-family: 'Fira Code', monospace;
+  font-size: 0.9em;
+}
+
+.rendered-markdown table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.rendered-markdown th,
+.rendered-markdown td {
+  padding: 12px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  text-align: left;
+}
+
+.rendered-markdown th {
+  background: rgba(255, 133, 122, 0.1);
+  color: #ff857a;
+  font-weight: 700;
+}
+
+.rendered-markdown hr {
+  border: 0;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 2rem 0;
 }
 
 /* PDF preview */
