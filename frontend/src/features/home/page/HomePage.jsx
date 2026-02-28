@@ -25,7 +25,10 @@ function HomePage({ currentUser, onSignOut }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [showUpload, setShowUpload] = useState(false)
-  const [currentPath, setCurrentPath] = useState('/')
+  const [currentPath, setCurrentPath] = useState(() => {
+    const params = new URLSearchParams(window.location.search)
+    return params.get('path') || '/'
+  })
   const [previewFile, setPreviewFile] = useState(null)
   const [currentFolder, setCurrentFolder] = useState(null)
   const [isEditingDescription, setIsEditingDescription] = useState(false)
