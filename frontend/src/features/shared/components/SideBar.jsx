@@ -79,7 +79,7 @@ function SideBar({ links = navLinks, isAuthenticated = true, onLogin, onRegister
       >
         <span className="sr-only">Open sidebar</span>
         <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M5 7h14M5 12h14M5 17h10" />
+          <path d="M4 7h16M4 12h16M4 17h16" />
         </svg>
       </button>
 
