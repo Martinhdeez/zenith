@@ -26,22 +26,43 @@
   box-shadow: 0 0 0 3px rgba(201, 95, 88, 0.17);
 }
 
-.dashboard-toolbar__ai {
-  min-height: 44px;
-  min-width: 56px;
-  border-radius: 12px;
-  border: 1px solid rgba(201, 95, 88, 0.46);
-  background: rgba(201, 95, 88, 0.17);
-  color: rgba(244, 248, 255, 0.96);
-  font-size: 0.92rem;
-  font-weight: 640;
-  padding: 0 16px;
-  cursor: pointer;
+.dashboard-toolbar__modes {
+  display: flex;
+  gap: 8px;
+  align-items: center;
 }
 
-.dashboard-toolbar__ai:hover {
-  border-color: rgba(224, 122, 109, 0.66);
-  background: rgba(201, 95, 88, 0.24);
+.dashboard-toolbar__mode-btn {
+  min-height: 42px;
+  min-width: 52px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(244, 248, 255, 0.8);
+  font-size: 0.88rem;
+  font-weight: 600;
+  padding: 0 14px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dashboard-toolbar__mode-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.dashboard-toolbar__mode-btn.is-active {
+  border-color: rgba(201, 95, 88, 0.6);
+  background: rgba(201, 95, 88, 0.18);
+  color: #ff857a;
+  box-shadow: 0 0 15px rgba(201, 95, 88, 0.2);
+}
+
+.dashboard-toolbar__mode-btn.is-deep.is-active {
+  border-color: rgba(255, 149, 0, 0.6);
+  background: rgba(255, 149, 0, 0.15);
+  color: #ffb347;
+  box-shadow: 0 0 15px rgba(255, 149, 0, 0.2);
 }
 
 .dashboard-toolbar__profile-wrap {

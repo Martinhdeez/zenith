@@ -36,6 +36,7 @@ class FileCreateDB(FileBase):
     cloudinary_public_id: Optional[str] = None
     size: Optional[int] = 0
     format: Optional[str] = None
+    embedding: Optional[list[float]] = None
 
 
 class FolderCreate(BaseModel):

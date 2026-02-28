@@ -6,7 +6,8 @@ import './DashboardToolbar.css'
 function DashboardToolbar({
   search,
   onSearchChange,
-  onAiClick,
+  searchMode = 'name',
+  onModeChange,
   onViewProfile,
   onSignOut,
   profileLabel = 'Profile',
@@ -94,9 +95,24 @@ function DashboardToolbar({
         placeholder="Search..."
       />
 
-      <button className="dashboard-toolbar__ai" type="button" onClick={onAiClick}>
-        AI
-      </button>
+      <div className="dashboard-toolbar__modes">
+        <button 
+          className={`dashboard-toolbar__mode-btn ${searchMode === 'semantic' ? 'is-active' : ''}`} 
+          type="button" 
+          onClick={() => onModeChange?.(searchMode === 'semantic' ? 'name' : 'semantic')}
+          title="AI Semantic Search"
+        >
+          AI
+        </button>
+        <button 
+          className={`dashboard-toolbar__mode-btn is-deep ${searchMode === 'deep' ? 'is-active' : ''}`} 
+          type="button" 
+          onClick={() => onModeChange?.(searchMode === 'deep' ? 'name' : 'deep')}
+          title="Deep AI Search (GTP-4o)"
+        >
+          Deep
+        </button>
+      </div>
 
       <div
         className={`dashboard-toolbar__profile-wrap${isProfileMenuOpen ? ' is-open' : ''}`}

@@ -23,6 +23,7 @@ from app.features.file.schemas import (
 from app.features.auth.dependencies import get_current_user
 from app.features.openai.search import search_files
 from app.features.openai.organizer import suggest_file_path
+from app.features.openai.embedding import generate_embedding
 
 logger = logging.getLogger(__name__)
 
@@ -88,6 +89,7 @@ async def upload_file(
                     if file.filename and "." in file.filename
                     else "unknown",
                 ),
+                embedding=generate_embedding(f"{name} {description or ''}"),
             )
         except Exception as e:
             logger.error("Cloudinary upload failed: %s", e)
@@ -192,6 +194,7 @@ async def smart_upload(
             if file.filename and "." in file.filename
             else "unknown",
         ),
+        embedding=generate_embedding(f"{name} {description or ''}"),
     )
     new_file = await repo.create(file_data.model_dump())
 
@@ -254,6 +257,7 @@ async def search(
     - **semantic**: AI-powered search using embeddings + pgvector.
     - **deep**: Semantic search + GPT-4o re-ranking for maximum accuracy.
     """
+    logger.info(f"Search request: user_id={current_user.id}, query='{q}', mode='{mode}'")
     if mode == "name":
         repo = FileRepository(db)
         files = await repo.search_by_name(

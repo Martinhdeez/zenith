@@ -19,6 +19,7 @@ function HomePage({ currentUser, onSignOut }) {
   const [showUpload, setShowUpload] = useState(false)
   const [currentPath, setCurrentPath] = useState('/')
   const [previewFile, setPreviewFile] = useState(null)
+  const [searchMode, setSearchMode] = useState('name') // 'name', 'semantic', 'deep'
   
   const normalizedSearch = search.trim().toLowerCase()
 
@@ -75,9 +76,9 @@ function HomePage({ currentUser, onSignOut }) {
     const timer = setTimeout(async () => {
       try {
         setLoading(true)
-        // Default to semantic search for better experience
-        const results = await fileService.searchFiles(normalizedSearch, 'semantic')
-        // results represent the files found by semantic search
+        // Switch between modes: 'name', 'semantic', 'deep'
+        const results = await fileService.searchFiles(normalizedSearch, searchMode)
+        // results represent the files found by search
         setItems(results.map(r => r.file || r))
       } catch (err) {
         console.error('Search error:', err)
@@ -87,7 +88,7 @@ function HomePage({ currentUser, onSignOut }) {
     }, 500)
 
     return () => clearTimeout(timer)
-  }, [normalizedSearch, fetchData])
+  }, [normalizedSearch, searchMode, fetchData])
 
   // Handle upload from modal
   const handleUpload = useCallback(async (mode, file, name, description, manualPath) => {
@@ -120,7 +121,8 @@ function HomePage({ currentUser, onSignOut }) {
         <DashboardToolbar
           search={search}
           onSearchChange={setSearch}
-          onAiClick={() => {}} // Could trigger "deep" search
+          searchMode={searchMode}
+          onModeChange={setSearchMode}
           onViewProfile={() => navigate('/profile')}
           onSignOut={onSignOut}
           profileLabel={`${currentUser?.username || 'User'} profile`}
