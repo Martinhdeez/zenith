@@ -42,6 +42,12 @@
   fill: currentColor;
 }
 
+.folder-card__info {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
 .folder-card h3 {
   margin: 0;
   font-size: 1.1rem;

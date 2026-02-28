@@ -41,12 +41,14 @@ function LandingPage({ currentUser, onAuthSuccess, onSignOut }) {
     }
   }
 
-  // Auto-redirect if already logged in
+  // Removed auto-redirect to allow authenticated users to visit landing page
+  /*
   useEffect(() => {
     if (currentUser) {
       navigate('/home')
     }
   }, [currentUser, navigate])
+  */
 
   return (
     <div className={`landing ${isModalOpen ? 'is-modal-open' : ''}`}>

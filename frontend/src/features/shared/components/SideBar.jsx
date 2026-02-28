@@ -5,7 +5,7 @@ import './SideBar.css'
 
 const navLinks = [
   { href: '/home', label: 'Home', icon: 'home' },
-  { href: '/assistant', label: 'AI Assistant', icon: 'ai' },
+  { href: '/assistant', label: 'Chat', icon: 'ai' },
 ]
 
 export function SideBarIcon({ type }) {
@@ -50,6 +50,17 @@ export function SideBarIcon({ type }) {
 
 function SideBar({ links = navLinks, isAuthenticated = true, onLogin, onRegister, onNewClick }) {
   const [isMobileOpen, setIsMobileOpen] = useState(false)
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    const saved = localStorage.getItem('sidebar-collapsed')
+    return saved === 'true'
+  })
+
+  // Sync isCollapsed with a CSS variable for global layout adjustment
+  useEffect(() => {
+    const width = isCollapsed ? '80px' : '20rem'
+    document.documentElement.style.setProperty('--sidebar-width', width)
+    localStorage.setItem('sidebar-collapsed', isCollapsed)
+  }, [isCollapsed])
 
   useEffect(() => {
     if (!isMobileOpen) {
@@ -83,7 +94,11 @@ function SideBar({ links = navLinks, isAuthenticated = true, onLogin, onRegister
         </svg>
       </button>
 
-      <aside id="logo-sidebar" className={`sidebar${isMobileOpen ? ' sidebar--open' : ''}`} aria-label="Sidebar">
+      <aside 
+        id="logo-sidebar" 
+        className={`sidebar${isMobileOpen ? ' sidebar--open' : ''}${isCollapsed ? ' sidebar--collapsed' : ''}`} 
+        aria-label="Sidebar"
+      >
         <div className="sidebar-scroll">
           <Link
             to="/"
@@ -94,7 +109,7 @@ function SideBar({ links = navLinks, isAuthenticated = true, onLogin, onRegister
               <span className="sidebar-brand-mark" aria-hidden="true">
                 <img src={zenithLogo} alt="" />
               </span>
-              <span className="sidebar-logo-rest">enith</span>
+              {!isCollapsed && <span className="sidebar-logo-rest">enith</span>}
             </span>
           </Link>
 
@@ -105,16 +120,19 @@ function SideBar({ links = navLinks, isAuthenticated = true, onLogin, onRegister
           )}
 
           {isAuthenticated ? (
-            <button
-              className="sidebar-new"
-              type="button"
-              onClick={onNewClick}
-            >
-              <span className="sidebar-new-plus" aria-hidden="true">
-                +
-              </span>
-              <span>New</span>
-            </button>
+            onNewClick && (
+              <button
+                className="sidebar-new"
+                type="button"
+                onClick={onNewClick}
+                title={isCollapsed ? "New item" : ""}
+              >
+                <span className="sidebar-new-plus" aria-hidden="true">
+                  +
+                </span>
+                {!isCollapsed && <span>New</span>}
+              </button>
+            )
           ) : (
             <button
               className="sidebar-menu-link"
@@ -124,7 +142,7 @@ function SideBar({ links = navLinks, isAuthenticated = true, onLogin, onRegister
               <span className="sidebar-menu-icon">
                 <SideBarIcon type="login" />
               </span>
-              <span>Log in</span>
+              <span>Iniciar sesión</span>
             </button>
           )}
 
@@ -142,7 +160,7 @@ function SideBar({ links = navLinks, isAuthenticated = true, onLogin, onRegister
                     <span className="sidebar-menu-icon">
                       <SideBarIcon type={link.icon} />
                     </span>
-                    <span>{link.label}</span>
+                    {!isCollapsed && <span>{link.label}</span>}
                   </NavLink>
                 </li>
               ))
@@ -156,32 +174,24 @@ function SideBar({ links = navLinks, isAuthenticated = true, onLogin, onRegister
                   <span className="sidebar-menu-icon">
                     <SideBarIcon type="register" />
                   </span>
-                  <span>Register</span>
+                  <span>Registrarse</span>
                 </button>
               </li>
             )}
           </ul>
 
-          {isAuthenticated && (
-            <div className="sidebar-bottom">
-              <ul className="sidebar-menu">
-                <li>
-                  <NavLink
-                    to="/settings"
-                    className={({ isActive }) =>
-                      `sidebar-menu-link${isActive ? ' sidebar-menu-link--active' : ''}`
-                    }
-                    onClick={closeMobile}
-                  >
-                    <span className="sidebar-menu-icon">
-                      <SideBarIcon type="settings" />
-                    </span>
-                    <span>Settings</span>
-                  </NavLink>
-                </li>
-              </ul>
-            </div>
-          )}
+          <div className="sidebar-bottom">
+            <button
+              type="button"
+              className="sidebar-collapse-toggle"
+              onClick={() => setIsCollapsed(!isCollapsed)}
+              title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true" style={{ transform: isCollapsed ? 'rotate(180deg)' : 'none' }}>
+                <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
+              </svg>
+            </button>
+          </div>
         </div>
       </aside>
 

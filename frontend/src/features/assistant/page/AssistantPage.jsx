@@ -22,9 +22,36 @@ function AssistantPage({ currentUser, onSignOut }) {
   const navigate = useNavigate()
   const [messages, setMessages] = useState([WELCOME_MESSAGE])
   const [isLoading, setIsLoading] = useState(false)
+  const [isHistoryLoading, setIsHistoryLoading] = useState(true)
   const scrollRef = useRef(null)
 
+  // Load chat history on mount
+  useEffect(() => {
+    async function loadHistory() {
+      try {
+        const data = await chatService.getHistory()
+        if (data && data.messages && data.messages.length > 0) {
+          // Keep the welcome message and append the loaded history
+          const formattedHistory = data.messages.map((msg) => ({
+            role: msg.role,
+            content: msg.content,
+            filesUsed: msg.files_used || 0, // Fallback if not provided
+          }))
+          setMessages([WELCOME_MESSAGE, ...formattedHistory])
+        }
+      } catch (err) {
+        console.error('Failed to load chat history:', err)
+        // We just log the error and keep the welcome message
+      } finally {
+        setIsHistoryLoading(false)
+      }
+    }
+
+    loadHistory()
+  }, [])
+
   // Auto-scroll to bottom when messages change
+
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight
@@ -91,14 +118,21 @@ function AssistantPage({ currentUser, onSignOut }) {
         {/* Messages */}
         <div className="assistant-page__messages" ref={scrollRef}>
           <div className="assistant-page__messages-inner">
-            {messages.map((msg, i) => (
-              <ChatMessage
-                key={i}
-                role={msg.role}
-                content={msg.content}
-                filesUsed={msg.filesUsed}
-              />
-            ))}
+            {isHistoryLoading ? (
+              <div className="assistant-page__loading-history">
+                <div className="spinner" />
+                <p>Loading previous conversations...</p>
+              </div>
+            ) : (
+              messages.map((msg, i) => (
+                <ChatMessage
+                  key={i}
+                  role={msg.role}
+                  content={msg.content}
+                  filesUsed={msg.filesUsed}
+                />
+              ))
+            )}
 
             {isLoading && (
               <div className="assistant-page__typing">

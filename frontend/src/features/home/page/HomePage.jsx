@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import SideBar from '../../shared/components/SideBar.jsx'
 import DashboardToolbar from '../../shared/components/DashboardToolbar.jsx'
 import FolderCard from '../../file/components/FolderCard.jsx'
@@ -14,6 +14,7 @@ import './HomePage.css'
 
 function HomePage({ currentUser, onSignOut }) {
   const navigate = useNavigate()
+  const location = useLocation()
 
   const [search, setSearch] = useState('')
   const [items, setItems] = useState([])
@@ -27,6 +28,17 @@ function HomePage({ currentUser, onSignOut }) {
   const [searchMode, setSearchMode] = useState('name') // 'name', 'semantic', 'deep'
   
   const normalizedSearch = search.trim().toLowerCase()
+
+  // Handle URL query parameters for direct path navigation
+  useEffect(() => {
+    const params = new URLSearchParams(location.search)
+    const targetPath = params.get('path')
+    if (targetPath && targetPath.startsWith('/')) {
+      setCurrentPath(targetPath)
+      // Clean up the URL so back navigation doesn't get stuck
+      navigate('/home', { replace: true })
+    }
+  }, [location.search, navigate])
 
   // Fetch files based on current path
   const fetchData = useCallback(async () => {

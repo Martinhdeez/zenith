@@ -52,7 +52,7 @@
   width: var(--sidebar-width);
   height: 100vh;
   transform: translateX(-100%);
-  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), width 0.35s cubic-bezier(0.16, 1, 0.3, 1);
   border-right: 1px solid rgba(255, 255, 255, 0.16);
   background: linear-gradient(180deg, var(--sidebar-bg-start), var(--sidebar-bg-end));
   backdrop-filter: blur(40px) saturate(180%);
@@ -62,6 +62,10 @@
 
 .sidebar--open {
   transform: translateX(0);
+}
+
+.sidebar--collapsed {
+  --sidebar-width: 80px;
 }
 
 .sidebar-scroll {
@@ -75,40 +79,50 @@
 .sidebar-brand {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 32px;
-  padding-left: 8px;
+  gap: 0px; 
+  margin-top: 32px; /* Lowered significantly to avoid top edge */
+  margin-bottom: 40px;
+  padding-left: 12px;
   text-decoration: none;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.sidebar--collapsed .sidebar-brand {
+  padding-left: 0;
+  justify-content: center;
+  width: 100%;
+  margin-top: 40px; /* Aligned with toggle/scroll logic */
 }
 
 .sidebar-logo-word {
   display: inline-flex;
   align-items: center;
-  font-size: 2.15rem;
-  font-weight: 690;
-  letter-spacing: 0.01em;
+  font-size: 2.6rem; 
+  font-weight: 750;
+  letter-spacing: -0.04em; 
   line-height: 1;
-  color: #eaf7ff;
+  color: #fff;
 }
 
 .sidebar-brand-mark {
-  width: 1.18em;
-  height: 1.18em;
+  width: 1.3em; 
+  height: 1.3em;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
+  /* Removed overflow: hidden to prevent scaling clipping */
   flex-shrink: 0;
-  margin-right: -0.14em;
+  background: transparent; 
+  border-radius: 50%; 
 }
 
 .sidebar-brand-mark img {
   object-fit: cover;
   display: block;
-  transform: scale(2.5);
-  margin-right: -0.2em;
+  transform: scale(2.6) translateX(2px); /* Scale up and nudge closer */
   transform-origin: center;
-  filter: drop-shadow(0 4px 12px rgba(201, 95, 88, 0.45));
+  filter: drop-shadow(0 4px 12px rgba(255, 133, 122, 0.4));
+  mix-blend-mode: screen; /* Help blending with dark background */
 }
 
 .sidebar-logo-rest {
@@ -118,24 +132,34 @@
   -webkit-text-fill-color: transparent;
   text-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
   font-size: 1em;
+  transition: opacity 0.2s ease;
+}
+
+.sidebar--collapsed .sidebar-logo-rest {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sidebar--collapsed .sidebar-brand-mark img {
+  transform: scale(2.6) translateX(0); /* Perfectly centered when collapsed */
 }
 
 .sidebar-new {
   width: 100%;
-  min-height: 54px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.06);
+  min-height: 58px; /* Taller Apple-like button */
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.05);
   color: #fff;
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-weight: 600;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 12px;
   cursor: pointer;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-  margin-bottom: 24px;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  margin-bottom: 32px; /* Increased spacing */
 }
 
 .sidebar-new:hover {
@@ -166,37 +190,49 @@
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 8px;
+  gap: 12px; /* Increased menu spacing */
 }
 
 .sidebar-menu-link {
   width: 100%;
-  min-height: 52px;
-  border-radius: 14px;
+  min-height: 56px; /* Taller links */
+  border-radius: 16px;
   background: transparent;
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 1.3rem;
-  font-weight: 550;
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 1.4rem; /* Larger font */
+  font-weight: 500;
   text-decoration: none;
   display: inline-flex;
   align-items: center;
-  gap: 12px;
-  padding: 0 16px;
+  gap: 16px; /* Wider gap icon-text */
+  padding: 0 20px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   border: none;
   font-family: inherit;
   text-align: left;
+  overflow: hidden;
+}
+
+.sidebar--collapsed .sidebar-menu-link {
+  padding: 0;
+  justify-content: center;
 }
 
 .sidebar-menu-link:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.06);
   color: #fff;
+  transform: translateX(4px);
 }
 
 .sidebar-menu-link--active {
-  background: rgba(255, 133, 122, 0.12);
+  background: rgba(255, 255, 255, 0.1);
   color: #fff;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.sidebar--collapsed .sidebar-menu-link:hover {
+  transform: scale(1.05);
 }
 
 .sidebar-guest-notice {
@@ -219,26 +255,79 @@
 }
 
 .sidebar-menu-icon {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.3);
   transition: inherit;
 }
 
 .sidebar-menu-icon svg {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   display: block;
   fill: currentColor;
 }
 
 .sidebar-bottom {
   margin-top: auto;
+}
+
+.sidebar-bottom {
+  margin-top: auto;
   padding-top: 24px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.sidebar-collapse-toggle {
+  width: 100%;
+  min-height: 52px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  color: rgba(255, 255, 255, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.sidebar-collapse-toggle:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  transform: scale(1.05);
+}
+
+.sidebar-collapse-toggle svg {
+  width: 26px;
+  height: 26px;
+  fill: currentColor;
+  transition: transform 0.3s ease;
+}
+
+.sidebar--collapsed .sidebar-collapse-toggle {
+  width: 48px;
+  padding: 0;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.sidebar--collapsed .sidebar-scroll {
+  padding-top: 24px;
+}
+
+.sidebar--collapsed .sidebar-new {
+  padding: 0;
+  width: 52px;
+  height: 52px;
+  margin-left: auto;
+  margin-right: auto;
+  border-radius: 14px;
+  background: rgba(255, 133, 122, 0.1);
+  border-color: rgba(255, 133, 122, 0.3);
 }
 
 .sidebar-overlay {

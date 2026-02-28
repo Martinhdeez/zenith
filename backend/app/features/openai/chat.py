@@ -44,6 +44,7 @@ Rules:
 - Be concise and direct — no unnecessary filler.
 - NEVER invent files that don't exist.
 - Use markdown formatting when it helps readability (bold for filenames, lists for multiple results).
+- IMPORTANT: Whenever you mention a folder or file path, ALWAYS format it as a clickable markdown link pointing to that path. Example: `[Nombre de la carpeta](/ruta/a/la/carpeta)`.
 
 ── GENERAL FILE OVERVIEW ──
 {file_overview}
