@@ -90,10 +90,11 @@
 }
 
 .sidebar-brand-dot {
-  width: 6px;
-  height: 6px;
+  width: 12px;
+  height: 12px;
+  background: #c95f58;
   border-radius: 999px;
-  background: #ffe9e4;
+  box-shadow: 0 0 12px rgba(201, 95, 88, 0.4);
 }
 
 .sidebar-logo {
@@ -161,14 +162,14 @@
 }
 
 .sidebar-menu-link:hover {
-  border-color: rgba(255, 255, 255, 0.14);
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(201, 95, 88, 0.08);
+  color: #ff857a;
 }
 
 .sidebar-menu-link--active {
-  border-color: rgba(201, 95, 88, 0.35);
-  background: rgba(201, 95, 88, 0.14);
-  color: rgba(246, 249, 255, 1);
+  background: rgba(201, 95, 88, 0.12);
+  color: #ff857a;
+  box-shadow: inset 4px 0 0 #c95f58;
 }
 
 .sidebar-menu-icon {

@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
+import { Link, NavLink } from 'react-router-dom'
 import './SideBar.css'
 
 const navLinks = [
-  { href: '#home', label: 'Home', icon: 'home', isActive: false },
-  { href: '#assistant', label: 'AI Assistant', icon: 'ai', isActive: false },
+  { href: '/home', label: 'Home', icon: 'home' },
+  { href: '/assistant', label: 'AI Assistant', icon: 'ai' },
 ]
 
 function SideBarIcon({ type }) {
@@ -30,7 +31,7 @@ function SideBarIcon({ type }) {
   )
 }
 
-function SideBar({ links = navLinks, isAuthenticated = true, onLogin, onRegister, onNavigate }) {
+function SideBar({ links = navLinks, isAuthenticated = true, onLogin, onRegister, onNewClick }) {
   const [isMobileOpen, setIsMobileOpen] = useState(false)
 
   useEffect(() => {
@@ -49,10 +50,6 @@ function SideBar({ links = navLinks, isAuthenticated = true, onLogin, onRegister
   }, [isMobileOpen])
 
   const closeMobile = () => setIsMobileOpen(false)
-  const handleNavigate = (href) => {
-    closeMobile()
-    onNavigate?.(href)
-  }
 
   return (
     <>
@@ -71,27 +68,23 @@ function SideBar({ links = navLinks, isAuthenticated = true, onLogin, onRegister
 
       <aside id="logo-sidebar" className={`sidebar${isMobileOpen ? ' sidebar--open' : ''}`} aria-label="Sidebar">
         <div className="sidebar-scroll">
-          <a
-            href="#home"
+          <Link
+            to="/home"
             className="sidebar-brand"
-            onClick={() => {
-              handleNavigate('#home')
-            }}
+            onClick={closeMobile}
           >
             <span className="sidebar-brand-mark" aria-hidden="true">
               <span className="sidebar-brand-dot"></span>
             </span>
             <span className="sidebar-logo">Zenith</span>
-          </a>
+          </Link>
 
           {isAuthenticated ? (
             <>
               <button
                 className="sidebar-new"
                 type="button"
-                onClick={() => {
-                  handleNavigate('#new')
-                }}
+                onClick={onNewClick}
               >
                 <span className="sidebar-new-plus" aria-hidden="true">
                   +
@@ -102,18 +95,18 @@ function SideBar({ links = navLinks, isAuthenticated = true, onLogin, onRegister
               <ul className="sidebar-menu">
                 {links.map((link) => (
                   <li key={link.href}>
-                    <a
-                      href={link.href}
-                      className={`sidebar-menu-link${link.isActive ? ' sidebar-menu-link--active' : ''}`}
-                      onClick={() => {
-                        handleNavigate(link.href)
-                      }}
+                    <NavLink
+                      to={link.href}
+                      className={({ isActive }) => 
+                        `sidebar-menu-link${isActive ? ' sidebar-menu-link--active' : ''}`
+                      }
+                      onClick={closeMobile}
                     >
                       <span className="sidebar-menu-icon">
                         <SideBarIcon type={link.icon} />
                       </span>
                       <span>{link.label}</span>
-                    </a>
+                    </NavLink>
                   </li>
                 ))}
               </ul>
@@ -121,18 +114,18 @@ function SideBar({ links = navLinks, isAuthenticated = true, onLogin, onRegister
               <div className="sidebar-bottom">
                 <ul className="sidebar-menu">
                   <li>
-                    <a
-                      href="#settings"
-                      className="sidebar-menu-link"
-                      onClick={() => {
-                        handleNavigate('#settings')
-                      }}
+                    <NavLink
+                      to="/settings"
+                      className={({ isActive }) => 
+                        `sidebar-menu-link${isActive ? ' sidebar-menu-link--active' : ''}`
+                      }
+                      onClick={closeMobile}
                     >
                       <span className="sidebar-menu-icon">
                         <SideBarIcon type="settings" />
                       </span>
                       <span>Settings</span>
-                    </a>
+                    </NavLink>
                   </li>
                 </ul>
               </div>
