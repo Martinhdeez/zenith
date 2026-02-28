@@ -107,6 +107,22 @@ function UploadModal({ currentPath = '/', onUpload, onClose }) {
          const res = await onUpload('manual', uploadFile, name.trim(), description.trim(), suggestedPath)
          setResult(res)
          setSmartState('initial')
+      } else if (mode === 'pending') {
+         // Ensure /Pending folder exists
+         try {
+           const rootFiles = await fileService.getFiles('/');
+           const hasPending = rootFiles.some(f => f.name.toLowerCase() === 'pending' && f.file_type === 'dir');
+           if (!hasPending) {
+             await fileService.createFolder('Pending', '/', 'Files pending organization');
+           }
+         } catch (e) {
+           console.warn('Could not verify/create Pending folder:', e);
+         }
+
+         // Bypass everything and just dump it in the /Pending folder
+         const uploadMode = tab === 'folder' ? 'folder' : 'manual'
+         const res = await onUpload(uploadMode, uploadFile, name.trim(), description.trim(), '/Pending')
+         setResult(res)
       } else {
          const uploadMode = tab === 'folder' ? 'folder' : mode
          const res = await onUpload(uploadMode, uploadFile, name.trim(), description.trim(), manualPath)
@@ -335,9 +351,14 @@ function UploadModal({ currentPath = '/', onUpload, onClose }) {
                 )}
                 {smartState === 'suggesting' ? 'Analyzing...' : 'Smart Auto-Sync'}
               </button>
-              <button className="upload-btn upload-btn--manual" onClick={() => handleUpload('manual')} disabled={uploading || smartState === 'suggesting'}>
-                Manual Place
-              </button>
+              <div style={{display: 'flex', gap: '8px', justifyContent: 'space-between'}}>
+                <button className="upload-btn upload-btn--manual" style={{flex: 1, padding: '16px 12px'}} onClick={() => handleUpload('manual')} disabled={uploading || smartState === 'suggesting'}>
+                  Manual Place
+                </button>
+                <button className="upload-btn upload-btn--danger" style={{flex: 1, padding: '16px 12px'}} onClick={() => handleUpload('pending')} disabled={uploading || smartState === 'suggesting'}>
+                  Save to Pending
+                </button>
+              </div>
             </>
           )}
         </footer>

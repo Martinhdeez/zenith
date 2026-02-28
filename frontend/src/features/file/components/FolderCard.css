@@ -18,6 +18,19 @@
   transform: translateY(-2px);
 }
 
+.folder-card.is-pending {
+  border-color: rgba(201, 95, 88, 0.6);
+  background: rgba(201, 95, 88, 0.08);
+  box-shadow: 0 0 15px rgba(201, 95, 88, 0.15);
+  animation: pendingPulse 3s infinite ease-in-out;
+}
+
+@keyframes pendingPulse {
+  0% { box-shadow: 0 0 15px rgba(201, 95, 88, 0.15); border-color: rgba(201, 95, 88, 0.6); }
+  50% { box-shadow: 0 0 25px rgba(201, 95, 88, 0.35); border-color: rgba(201, 95, 88, 0.9); }
+  100% { box-shadow: 0 0 15px rgba(201, 95, 88, 0.15); border-color: rgba(201, 95, 88, 0.6); }
+}
+
 .folder-card__left {
   min-width: 0;
   display: flex;
