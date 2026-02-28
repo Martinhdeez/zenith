@@ -63,8 +63,10 @@ function FolderCard({ title, subtitle, onClick, onMenuClick, onRename, onDelete 
     setIsMenuOpen(false)
     onDelete?.()
   }
+  const isPendingFolder = title?.toLowerCase() === 'pending';
+
   return (
-    <article className="folder-card" onClick={onClick} role="button" tabIndex={0}>
+    <article className={`folder-card ${isPendingFolder ? 'is-pending' : ''}`} onClick={onClick} role="button" tabIndex={0}>
       <div className="folder-card__left">
         <span className="folder-card__icon" aria-hidden="true">
           <svg viewBox="0 0 24 24">

@@ -456,6 +456,18 @@
   transform: translateY(-2px);
 }
 
+.upload-btn--danger {
+  background: rgba(201, 95, 88, 0.1);
+  border: 1px solid rgba(201, 95, 88, 0.3);
+  color: #ff857a;
+}
+
+.upload-btn--danger:hover:not(:disabled) {
+  background: rgba(201, 95, 88, 0.2);
+  border-color: rgba(201, 95, 88, 0.5);
+  transform: translateY(-2px);
+}
+
 @media (max-width: 580px) {
   .upload-modal__fields, .upload-modal__actions {
     grid-template-columns: 1fr;
