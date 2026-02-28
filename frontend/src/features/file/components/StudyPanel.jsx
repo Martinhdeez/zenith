@@ -12,6 +12,7 @@ function StudyPanel({ file, onClose, onFullscreenToggle }) {
   const [activeMode, setActiveMode] = useState(null)
   const [customPrompt, setCustomPrompt] = useState('')
   const [showCustomInput, setShowCustomInput] = useState(false)
+  const [showOptions, setShowOptions] = useState(true)
   
   // Resize and Fullscreen State
   const [width, setWidth] = useState(380)
@@ -68,6 +69,7 @@ function StudyPanel({ file, onClose, onFullscreenToggle }) {
     try {
       const res = await chatService.generateStudy(file.id, mode, prompt)
       setContent(res.content)
+      setShowOptions(false) // Auto-hide options to maximize reading area
     } catch (err) {
       console.error('Study generation failed:', err)
       setContent('❌ Error generating study material. Please try again.')
@@ -163,59 +165,78 @@ function StudyPanel({ file, onClose, onFullscreenToggle }) {
         </div>
       </header>
 
-      <div className="study-panel__actions">
-        {modes.map((m) => (
-          <button
-            key={m.id}
-            className={`study-action-btn ${activeMode === m.id ? 'is-active' : ''}`}
-            onClick={() => handleGenerate(m.id)}
-            disabled={loading}
-          >
-            {m.icon}
-            <span className="study-action-btn__label">{m.label}</span>
-            <span className="study-action-btn__desc">{m.desc}</span>
-          </button>
-        ))}
+      <div 
+        className="study-panel__options-header" 
+        onClick={() => setShowOptions(!showOptions)}
+      >
+        <span>Study Options {activeMode ? `· ${activeMode.charAt(0).toUpperCase() + activeMode.slice(1)}` : ''}</span>
+        <svg 
+          width="16" height="16" 
+          viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" 
+          strokeLinecap="round" strokeLinejoin="round"
+          style={{ transform: showOptions ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}
+        >
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
       </div>
 
-      {/* Custom prompt area */}
-      <div className="study-panel__custom">
-        {!showCustomInput ? (
-          <button
-            className="study-custom-toggle"
-            onClick={() => setShowCustomInput(true)}
-            disabled={loading}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-            </svg>
-            Ask something custom...
-          </button>
-        ) : (
-          <div className="study-custom-input">
-            <textarea
-              placeholder="e.g. Explain the main concepts in simple terms..."
-              value={customPrompt}
-              onChange={(e) => setCustomPrompt(e.target.value)}
-              rows={3}
-              autoFocus
-            />
-            <div className="study-custom-input__btns">
-              <button onClick={() => setShowCustomInput(false)} className="study-custom-cancel">
-                Cancel
-              </button>
+      {showOptions && (
+        <div className="study-panel__options-body">
+          <div className="study-panel__actions">
+            {modes.map((m) => (
               <button
-                onClick={handleCustomSubmit}
-                className="study-custom-submit"
-                disabled={loading || !customPrompt.trim()}
+                key={m.id}
+                className={`study-action-btn ${activeMode === m.id ? 'is-active' : ''}`}
+                onClick={() => handleGenerate(m.id)}
+                disabled={loading}
               >
-                {loading ? 'Generating...' : 'Generate'}
+                {m.icon}
+                <span className="study-action-btn__label">{m.label}</span>
+                <span className="study-action-btn__desc">{m.desc}</span>
               </button>
-            </div>
+            ))}
           </div>
-        )}
-      </div>
+
+          {/* Custom prompt area */}
+          <div className="study-panel__custom">
+            {!showCustomInput ? (
+              <button
+                className="study-custom-toggle"
+                onClick={() => setShowCustomInput(true)}
+                disabled={loading}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                </svg>
+                Ask something custom...
+              </button>
+            ) : (
+              <div className="study-custom-input">
+                <textarea
+                  placeholder="e.g. Explain the main concepts in simple terms..."
+                  value={customPrompt}
+                  onChange={(e) => setCustomPrompt(e.target.value)}
+                  rows={3}
+                  autoFocus
+                />
+                <div className="study-custom-input__btns">
+                  <button onClick={() => setShowCustomInput(false)} className="study-custom-cancel">
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleCustomSubmit}
+                    className="study-custom-submit"
+                    disabled={loading || !customPrompt.trim()}
+                  >
+                    {loading ? 'Generating...' : 'Generate'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Content area */}
       <div className="study-panel__content">

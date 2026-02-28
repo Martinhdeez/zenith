@@ -161,6 +161,34 @@
   cursor: not-allowed;
 }
 
+/* ── Options Toggle ───────────────────────────── */
+.study-panel__options-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background: rgba(0, 0, 0, 0.15);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  cursor: pointer;
+  user-select: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all 0.2s;
+}
+
+.study-panel__options-header:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: #ff857a;
+}
+
+.study-panel__options-body {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(0, 0, 0, 0.2);
+}
+
 /* ── Custom Prompt ────────────────────────────── */
 .study-panel__custom {
   padding: 0 20px 16px;
