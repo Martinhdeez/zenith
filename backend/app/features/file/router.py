@@ -91,10 +91,23 @@ async def upload_file(
                 
             # Transcribe audio or video before Cloudinary upload (needs file bytes)
             transcription = None
+            snippet = None
+            
             if effective_mime and is_transcribable(effective_mime):
                 logger.info("Media file detected (%s). Transcribing: %s", effective_mime, name)
                 file_bytes = await file.read()
                 transcription = transcribe_media(file_bytes, file.filename or name)
+                file.file.seek(0)
+            elif effective_mime and (effective_mime.startswith("text/") or effective_mime in ["application/json", "application/javascript"]):
+                logger.info("Text file detected (%s). Extracting snippet: %s", effective_mime, name)
+                file_bytes = await file.read()
+                try:
+                    decoded = file_bytes.decode("utf-8", errors="ignore").strip()
+                    # Clean up multiple newlines/spaces for a compact snippet
+                    clean_text = " ".join(decoded.split())
+                    snippet = clean_text[:250] + ("..." if len(clean_text) > 250 else "")
+                except Exception as e:
+                    logger.warning("Failed to extract snippet from %s: %s", name, e)
                 file.file.seek(0)
 
             cloudinary.config(cloudinary_url=settings.CLOUDINARY_URL)
@@ -121,8 +134,9 @@ async def upload_file(
                     if file.filename and "." in file.filename
                     else "unknown",
                 ),
-                embedding=generate_embedding(f"{name} {description or ''} {transcription or ''}"),
+                embedding=generate_embedding(f"{name} {description or ''} {transcription or ''} {snippet or ''}"),
                 transcription=transcription,
+                snippet=snippet,
             )
         except Exception as e:
             logger.error("Cloudinary upload failed: %s", e)
@@ -251,12 +265,24 @@ async def smart_upload(
             created_new_folder = True
 
     transcription = None
+    snippet = None
+    
     if file.content_type and is_transcribable(file.content_type):
         logger.info("Media file detected (%s). Transcribing: %s", file.content_type, name)
         # Read file once for transcription
         file_bytes = await file.read()
         transcription = transcribe_audio(file_bytes, file.filename or name)
         # Reset file pointer for Cloudinary upload
+        file.file.seek(0)
+    elif file.content_type and (file.content_type.startswith("text/") or file.content_type in ["application/json", "application/javascript"]):
+        logger.info("Text file detected (%s). Extracting snippet: %s", file.content_type, name)
+        file_bytes = await file.read()
+        try:
+            decoded = file_bytes.decode("utf-8", errors="ignore").strip()
+            clean_text = " ".join(decoded.split())
+            snippet = clean_text[:250] + ("..." if len(clean_text) > 250 else "")
+        except Exception as e:
+            logger.warning("Failed to extract snippet from %s: %s", name, e)
         file.file.seek(0)
 
     try:
@@ -293,9 +319,10 @@ async def smart_upload(
             else "unknown",
         ),
         embedding=generate_embedding(
-            f"{name} {description or ''} {transcription or ''}"
+            f"{name} {description or ''} {transcription or ''} {snippet or ''}"
         ),
         transcription=transcription,
+        snippet=snippet,
     )
     new_file = await repo.create(file_data.model_dump())
 

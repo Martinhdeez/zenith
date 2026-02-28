@@ -172,8 +172,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
   display: flex;
   justify-content: center;
   animation: contentFadeUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  flex-shrink: 1; /* Allow shrinking so scroll works */
-  min-height: 0; /* Required for nested scrolling in flexbox */
+  flex-shrink: 0;
+  min-height: min-content;
+  margin: auto 0; /* Vertically centers when there's space, but avoids top-collapse on overflow */
 }
 
 @keyframes contentFadeUp {

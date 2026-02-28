@@ -25,6 +25,7 @@ class FileBase(BaseModel):
     file_type: str = Field("file", description="Type: 'file' or 'dir'")
     mime_type: Optional[str] = Field(None, description="MIME type, e.g. image/png")
     transcription: Optional[str] = Field(None, description="Transcription for audio/video files")
+    snippet: Optional[str] = Field(None, max_length=255, description="Short text preview")
 
 
 # ──────────────────────────────────────────────
@@ -45,6 +46,7 @@ class FileCreateDB(FileBase):
     format: Optional[str] = None
     embedding: Optional[list[float]] = None
     transcription: Optional[str] = None
+    snippet: Optional[str] = None
 
 
 class FolderCreate(BaseModel):
@@ -99,6 +101,7 @@ class FileSearchResult(BaseModel):
     url: Optional[str] = None
     cloudinary_public_id: Optional[str] = None
     transcription: Optional[str] = None
+    snippet: Optional[str] = None
     user_id: int
     uploaded_at: Optional[datetime] = None
     similarity: float = Field(description="Cosine distance: 0.0 = identical, 2.0 = opposite")

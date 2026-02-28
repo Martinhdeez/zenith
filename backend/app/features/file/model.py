@@ -49,6 +49,9 @@ class File(Base):
     # Auto-updating folder summary (sumup) or file summary
     summary = Column(Text, nullable=True)
 
+    # Short preview text extracted during upload (for files like txt, md, code)
+    snippet = Column(String(255), nullable=True)
+
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

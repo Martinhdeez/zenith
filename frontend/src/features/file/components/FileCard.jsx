@@ -95,10 +95,12 @@ function FileCard({ file, userChar = 'U', onClick, onMenuClick, onRename, onDele
     onDelete?.()
   }
 
-  // Use AI summary if present, otherwise show file description or nothing
+  // Priority: AI summary -> Upload snippet (for text files) -> Manual description
   const displaySnippet = file?.summary 
     ? (file.summary.length > 150 ? file.summary.substring(0, 150) + '...' : file.summary)
-    : (file?.description || null);
+    : file?.snippet
+      ? (file.snippet.length > 150 ? file.snippet.substring(0, 150) + '...' : file.snippet)
+      : (file?.description || null);
 
   const activity = file?.updated_at 
     ? `Modified · ${new Date(file.updated_at).toLocaleDateString()}` 

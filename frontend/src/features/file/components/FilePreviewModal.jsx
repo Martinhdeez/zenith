@@ -176,19 +176,75 @@ function FilePreviewModal({ file, onClose }) {
                   )}
 
                   {isText && content && (
-                    <div className={`preview-content preview-content--text ${isMarkdown ? 'markdown-view' : ''}`}>
-                      {!isMarkdown && !file.mime_type?.startsWith('text/') && 
-                       !['json', 'js', 'py', 'ts', 'jsx', 'tsx', 'css', 'html', 'sql', 'sh', 'env', 'log'].includes(file.format?.toLowerCase()) && (
-                        <div className="preview-content-label">Partial Text Preview</div>
-                      )}
-                      {isMarkdown ? (
-                        <div className="rendered-markdown">
-                          <ReactMarkdown>{content}</ReactMarkdown>
-                        </div>
-                      ) : (
-                        <pre>{content}</pre>
-                      )}
-                    </div>
+                    <>
+                      {(() => {
+                        const lines = content.split('\n').map(l => l.trim()).filter(Boolean);
+                        const exactYtRegExp = /^(?:https?:\/\/)?(?:www\.)?(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))((\w|-){11})(?:\S+)?$/;
+                        
+                        // Check if the file consists entirely of YouTube links (or empty lines)
+                        const youtubeMatches = lines.map(line => line.match(exactYtRegExp)).filter(Boolean);
+                        
+                        // If we found at least one YouTube link and EVERY line is a YouTube link...
+                        if (youtubeMatches.length > 0 && youtubeMatches.length === lines.length) {
+                          return (
+                            <div className="preview-content preview-content--video" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '24px', overflowY: 'auto' }}>
+                              {youtubeMatches.map((match, idx) => (
+                                <iframe
+                                  key={idx}
+                                  width="100%"
+                                  height="400"
+                                  style={{ minHeight: '400px', flexShrink: 0, borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 20px 40px rgba(0,0,0,0.5)' }}
+                                  src={`https://www.youtube.com/embed/${match[1]}`}
+                                  title={`YouTube video player ${idx + 1}`}
+                                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                  allowFullScreen
+                                ></iframe>
+                              ))}
+                            </div>
+                          );
+                        }
+                        
+                        return (
+                          <div className={`preview-content preview-content--text ${isMarkdown ? 'markdown-view' : ''}`}>
+                            {!isMarkdown && !file.mime_type?.startsWith('text/') && 
+                             !['json', 'js', 'py', 'ts', 'jsx', 'tsx', 'css', 'html', 'sql', 'sh', 'env', 'log'].includes(file.format?.toLowerCase()) && (
+                              <div className="preview-content-label">Partial Text Preview</div>
+                            )}
+                            {isMarkdown ? (
+                              <div className="rendered-markdown">
+                                <ReactMarkdown
+                                  components={{
+                                    a: ({node, ...props}) => {
+                                      const hrefMatch = props.href?.match(exactYtRegExp);
+                                      if (hrefMatch && hrefMatch[1]) {
+                                        return (
+                                          <div style={{ margin: '24px 0', width: '100%', maxWidth: '800px' }}>
+                                            <iframe
+                                              width="100%"
+                                              height="360"
+                                              style={{ borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)' }}
+                                              src={`https://www.youtube.com/embed/${hrefMatch[1]}`}
+                                              title="YouTube video player"
+                                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                              allowFullScreen
+                                            ></iframe>
+                                          </div>
+                                        );
+                                      }
+                                      return <a {...props} target="_blank" rel="noopener noreferrer" />;
+                                    }
+                                  }}
+                                >
+                                  {content}
+                                </ReactMarkdown>
+                              </div>
+                            ) : (
+                              <pre>{content}</pre>
+                            )}
+                          </div>
+                        );
+                      })()}
+                    </>
                   )}
 
                   {isVideo && (
