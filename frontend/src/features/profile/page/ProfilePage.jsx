@@ -4,21 +4,70 @@ import DashboardToolbar from '../../shared/components/DashboardToolbar.jsx'
 import ProfileOverviewCard from '../components/ProfileOverviewCard.jsx'
 import './ProfilePage.css'
 
-function extractErrorMessage(rawValue, fallbackMessage) {
-  if (!rawValue) {
-    return fallbackMessage
+function normalizeText(value) {
+  return typeof value === 'string' ? value.trim() : ''
+}
+
+function getDetailFromPayload(payload) {
+  if (!payload) {
+    return null
   }
 
-  try {
-    const parsed = JSON.parse(rawValue)
-    if (typeof parsed?.detail === 'string') {
-      return parsed.detail
+  if (typeof payload === 'string') {
+    return payload
+  }
+
+  if (typeof payload === 'object' && payload.detail !== undefined) {
+    return payload.detail
+  }
+
+  return null
+}
+
+function getValidationMessage(issue) {
+  const message = normalizeText(issue?.msg)
+  const field = Array.isArray(issue?.loc) ? issue.loc[issue.loc.length - 1] : ''
+
+  if (field === 'username') {
+    if (message.includes('at least 3')) {
+      return 'Username is too short. Use at least 3 characters.'
     }
-  } catch {
-    // Ignore parse errors and fallback to plain text.
+    return 'Username is invalid. Use 3 to 50 characters.'
   }
 
-  return typeof rawValue === 'string' ? rawValue : fallbackMessage
+  if (field === 'email') {
+    return 'Email is not valid. Use a real email address like name@email.com.'
+  }
+
+  if (message) {
+    return message
+  }
+
+  return 'Some fields are invalid. Please review the form.'
+}
+
+function getProfileSaveErrorMessage(status, payload) {
+  const detail = getDetailFromPayload(payload)
+
+  if (status === 400) {
+    const normalized = normalizeText(detail)
+    if (normalized.toLowerCase().includes('already exists')) {
+      return 'That username or email is already in use. Try another one.'
+    }
+    return normalized || 'We could not save your profile changes.'
+  }
+
+  if (Array.isArray(detail)) {
+    const messages = detail.map(getValidationMessage).filter(Boolean)
+    return [...new Set(messages)].join('\n')
+  }
+
+  const normalized = normalizeText(detail)
+  if (normalized) {
+    return normalized
+  }
+
+  return 'We could not save your profile changes. Please try again.'
 }
 
 function ProfilePage({ currentUser, onSignOut }) {
@@ -33,6 +82,8 @@ function ProfilePage({ currentUser, onSignOut }) {
   const [isSaving, setIsSaving] = useState(false)
   const [saveError, setSaveError] = useState(null)
   const [saveSuccess, setSaveSuccess] = useState('')
+
+  const isValidEmail = (value) => /.+@.+\..+/.test(value)
 
   const fetchProfile = useCallback(async () => {
     const token = localStorage.getItem('token')
@@ -68,7 +119,11 @@ function ProfilePage({ currentUser, onSignOut }) {
         email: userData.email || '',
       })
     } catch (fetchError) {
-      setError(fetchError.message || 'Unable to load profile information.')
+      if (fetchError?.name === 'TypeError') {
+        setError('Cannot connect to the server. Make sure backend is running.')
+      } else {
+        setError(fetchError.message || 'Unable to load profile information.')
+      }
     } finally {
       setLoading(false)
     }
@@ -106,6 +161,16 @@ function ProfilePage({ currentUser, onSignOut }) {
       return
     }
 
+    if (username.length < 3) {
+      setSaveError('Username is too short. Use at least 3 characters.')
+      return
+    }
+
+    if (!isValidEmail(email)) {
+      setSaveError('Email is not valid. Example: name@email.com')
+      return
+    }
+
     const token = localStorage.getItem('token')
     if (!token) {
       setSaveError('No active session found.')
@@ -136,8 +201,14 @@ function ProfilePage({ currentUser, onSignOut }) {
       }
 
       if (!response.ok) {
-        const errorText = await response.text()
-        throw new Error(extractErrorMessage(errorText, 'Unable to save profile changes.'))
+        let payload = null
+        try {
+          payload = await response.json()
+        } catch {
+          payload = await response.text()
+        }
+
+        throw new Error(getProfileSaveErrorMessage(response.status, payload))
       }
 
       const updatedUser = await response.json()
@@ -148,7 +219,11 @@ function ProfilePage({ currentUser, onSignOut }) {
       })
       setSaveSuccess('Profile updated successfully.')
     } catch (saveRequestError) {
-      setSaveError(saveRequestError.message || 'Unable to save profile changes.')
+      if (saveRequestError?.name === 'TypeError') {
+        setSaveError('Cannot connect to the server. Make sure backend is running.')
+      } else {
+        setSaveError(saveRequestError.message || 'Unable to save profile changes.')
+      }
     } finally {
       setIsSaving(false)
     }

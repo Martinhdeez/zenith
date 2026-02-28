@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
+import zenithLogo from '../../../assets/logo/LOGO-DEFINITIVO.png'
 import './SideBar.css'
 
 const navLinks = [
@@ -73,10 +74,12 @@ function SideBar({ links = navLinks, isAuthenticated = true, onLogin, onRegister
             className="sidebar-brand"
             onClick={closeMobile}
           >
-            <span className="sidebar-brand-mark" aria-hidden="true">
-              <span className="sidebar-brand-dot"></span>
+            <span className="sidebar-logo-word">
+              <span className="sidebar-brand-mark" aria-hidden="true">
+                <img src={zenithLogo} alt="" />
+              </span>
+              <span className="sidebar-logo-rest">enith</span>
             </span>
-            <span className="sidebar-logo">Zenith</span>
           </Link>
 
           {isAuthenticated && (
