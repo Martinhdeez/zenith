@@ -1,0 +1,78 @@
+services:
+  # Base de datos PostgreSQL con extensión pgvector (relacional + vectorial)
+  db:
+    build:
+      context: ./db
+      dockerfile: Dockerfile.dev
+    container_name: zenith_db
+    restart: unless-stopped
+    env_file:
+      - ../backend/.env.dev
+    environment:
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8"
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/init-scripts:/docker-entrypoint-initdb.d:ro
+    networks:
+      - zenith_network
+    healthcheck:
+      # Usando $$ para evitar interpolación temprana de Docker Compose env vars
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    labels:
+      - "com.zenith.environment=development"
+      - "com.zenith.service=database"
+
+  # Backend FastAPI
+  backend:
+    build:
+      context: ../backend
+      dockerfile: ../docker/backend/Dockerfile.dev
+    container_name: zenith_backend
+    restart: unless-stopped
+    env_file:
+      - ../backend/.env.dev
+    volumes:
+      # Sincronización de código en tiempo real
+      - ../backend:/app
+      # Volumen para almacenamiento físico de archivos (Drive)
+      - zenith_storage:/app/storage
+      # Cache de dependencias
+      - backend_cache:/app/.venv
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - zenith_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    labels:
+      - "com.zenith.environment=development"
+      - "com.zenith.service=backend"
+
+# Red personalizada
+networks:
+  zenith_network:
+    driver: bridge
+    name: zenith_dev_network
+
+# Volúmenes persistentes
+volumes:
+  postgres_data:
+    name: zenith_dev_postgres_data
+  # Almacenamiento para archivos de Google Drive
+  zenith_storage:
+    name: zenith_dev_storage
+  backend_cache:
+    name: zenith_dev_backend_cache
