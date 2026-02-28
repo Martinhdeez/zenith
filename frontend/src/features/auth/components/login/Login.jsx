@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { getAuthErrorMessage } from '../../utils/authErrorMessages.js'
+import zenithLogo from '../../../../assets/logo/LOGO-DEFINITIVO.png'
 import './Login.css'
 
 function Login({ isOpen = true, onClose, onSignUp, onLoginSuccess }) {
@@ -116,7 +117,9 @@ function Login({ isOpen = true, onClose, onSignUp, onLoginSuccess }) {
           x
         </button>
         <div className="login-header">
-          <div className="login-badge">ZE</div>
+          <div className="login-badge" aria-hidden="true">
+            <img src={zenithLogo} alt="" className="login-badge-logo" />
+          </div>
           <h2>Sign in</h2>
           <p>Access your Zenith account and keep competing.</p>
         </div>

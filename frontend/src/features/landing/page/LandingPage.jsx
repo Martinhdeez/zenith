@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import SideBar from '../../shared/components/SideBar.jsx'
 import Footer from '../../shared/components/Footer.jsx'
 import ParticlesBackground from '../components/particlesBackground/ParticlesBackground.jsx'
@@ -13,6 +14,7 @@ import { featureCards, typewriterWords } from './landingData.js'
 import './LandingPage.css'
 
 function LandingPage({ currentUser, onAuthSuccess, onSignOut }) {
+  const navigate = useNavigate()
   const [isRegisterOpen, setIsRegisterOpen] = useState(false)
   const [isLoginOpen, setIsLoginOpen] = useState(false)
 
@@ -35,17 +37,25 @@ function LandingPage({ currentUser, onAuthSuccess, onSignOut }) {
     closeLogin()
     if (onAuthSuccess) {
       await onAuthSuccess()
+      navigate('/home')
     }
   }
+
+  // Auto-redirect if already logged in
+  useEffect(() => {
+    if (currentUser) {
+      navigate('/home')
+    }
+  }, [currentUser, navigate])
 
   return (
     <div className={`landing ${isModalOpen ? 'is-modal-open' : ''}`}>
       <ParticlesBackground />
       <div className="landing-content">
-        <SideBar 
-          isAuthenticated={Boolean(currentUser)} 
-          onLogin={openLogin} 
-          onRegister={openRegister} 
+        <SideBar
+          isAuthenticated={Boolean(currentUser)}
+          onLogin={openLogin}
+          onRegister={openRegister}
         />
         <Hero words={typewriterWords} onStart={openRegister} />
         <FeaturesSection featureCards={featureCards} />

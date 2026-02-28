@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { getAuthErrorMessage } from '../../utils/authErrorMessages.js'
+import zenithLogo from '../../../../assets/logo/LOGO-DEFINITIVO.png'
 import './Register.css'
 
 function Register({ isOpen, onClose, onSignIn }) {
@@ -132,7 +133,9 @@ function Register({ isOpen, onClose, onSignIn }) {
           x
         </button>
         <div className="register-header">
-          <div className="register-badge">ZE</div>
+          <div className="register-badge" aria-hidden="true">
+            <img src={zenithLogo} alt="" className="register-badge-logo" />
+          </div>
           <h2>Create account</h2>
           <p>Join Zenith and start competing in real challenges.</p>
         </div>
