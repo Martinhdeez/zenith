@@ -34,7 +34,7 @@ asyncio.run(wait_for_db())
 
 # Run database migrations
 echo "🔧 Running Alembic migrations..."
-cd /app/alembic && alembic upgrade head
+cd /app && alembic upgrade head
 
 echo "✅ Migrations complete!"
 echo "🌐 Starting FastAPI server..."
