@@ -1,15 +1,18 @@
 import { useEffect, useState, useCallback } from 'react'
 import { fileService } from '../services/fileService'
+import StudyPanel from './StudyPanel.jsx'
 import './FilePreviewModal.css'
 
 /**
- * FilePreviewModal — A Google Drive-style preview modal.
- * Supports images, text files, and generic downloads.
+ * FilePreviewModal — A Google Drive-style preview modal with AI Study Panel.
+ * Supports images, text files, PDFs, and generic downloads.
  */
 function FilePreviewModal({ file, onClose }) {
   const [content, setContent] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [showStudyPanel, setShowStudyPanel] = useState(false)
+  const [isStudyFullscreen, setIsStudyFullscreen] = useState(false)
 
   const isImage = file.mime_type?.startsWith('image/') || 
                 ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(file.format?.toLowerCase());
@@ -17,6 +20,8 @@ function FilePreviewModal({ file, onClose }) {
   
   const isText = (file.mime_type?.startsWith('text/') || 
                ['txt', 'md', 'json', 'js', 'py'].includes(file.format?.toLowerCase())) && !isPdf;
+
+  const canStudy = isText || isPdf;
 
   const [pdfUrl, setPdfUrl] = useState(null);
 
@@ -32,8 +37,6 @@ function FilePreviewModal({ file, onClose }) {
       const res = await fileService.downloadFile(file.id);
       
       if (isPdf) {
-        // Handle PDF as Blob URL
-        // downloadFile returns { content, mime_type, ... } where content is base64
         const b64 = res.content.replace(/^data:.*?;base64,/, '').replace(/\s/g, '');
         const binary = window.atob(b64);
         const bytes = new Uint8Array(binary.length);
@@ -47,7 +50,6 @@ function FilePreviewModal({ file, onClose }) {
       }
 
       const raw = res?.content || '';
-      // Hyper-robust decoding strategy for text
       let result = raw;
       const b64Candidate = typeof raw === 'string' 
         ? raw.replace(/^data:.*?;base64,/, '').replace(/\s/g, '')
@@ -84,13 +86,13 @@ function FilePreviewModal({ file, onClose }) {
     return () => {
       if (pdfUrl) URL.revokeObjectURL(pdfUrl);
     };
-  }, [file.id]); // Only refetch when file changes
+  }, [file.id]);
 
   if (!file) return null;
 
   return (
     <div className="preview-overlay" onClick={onClose} role="dialog" aria-modal="true">
-      <div className="preview-modal" onClick={(e) => e.stopPropagation()}>
+      <div className={`preview-modal ${showStudyPanel ? 'preview-modal--with-panel' : ''}`} onClick={(e) => e.stopPropagation()}>
         <header className="preview-header">
           <div className="preview-header__info">
             <span className="preview-icon">
@@ -102,6 +104,18 @@ function FilePreviewModal({ file, onClose }) {
             </div>
           </div>
           <div className="preview-header__actions">
+            {canStudy && (
+              <button 
+                className={`preview-study-btn ${showStudyPanel ? 'is-active' : ''}`}
+                onClick={() => setShowStudyPanel(!showStudyPanel)}
+                aria-label="Toggle AI Study Panel"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                </svg>
+                AI Study
+              </button>
+            )}
              <a 
               href={file.url} 
               download={file.name} 
@@ -125,57 +139,72 @@ function FilePreviewModal({ file, onClose }) {
           </div>
         </header>
 
-        <main className="preview-body">
-          {loading && (
-            <div className="preview-status">
-              <div className="preview-spinner" />
-              <p>Loading content...</p>
-            </div>
+        <div className="preview-layout">
+          {!isStudyFullscreen && (
+            <main className="preview-body">
+              {loading && (
+                <div className="preview-status">
+                  <div className="preview-spinner" />
+                  <p>Loading content...</p>
+                </div>
+              )}
+
+              {error && (
+                <div className="preview-status error">
+                  <p>{error}</p>
+                </div>
+              )}
+
+              {!loading && !error && (
+                <>
+                  {isImage && (
+                    <div className="preview-content preview-content--image">
+                      <img src={file.url} alt={file.name} />
+                    </div>
+                  )}
+
+                  {isText && content && (
+                    <div className="preview-content preview-content--text">
+                      <pre>{content}</pre>
+                    </div>
+                  )}
+
+                  {isPdf && pdfUrl && (
+                    <div className="preview-content preview-content--pdf">
+                      <iframe 
+                        src={pdfUrl} 
+                        title={file.name}
+                        width="100%" 
+                        height="100%" 
+                      />
+                    </div>
+                  )}
+
+                  {!isImage && !isText && !isPdf && (
+                    <div className="preview-content preview-content--generic">
+                      <div className="generic-preview-icon">📦</div>
+                      <p>Preview not available for this file type.</p>
+                      <a href={file.url} className="upload-btn upload-btn--smart" target="_blank" rel="noopener noreferrer">
+                        Open in new tab
+                      </a>
+                    </div>
+                  )}
+                </>
+              )}
+            </main>
           )}
 
-          {error && (
-            <div className="preview-status error">
-              <p>{error}</p>
-            </div>
+          {showStudyPanel && (
+            <StudyPanel 
+              file={file} 
+              onClose={() => {
+                setShowStudyPanel(false)
+                setIsStudyFullscreen(false)
+              }} 
+              onFullscreenToggle={setIsStudyFullscreen}
+            />
           )}
-
-          {!loading && !error && (
-            <>
-              {isImage && (
-                <div className="preview-content preview-content--image">
-                  <img src={file.url} alt={file.name} />
-                </div>
-              )}
-
-              {isText && content && (
-                <div className="preview-content preview-content--text">
-                  <pre>{content}</pre>
-                </div>
-              )}
-
-              {isPdf && pdfUrl && (
-                <div className="preview-content preview-content--pdf">
-                  <iframe 
-                    src={pdfUrl} 
-                    title={file.name}
-                    width="100%" 
-                    height="100%" 
-                  />
-                </div>
-              )}
-
-              {!isImage && !isText && !isPdf && (
-                <div className="preview-content preview-content--generic">
-                  <div className="generic-preview-icon">📦</div>
-                  <p>Preview not available for this file type.</p>
-                  <a href={file.url} className="upload-btn upload-btn--smart" target="_blank" rel="noopener noreferrer">
-                    Open in new tab
-                  </a>
-                </div>
-              )}
-            </>
-          )}
-        </main>
+        </div>
       </div>
     </div>
   )

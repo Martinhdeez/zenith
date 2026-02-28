@@ -1,7 +1,5 @@
 from fastapi import FastAPI, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi import FastAPI, APIRouter
-from fastapi.middleware.cors import CORSMiddleware
 from app.features.auth.router import router as auth_router
 from app.features.user.router import router as user_router
 from app.features.file.router import router as file_router

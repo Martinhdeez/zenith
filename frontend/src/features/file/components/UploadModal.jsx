@@ -13,7 +13,7 @@ import './UploadModal.css'
  *   - Manual Upload: user picks the destination path
  */
 function UploadModal({ currentPath = '/', onUpload, onClose }) {
-  const [tab, setTab] = useState('file') // 'file' | 'text'
+  const [tab, setTab] = useState('file') // 'file' | 'text' | 'folder'
   const [file, setFile] = useState(null)
   const [textContent, setTextContent] = useState('')
   const [name, setName] = useState('')
@@ -53,6 +53,7 @@ function UploadModal({ currentPath = '/', onUpload, onClose }) {
   }
 
   const getUploadFile = () => {
+    if (tab === 'folder') return null
     if (tab === 'file') return file
     if (!textContent.trim()) return null
     const blob = new Blob([textContent], { type: 'text/plain' })
@@ -60,9 +61,14 @@ function UploadModal({ currentPath = '/', onUpload, onClose }) {
   }
 
   const handleUpload = async (mode) => {
-    const uploadFile = getUploadFile()
-    if (!uploadFile) {
-      setError(tab === 'file' ? 'Please select a file' : 'Please enter some text')
+    const uploadFile = tab === 'folder' ? null : getUploadFile()
+    
+    if (tab === 'file' && !uploadFile) {
+      setError('Please select a file')
+      return
+    }
+    if (tab === 'text' && !uploadFile) {
+      setError('Please enter some text')
       return
     }
     if (!name.trim()) {
@@ -75,7 +81,8 @@ function UploadModal({ currentPath = '/', onUpload, onClose }) {
     setResult(null)
 
     try {
-      const res = await onUpload(mode, uploadFile, name.trim(), description.trim(), manualPath)
+      const uploadMode = tab === 'folder' ? 'folder' : mode
+      const res = await onUpload(uploadMode, uploadFile, name.trim(), description.trim(), manualPath)
       setResult(res)
     } catch (err) {
       console.error('Upload failed:', err)
@@ -131,6 +138,20 @@ function UploadModal({ currentPath = '/', onUpload, onClose }) {
             </svg>
             Text Note
           </button>
+          <button
+            role="tab"
+            aria-selected={tab === 'folder'}
+            className={tab === 'folder' ? 'is-active' : ''}
+            onClick={() => {
+              setTab('folder')
+              if (!name) setName('')
+            }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+            </svg>
+            New Folder
+          </button>
         </div>
 
         <div className="upload-modal__body">
@@ -172,7 +193,7 @@ function UploadModal({ currentPath = '/', onUpload, onClose }) {
                 </>
               )}
             </div>
-          ) : (
+          ) : tab === 'text' ? (
             <textarea
               className="upload-textarea"
               placeholder="What's on your mind?..."
@@ -180,6 +201,15 @@ function UploadModal({ currentPath = '/', onUpload, onClose }) {
               onChange={(e) => setTextContent(e.target.value)}
               rows={6}
             />
+          ) : (
+            <div className="upload-folder-view">
+              <div className="upload-folder-view__icon">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#ff857a" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                </svg>
+              </div>
+              <p>Create a new container to organize your files</p>
+            </div>
           )}
 
           <div className="upload-modal__fields">
@@ -218,19 +248,33 @@ function UploadModal({ currentPath = '/', onUpload, onClose }) {
         </div>
 
         <footer className="upload-modal__actions">
-          <button className="upload-btn upload-btn--smart" onClick={() => handleUpload('smart')} disabled={uploading}>
-            {uploading ? <div className="upload-btn__spinner" /> : (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 2a10 10 0 1 0 10 10H12V2z"></path>
-                <path d="M12 12L2.5 4.5"></path>
-                <path d="M12 12V22a10 10 0 0 0 10-10H12z"></path>
-              </svg>
-            )}
-            {uploading ? 'Processing...' : 'Smart Auto-Sync'}
-          </button>
-          <button className="upload-btn upload-btn--manual" onClick={() => handleUpload('manual')} disabled={uploading}>
-            Manual Place
-          </button>
+          {tab === 'folder' ? (
+             <button className="upload-btn upload-btn--smart" style={{width: '100%'}} onClick={() => handleUpload('manual')} disabled={uploading}>
+              {uploading ? <div className="upload-btn__spinner" /> : (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+              )}
+              {uploading ? 'Creating...' : 'Create Folder'}
+            </button>
+          ) : (
+            <>
+              <button className="upload-btn upload-btn--smart" onClick={() => handleUpload('smart')} disabled={uploading}>
+                {uploading ? <div className="upload-btn__spinner" /> : (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 2a10 10 0 1 0 10 10H12V2z"></path>
+                    <path d="M12 12L2.5 4.5"></path>
+                    <path d="M12 12V22a10 10 0 0 0 10-10H12z"></path>
+                  </svg>
+                )}
+                {uploading ? 'Processing...' : 'Smart Auto-Sync'}
+              </button>
+              <button className="upload-btn upload-btn--manual" onClick={() => handleUpload('manual')} disabled={uploading}>
+                Manual Place
+              </button>
+            </>
+          )}
         </footer>
       </div>
     </div>

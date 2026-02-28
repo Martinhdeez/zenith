@@ -90,9 +90,9 @@
 }
 
 .assistant-page__messages-inner {
-  width: min(820px, 96%);
+  width: min(1000px, 94%);
   margin: 0 auto;
-  padding: 24px 0;
+  padding: 32px 0;
 }
 
 /* ── Typing indicator ───────────── */

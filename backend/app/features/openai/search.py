@@ -30,9 +30,10 @@ async def search_files(
     user_id: Optional[int] = None,
     top_k: int = 10,
     deep: bool = False,
+    base_path: str = "/",
 ) -> List[SearchResult]:
     """
-    Semantic search for files.
+    Semantic search for files, scoped to base_path and its subtree.
 
     Mode 1 (fast, default): Vector similarity via pgvector (~20ms).
     Mode 2 (deep=True): Vector search + GPT-4o re-ranking (~3s).
@@ -43,6 +44,7 @@ async def search_files(
         user_id: Optional filter for a specific user's files.
         top_k: Number of results to return.
         deep: If True, use GPT-4o to re-rank results.
+        base_path: Root path for recursive scoping (default "/" = all files).
 
     Returns:
         List of SearchResult with file and similarity distance.
@@ -62,6 +64,17 @@ async def search_files(
 
     if user_id is not None:
         stmt = stmt.where(File.user_id == user_id)
+
+    # Scope to current subtree
+    if base_path != "/":
+        from sqlalchemy import or_
+        normalized = base_path.rstrip("/")
+        stmt = stmt.where(
+            or_(
+                File.path == normalized,
+                File.path.like(f"{normalized}/%"),
+            )
+        )
 
     # Fetch more candidates if deep mode is on (for re-ranking)
     fetch_k = top_k * 4 if deep else top_k
