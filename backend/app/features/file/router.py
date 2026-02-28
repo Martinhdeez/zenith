@@ -23,7 +23,7 @@ from app.features.file.schemas import (
 from app.features.auth.dependencies import get_current_user
 from app.features.openai.search import search_files
 from app.features.openai.organizer import suggest_file_path
-from app.features.openai.transcription import transcribe_audio
+from app.features.openai.transcription import transcribe_media, is_transcribable
 from app.features.openai.embedding import generate_embedding
 
 logger = logging.getLogger(__name__)
@@ -66,6 +66,14 @@ async def upload_file(
                 detail="File must be provided when file_type is 'file'",
             )
         try:
+            # Transcribe audio or video before Cloudinary upload (needs file bytes)
+            transcription = None
+            if file.content_type and is_transcribable(file.content_type):
+                logger.info("Media file detected (%s). Transcribing: %s", file.content_type, name)
+                file_bytes = await file.read()
+                transcription = transcribe_media(file_bytes, file.filename or name)
+                file.file.seek(0)
+
             cloudinary.config(cloudinary_url=settings.CLOUDINARY_URL)
             result = cloudinary.uploader.upload(
                 file.file,
@@ -90,7 +98,8 @@ async def upload_file(
                     if file.filename and "." in file.filename
                     else "unknown",
                 ),
-                embedding=generate_embedding(f"{name} {description or ''}"),
+                embedding=generate_embedding(f"{name} {description or ''} {transcription or ''}"),
+                transcription=transcription,
             )
         except Exception as e:
             logger.error("Cloudinary upload failed: %s", e)
@@ -159,11 +168,11 @@ async def smart_upload(
             created_new_folder = True
 
     transcription = None
-    if file.content_type and file.content_type.startswith("audio/"):
-        logger.info("Audio detected. Transcribing: %s", name)
+    if file.content_type and is_transcribable(file.content_type):
+        logger.info("Media file detected (%s). Transcribing: %s", file.content_type, name)
         # Read file once for transcription
         file_bytes = await file.read()
-        transcription = transcribe_audio(file_bytes, file.filename)
+        transcription = transcribe_media(file_bytes, file.filename or name)
         # Reset file pointer for Cloudinary upload
         file.file.seek(0)
 
