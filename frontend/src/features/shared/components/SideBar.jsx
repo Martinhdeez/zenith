@@ -129,11 +129,6 @@ function SideBar({ links = navLinks, isAuthenticated = true, onLogin, onRegister
             </span>
           </Link>
 
-          {!isAuthenticated && (
-            <div className="sidebar-guest-notice">
-              <p>Sign in to unlock AI Assistant and your personal cloud.</p>
-            </div>
-          )}
 
           {isAuthenticated ? (
             onNewClick && (
@@ -154,11 +149,12 @@ function SideBar({ links = navLinks, isAuthenticated = true, onLogin, onRegister
               className="sidebar-menu-link"
               type="button"
               onClick={() => { onLogin(); closeMobile(); }}
+              title={isCollapsed ? 'Iniciar sesión' : ''}
             >
               <span className="sidebar-menu-icon">
                 <SideBarIcon type="login" />
               </span>
-              <span>Iniciar sesión</span>
+              {!isCollapsed && <span>Iniciar sesión</span>}
             </button>
           )}
 
@@ -186,15 +182,22 @@ function SideBar({ links = navLinks, isAuthenticated = true, onLogin, onRegister
                   className="sidebar-menu-link"
                   type="button"
                   onClick={() => { onRegister(); closeMobile(); }}
+                  title={isCollapsed ? 'Registrarse' : ''}
                 >
                   <span className="sidebar-menu-icon">
                     <SideBarIcon type="register" />
                   </span>
-                  <span>Registrarse</span>
+                  {!isCollapsed && <span>Registrarse</span>}
                 </button>
               </li>
             )}
           </ul>
+
+          {!isAuthenticated && !isCollapsed && (
+            <div className="sidebar-guest-notice">
+              <p>Sign in to unlock AI Assistant and your personal cloud.</p>
+            </div>
+          )}
 
           <div className="sidebar-bottom">
             {isAuthenticated && (
