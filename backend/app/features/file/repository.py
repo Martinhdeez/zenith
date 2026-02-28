@@ -163,6 +163,18 @@ class FileRepository(BaseRepository[File]):
         result = await self.db.execute(stmt)
         return list(result.scalars().all())
 
+    async def get_folder_by_name_and_path(self, user_id: int, name: str, path: str) -> Optional[File]:
+        """Check if a specific folder already exists in a given path."""
+        stmt = (
+            select(self.model)
+            .where(self.model.user_id == user_id)
+            .where(self.model.name == name)
+            .where(self.model.path == path)
+            .where(self.model.file_type == "dir")
+        )
+        result = await self.db.execute(stmt)
+        return result.scalars().first()
+
     async def get_file_by_full_path(self, user_id: int, full_path: str) -> Optional[File]:
         """Find a file or folder by its absolute full path."""
         if full_path == "/":
