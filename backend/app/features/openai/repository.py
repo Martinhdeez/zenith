@@ -36,10 +36,9 @@ class ChatRepository(BaseRepository[ChatMessage]):
 
     async def add_message(self, user_id: int, role: str, content: str, files_used: int = 0) -> ChatMessage:
         """Add a new message to the conversation history."""
-        message = ChatMessage(
-            user_id=user_id,
-            role=role,
-            content=content,
-            files_used=files_used
-        )
-        return await self.create(message)
+        return await self.create({
+            "user_id": user_id,
+            "role": role,
+            "content": content,
+            "files_used": files_used
+        })
