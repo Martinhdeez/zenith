@@ -2,7 +2,7 @@
 SQLAlchemy model for files.
 Represents the 'files' table in PostgreSQL with pgvector embedding support.
 """
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from pgvector.sqlalchemy import Vector

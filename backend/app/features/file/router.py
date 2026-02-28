@@ -23,6 +23,7 @@ from app.features.file.schemas import (
 from app.features.auth.dependencies import get_current_user
 from app.features.openai.search import search_files
 from app.features.openai.organizer import suggest_file_path
+from app.features.openai.transcription import transcribe_audio
 from app.features.openai.embedding import generate_embedding
 
 logger = logging.getLogger(__name__)
@@ -123,11 +124,9 @@ async def smart_upload(
     """
     repo = FileRepository(db)
 
-    # 1. Get user's existing folders for AI context
     user_folders = await repo.get_user_folders(current_user.id)
     logger.info("Smart upload: user %s has folders %s", current_user.id, user_folders)
 
-    # 2. Ask GPT-4o for the best path
     suggestion = await suggest_file_path(
         filename=name,
         mime_type=file.content_type,
@@ -135,7 +134,6 @@ async def smart_upload(
     )
     logger.info("AI suggested path: %s (new_folder=%s)", suggestion.path, suggestion.new_folder)
 
-    # 3. Create new folder in DB if AI suggests one that doesn't exist
     created_new_folder = False
     if suggestion.new_folder or suggestion.path not in user_folders:
         existing = await repo.get_files_by_path(
@@ -160,7 +158,15 @@ async def smart_upload(
             await repo.create(folder_data.model_dump())
             created_new_folder = True
 
-    # 4. Upload file to Cloudinary
+    transcription = None
+    if file.content_type and file.content_type.startswith("audio/"):
+        logger.info("Audio detected. Transcribing: %s", name)
+        # Read file once for transcription
+        file_bytes = await file.read()
+        transcription = transcribe_audio(file_bytes, file.filename)
+        # Reset file pointer for Cloudinary upload
+        file.file.seek(0)
+
     try:
         cloudinary.config(cloudinary_url=settings.CLOUDINARY_URL)
         result = cloudinary.uploader.upload(
@@ -194,7 +200,9 @@ async def smart_upload(
             if file.filename and "." in file.filename
             else "unknown",
         ),
-        embedding=generate_embedding(f"{name} {description or ''}"),
+        embedding=generate_embedding(
+            f"{name} {description or ''} {transcription or ''}"
+        ),
     )
     new_file = await repo.create(file_data.model_dump())
 
@@ -217,6 +225,21 @@ async def smart_upload(
         ai_reason=suggestion.reason,
     )
 
+
+
+# ──────────────────────────────────────────────
+# Recent Files
+# ──────────────────────────────────────────────
+
+@router.get("/recent", response_model=List[FileResponse])
+async def get_recent_files(
+    limit: int = Query(default=10, ge=1, le=50, description="Number of recent files to return"),
+    current_user=Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Return the N most recently created files for the current user."""
+    repo = FileRepository(db)
+    return await repo.get_recent_files(user_id=current_user.id, limit=limit)
 
 
 # ──────────────────────────────────────────────

@@ -63,3 +63,17 @@ class FileRepository(BaseRepository[File]):
             full = f"{path.rstrip('/')}/{name}" if path != "/" else f"/{name}"
             folder_paths.add(full)
         return sorted(folder_paths)
+
+    async def get_recent_files(
+        self, user_id: int, limit: int = 10
+    ) -> List[File]:
+        """Return the N most recently created files for a user."""
+        stmt = (
+            select(self.model)
+            .where(self.model.user_id == user_id)
+            .where(self.model.file_type == "file")
+            .order_by(self.model.created_at.desc(), self.model.id.desc())
+            .limit(limit)
+        )
+        result = await self.db.execute(stmt)
+        return list(result.scalars().all())
