@@ -17,9 +17,8 @@ function Hero({ words, onStart }) {
         </p>
         <div className="hero-actions">
           <button className="btn primary" type="button" onClick={onStart}>
-            Try demo
+            Try app
           </button>
-          <button className="btn secondary">See workflow</button>
         </div>
         <div className="scroll-indicator">
           <span>Scroll to explore</span>
