@@ -14,6 +14,7 @@ from app.core.database import AsyncSessionLocal
 from app.features.file.model import File
 from app.features.openai.client import get_llm
 from app.features.openai.study import _fetch_file_text
+from app.features.openai.embedding import generate_embedding
 
 logger = logging.getLogger(__name__)
 
@@ -130,6 +131,10 @@ async def start_folder_summary_update(file_id: int):
 
                 if new_summary and new_summary != folder_obj.summary:
                     folder_obj.summary = new_summary
+                    # Update embedding to include the new summary for searchability
+                    folder_obj.embedding = generate_embedding(
+                        f"{folder_obj.name} {folder_obj.description or ''} {new_summary}"
+                    )
                     await db.commit()
                 
                 # For the next level up, the content we propagate is the NEW summary of THIS folder
