@@ -22,9 +22,9 @@ You are given the current summary of a folder (if any) and the content of a NEW 
 Your task is to rewrite the folder summary to incorporate the new information concisely.
 
 The summary should:
-1. Be a high-level overview of what the folder contains.
-2. Highlight key topics, themes, or important standalone facts.
-3. Keep it brief and scannable (no more than 3-4 short paragraphs).
+1. Be an EXTREMELY concise high-level overview (max 2-3 lines).
+2. Tell the user EXACTLY what kind of content is in this folder at a glance.
+3. Use a clear, direct, and professional tone.
 4. ALWAYS respond in the SAME LANGUAGE as the dominant language of the content.
 
 ── CURRENT FOLDER SUMMARY ──
