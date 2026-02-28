@@ -101,9 +101,10 @@ async def start_folder_summary_update(file_id: int):
                     break
 
                 # Example: "/Math/Calculus" -> parent_path="/Math", name="Calculus"
-                parts = current_path.rstrip("/").split("/")
+                # Example: "/Redes" -> parent_path="/", name="Redes"
+                parts = [p for p in current_path.split("/") if p]
                 folder_name = parts[-1]
-                parent_path = "/".join(parts[:-1]) if len(parts) > 1 else "/"
+                parent_path = "/" + "/".join(parts[:-1]) if len(parts) > 1 else "/"
 
                 stmt = select(File).where(
                     File.file_type == "dir",
