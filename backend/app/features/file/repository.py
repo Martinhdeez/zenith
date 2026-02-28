@@ -3,7 +3,6 @@ File repository.
 Implements database operations for files, including search.
 """
 from sqlalchemy import select, or_
-from sqlalchemy import select, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional
 
@@ -164,5 +163,3 @@ class FileRepository(BaseRepository[File]):
         )
         result = await self.db.execute(stmt)
         return result.scalar_one_or_none()
-
-    
