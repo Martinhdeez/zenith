@@ -25,6 +25,12 @@ class Settings(BaseSettings):
     # Cloudinary
     CLOUDINARY_URL: str
     
+    # OAuth Providers
+    GOOGLE_CLIENT_ID: str = ""
+    GOOGLE_CLIENT_SECRET: str = ""
+    GITHUB_CLIENT_ID: str = ""
+    GITHUB_CLIENT_SECRET: str = ""
+    
     # Security
     JWT_SECRET: str
     JWT_ALGORITHM: str = "HS256"
