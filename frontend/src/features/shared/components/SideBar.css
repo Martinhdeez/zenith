@@ -105,8 +105,7 @@
 .sidebar-brand-mark img {
   object-fit: cover;
   display: block;
-  transform: scale(2.3);
-  margin-top: 0.1em;
+  transform: scale(2.5);
   margin-right: -0.2em;
   transform-origin: center;
   filter: drop-shadow(0 4px 12px rgba(201, 95, 88, 0.45));
@@ -118,6 +117,7 @@
   background-clip: text;
   -webkit-text-fill-color: transparent;
   text-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+  font-size: 1em;
 }
 
 .sidebar-new {
@@ -175,7 +175,7 @@
   border-radius: 14px;
   background: transparent;
   color: rgba(255, 255, 255, 0.7);
-  font-size: 0.98rem;
+  font-size: 1.3rem;
   font-weight: 550;
   text-decoration: none;
   display: inline-flex;
@@ -207,7 +207,7 @@
 
 .sidebar-guest-notice p {
   margin: 0;
-  font-size: 0.88rem;
+  font-size: 1.1rem;
   color: rgba(255, 255, 255, 0.45);
   line-height: 1.5;
   font-weight: 450;
