@@ -2,6 +2,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import LandingPage from './features/landing/page/LandingPage.jsx'
 import HomePage from './features/home/page/HomePage.jsx'
+import AssistantPage from './features/assistant/page/AssistantPage.jsx'
 import ProfilePage from './features/profile/page/ProfilePage.jsx'
 import './App.css'
 
@@ -72,6 +73,16 @@ function App() {
           element={
             currentUser ? (
               <HomePage currentUser={currentUser} onSignOut={handleSignOut} />
+            ) : (
+              <Navigate to="/" replace />
+            )
+          } 
+        />
+        <Route 
+          path="/assistant" 
+          element={
+            currentUser ? (
+              <AssistantPage currentUser={currentUser} onSignOut={handleSignOut} />
             ) : (
               <Navigate to="/" replace />
             )

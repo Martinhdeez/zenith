@@ -1,0 +1,109 @@
+.chat-input-wrap {
+  padding: 20px 24px 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  background: linear-gradient(180deg, rgba(10, 16, 28, 0.6), rgba(8, 14, 24, 0.8));
+  backdrop-filter: blur(20px);
+}
+
+.chat-input {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 10px 12px 10px 18px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.chat-input:focus-within {
+  border-color: rgba(255, 133, 122, 0.5);
+  box-shadow: 0 0 0 3px rgba(255, 133, 122, 0.1);
+}
+
+.chat-input__textarea {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #fff;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  resize: none;
+  min-height: 24px;
+  max-height: 200px;
+  font-family: inherit;
+}
+
+.chat-input__textarea::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.chat-input__textarea:disabled {
+  opacity: 0.5;
+}
+
+/* ── Send button ────────────────── */
+
+.chat-input__send {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg, #ff857a, #ff6b5d);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.chat-input__send:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: 0 4px 14px rgba(255, 133, 122, 0.4);
+}
+
+.chat-input__send:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.chat-input__send svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+/* ── Spinner ────────────────────── */
+
+.chat-input__spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: chatSpin 0.7s linear infinite;
+}
+
+@keyframes chatSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Hint ───────────────────────── */
+
+.chat-input__hint {
+  text-align: center;
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.25);
+  margin: 8px 0 0;
+}
+
+.chat-input__hint kbd {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-family: inherit;
+  font-size: 0.7rem;
+}
