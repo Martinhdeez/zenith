@@ -17,11 +17,15 @@ function FilePreviewModal({ file, onClose }) {
   const isImage = file.mime_type?.startsWith('image/') || 
                 ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(file.format?.toLowerCase());
   const isPdf = file.mime_type === 'application/pdf' || file.format?.toLowerCase() === 'pdf';
+  const isVideo = file.mime_type?.startsWith('video/') ||
+                ['mp4', 'webm', 'ogg', 'mov', 'avi', 'mkv'].includes(file.format?.toLowerCase());
+  const isAudio = file.mime_type?.startsWith('audio/') ||
+                ['mp3', 'wav', 'ogg', 'flac', 'aac', 'm4a', 'wma'].includes(file.format?.toLowerCase());
   
   const isText = (file.mime_type?.startsWith('text/') || 
                ['txt', 'md', 'json', 'js', 'py'].includes(file.format?.toLowerCase())) && !isPdf;
 
-  const canStudy = isText || isPdf;
+  const canStudy = isText || isPdf || isAudio;
 
   const [pdfUrl, setPdfUrl] = useState(null);
 
@@ -96,7 +100,7 @@ function FilePreviewModal({ file, onClose }) {
         <header className="preview-header">
           <div className="preview-header__info">
             <span className="preview-icon">
-              {isImage ? '🖼️' : isText ? '📄' : '📦'}
+              {isImage ? '🖼️' : isVideo ? '🎬' : isAudio ? '🎵' : isText ? '📄' : isPdf ? '📋' : '📦'}
             </span>
             <div className="preview-titles">
               <h3>{file.name}</h3>
@@ -180,7 +184,48 @@ function FilePreviewModal({ file, onClose }) {
                     </div>
                   )}
 
-                  {!isImage && !isText && !isPdf && (
+                  {isVideo && (
+                    <div className="preview-content preview-content--video">
+                      <video
+                        controls
+                        autoPlay
+                        playsInline
+                        preload="metadata"
+                        controlsList="nodownload"
+                      >
+                        <source src={file.url} type={file.mime_type || 'video/mp4'} />
+                        Your browser does not support video playback.
+                      </video>
+                    </div>
+                  )}
+
+                  {isAudio && (
+                    <div className="preview-content preview-content--audio">
+                      <div className="audio-player-card">
+                        <div className="audio-player-icon">🎵</div>
+                        <h4 className="audio-player-title">{file.name}</h4>
+                        <p className="audio-player-meta">{file.mime_type || 'Audio'} · {file.size ? (file.size / 1024).toFixed(1) + ' KB' : ''}</p>
+                        <audio
+                          controls
+                          autoPlay
+                          preload="metadata"
+                          controlsList="nodownload"
+                          style={{ width: '100%', marginTop: '16px' }}
+                        >
+                          <source src={file.url} type={file.mime_type || 'audio/mpeg'} />
+                          Your browser does not support audio playback.
+                        </audio>
+                        {file.transcription && (
+                          <div className="audio-transcription">
+                            <h5>Transcription</h5>
+                            <p>{file.transcription}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {!isImage && !isText && !isPdf && !isVideo && !isAudio && (
                     <div className="preview-content preview-content--generic">
                       <div className="generic-preview-icon">📦</div>
                       <p>Preview not available for this file type.</p>

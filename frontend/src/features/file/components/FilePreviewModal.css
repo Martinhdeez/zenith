@@ -259,6 +259,105 @@
   opacity: 0.25;
 }
 
+/* ── Video Player ─────────────────────────── */
+.preview-content--video {
+  width: 100%;
+  max-width: 1100px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.preview-content--video video {
+  width: 100%;
+  max-height: 80vh;
+  border-radius: 20px;
+  box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #000;
+  outline: none;
+}
+
+/* ── Audio Player ─────────────────────────── */
+.preview-content--audio {
+  width: 100%;
+  max-width: 560px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.audio-player-card {
+  width: 100%;
+  padding: 48px 40px 40px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 28px;
+  text-align: center;
+  backdrop-filter: blur(20px);
+  animation: contentFadeUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.audio-player-icon {
+  font-size: 4rem;
+  margin-bottom: 16px;
+  animation: audioFloat 3s ease-in-out infinite;
+}
+
+@keyframes audioFloat {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-8px); }
+}
+
+.audio-player-title {
+  margin: 0 0 6px;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.audio-player-meta {
+  margin: 0 0 8px;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+}
+
+.audio-player-card audio {
+  border-radius: 12px;
+}
+
+/* Chrome / Edge audio controls tint */
+.audio-player-card audio::-webkit-media-controls-panel {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+}
+
+/* ── Transcription ────────────────────────── */
+.audio-transcription {
+  margin-top: 24px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  text-align: left;
+}
+
+.audio-transcription h5 {
+  margin: 0 0 10px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #ff857a;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.audio-transcription p {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.65;
+  color: #c0c8d8;
+}
+
 /* ── Responsive ────────────────────────────── */
 @media (max-width: 900px) {
   .preview-header {
