@@ -208,7 +208,7 @@ function UploadModal({ currentPath = '/', onUpload, onClose }) {
           </button>
         </header>
 
-        <div className="upload-modal__tabs" role="tablist">
+        <div id="step-tabs" className="upload-modal__tabs" role="tablist">
           <button
             role="tab"
             aria-selected={tab === 'file'}
@@ -242,6 +242,7 @@ function UploadModal({ currentPath = '/', onUpload, onClose }) {
           {tab === 'file' ? (
             <div className={`upload-file-section ${files.length > 0 ? 'has-files' : ''}`}>
               <div
+                id="step-dropzone"
                 className={`upload-dropzone${isDragOver ? ' is-dragover' : ''}`}
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
@@ -322,7 +323,7 @@ function UploadModal({ currentPath = '/', onUpload, onClose }) {
           <div className="upload-modal__fields">
             <label style={{gridColumn: 'span 2'}}>
               <span>Description (Optional Context for AI)</span>
-              <input type="text" placeholder="Context helps AI organize better..." value={description} onChange={(e) => setDescription(e.target.value)} />
+              <input id="step-description" type="text" placeholder="Context helps AI organize better..." value={description} onChange={(e) => setDescription(e.target.value)} />
             </label>
           </div>
 
@@ -386,7 +387,7 @@ function UploadModal({ currentPath = '/', onUpload, onClose }) {
             </>
           ) : (
             <>
-              <button className="upload-btn upload-btn--smart" onClick={() => handleUpload('smart')} disabled={uploading || smartState === 'suggesting'}>
+              <button id="step-smart-sync" className="upload-btn upload-btn--smart" onClick={() => handleUpload('smart')} disabled={uploading || smartState === 'suggesting'}>
                 {smartState === 'suggesting' ? <div className="upload-btn__spinner" /> : (
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M12 2a10 10 0 1 0 10 10H12V2z"></path>

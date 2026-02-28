@@ -72,7 +72,7 @@ function App() {
           path="/home" 
           element={
             currentUser ? (
-              <HomePage currentUser={currentUser} onSignOut={handleSignOut} />
+              <HomePage currentUser={currentUser} onSignOut={handleSignOut} onAuthSuccess={fetchCurrentUser} />
             ) : (
               <Navigate to="/" replace />
             )

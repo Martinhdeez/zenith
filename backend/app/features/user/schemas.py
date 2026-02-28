@@ -22,12 +22,14 @@ class UserUpdate(BaseModel):
     email: EmailStr | None = None
     username: str | None = Field(None, min_length=3, max_length=50)
     password: str | None = Field(None, min_length=8, max_length=100)
+    has_completed_tutorial: bool | None = None
 
 
 class UserRead(UserBase):
     """Schema for reading user data (response)."""
     id: int
     is_active: bool
+    has_completed_tutorial: bool
     created_at: datetime
     updated_at: datetime | None = None
     
