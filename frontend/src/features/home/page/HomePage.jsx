@@ -22,7 +22,7 @@ const fileItems = [
   { name: 'Team planning', type: 'sheet', activity: 'Opened · 10 Feb' },
 ]
 
-function HomePage({ userName, onSignOut }) {
+function HomePage({ currentUser, onSignOut, onViewProfile, onNavigate }) {
   const [search, setSearch] = useState('')
   const normalizedSearch = search.trim().toLowerCase()
 
@@ -50,15 +50,16 @@ function HomePage({ userName, onSignOut }) {
 
   return (
     <div className="home-page">
-      <SideBar isAuthenticated onSignOut={onSignOut} />
+      <SideBar isAuthenticated onNavigate={onNavigate} />
 
       <main className="home-page__content">
         <DashboardToolbar
           search={search}
           onSearchChange={setSearch}
           onAiClick={() => {}}
-          onProfileClick={() => {}}
-          profileLabel={`${userName || 'User'} profile`}
+          onViewProfile={onViewProfile}
+          onSignOut={onSignOut}
+          profileLabel={`${currentUser?.username || 'User'} profile`}
         />
 
         <section className="home-shell" aria-label="Zenith Home">
@@ -117,7 +118,7 @@ function HomePage({ userName, onSignOut }) {
                   <div className={`file-card__preview file-card__preview--${file.type}`} />
                   <footer className="file-card__meta">
                     <span className="file-card__avatar" aria-hidden="true">
-                      {userName?.trim()?.charAt(0).toUpperCase() || 'U'}
+                      {currentUser?.username?.trim()?.charAt(0).toUpperCase() || 'U'}
                     </span>
                     <span>{file.activity}</span>
                   </footer>

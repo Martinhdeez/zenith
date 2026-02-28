@@ -8,6 +8,7 @@ import CtaSection from '../components/ctaSection/CtaSection.jsx'
 import Register from '../../auth/components/register/Register.jsx'
 import Login from '../../auth/components/login/Login.jsx'
 import HomePage from '../../home/page/HomePage.jsx'
+import ProfilePage from '../../profile/page/ProfilePage.jsx'
 import { featureCards, typewriterWords } from './landingData.js'
 import './LandingPage.css'
 
@@ -15,6 +16,7 @@ function LandingPage() {
   const [isRegisterOpen, setIsRegisterOpen] = useState(false)
   const [isLoginOpen, setIsLoginOpen] = useState(false)
   const [currentUser, setCurrentUser] = useState(null)
+  const [currentView, setCurrentView] = useState('home')
 
   const fetchCurrentUser = async () => {
     const token = localStorage.getItem('token')
@@ -65,15 +67,45 @@ function LandingPage() {
 
   const handleLoginSuccess = async () => {
     await fetchCurrentUser()
+    setCurrentView('home')
   }
 
   const handleSignOut = () => {
     localStorage.removeItem('token')
     setCurrentUser(null)
+    setCurrentView('home')
+  }
+
+  const handleNavigate = (href) => {
+    if (href === '#home') {
+      setCurrentView('home')
+      return
+    }
+    if (href === '#profile') {
+      setCurrentView('profile')
+    }
   }
 
   if (currentUser) {
-    return <HomePage userName={currentUser.username} onSignOut={handleSignOut} />
+    if (currentView === 'profile') {
+      return (
+        <ProfilePage
+          currentUser={currentUser}
+          onSignOut={handleSignOut}
+          onViewHome={() => setCurrentView('home')}
+          onNavigate={handleNavigate}
+        />
+      )
+    }
+
+    return (
+      <HomePage
+        currentUser={currentUser}
+        onSignOut={handleSignOut}
+        onViewProfile={() => setCurrentView('profile')}
+        onNavigate={handleNavigate}
+      />
+    )
   }
 
   return (

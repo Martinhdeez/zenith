@@ -30,7 +30,7 @@ function SideBarIcon({ type }) {
   )
 }
 
-function SideBar({ links = navLinks, isAuthenticated = true, onLogin, onRegister, onSignOut }) {
+function SideBar({ links = navLinks, isAuthenticated = true, onLogin, onRegister, onNavigate }) {
   const [isMobileOpen, setIsMobileOpen] = useState(false)
 
   useEffect(() => {
@@ -49,9 +49,9 @@ function SideBar({ links = navLinks, isAuthenticated = true, onLogin, onRegister
   }, [isMobileOpen])
 
   const closeMobile = () => setIsMobileOpen(false)
-  const handleSignOut = () => {
+  const handleNavigate = (href) => {
     closeMobile()
-    onSignOut?.()
+    onNavigate?.(href)
   }
 
   return (
@@ -71,7 +71,13 @@ function SideBar({ links = navLinks, isAuthenticated = true, onLogin, onRegister
 
       <aside id="logo-sidebar" className={`sidebar${isMobileOpen ? ' sidebar--open' : ''}`} aria-label="Sidebar">
         <div className="sidebar-scroll">
-          <a href="#home" className="sidebar-brand" onClick={closeMobile}>
+          <a
+            href="#home"
+            className="sidebar-brand"
+            onClick={() => {
+              handleNavigate('#home')
+            }}
+          >
             <span className="sidebar-brand-mark" aria-hidden="true">
               <span className="sidebar-brand-dot"></span>
             </span>
@@ -80,7 +86,13 @@ function SideBar({ links = navLinks, isAuthenticated = true, onLogin, onRegister
 
           {isAuthenticated ? (
             <>
-              <button className="sidebar-new" type="button" onClick={closeMobile}>
+              <button
+                className="sidebar-new"
+                type="button"
+                onClick={() => {
+                  handleNavigate('#new')
+                }}
+              >
                 <span className="sidebar-new-plus" aria-hidden="true">
                   +
                 </span>
@@ -93,7 +105,9 @@ function SideBar({ links = navLinks, isAuthenticated = true, onLogin, onRegister
                     <a
                       href={link.href}
                       className={`sidebar-menu-link${link.isActive ? ' sidebar-menu-link--active' : ''}`}
-                      onClick={closeMobile}
+                      onClick={() => {
+                        handleNavigate(link.href)
+                      }}
                     >
                       <span className="sidebar-menu-icon">
                         <SideBarIcon type={link.icon} />
@@ -107,7 +121,13 @@ function SideBar({ links = navLinks, isAuthenticated = true, onLogin, onRegister
               <div className="sidebar-bottom">
                 <ul className="sidebar-menu">
                   <li>
-                    <a href="#settings" className="sidebar-menu-link" onClick={closeMobile}>
+                    <a
+                      href="#settings"
+                      className="sidebar-menu-link"
+                      onClick={() => {
+                        handleNavigate('#settings')
+                      }}
+                    >
                       <span className="sidebar-menu-icon">
                         <SideBarIcon type="settings" />
                       </span>
@@ -115,12 +135,6 @@ function SideBar({ links = navLinks, isAuthenticated = true, onLogin, onRegister
                     </a>
                   </li>
                 </ul>
-
-                {onSignOut ? (
-                  <button className="sidebar-signout" type="button" onClick={handleSignOut}>
-                    Sign out
-                  </button>
-                ) : null}
               </div>
             </>
           ) : (
