@@ -4,8 +4,15 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import './ChatInput.css'
+
+const QUICK_ACTIONS = [
+  { icon: '🎵', label: 'Audios recientes', prompt: 'Listame los audios que he guardado la última semana y de qué tratan.' },
+  { icon: '📊', label: 'Resumen general', prompt: 'Hazme un resumen general y estructurado de mis archivos más importantes.' },
+  { icon: '🧠', label: 'Explicar concepto', prompt: 'Explícame el contenido de mis documentos recientes como si fuera un principiante.' },
+  { icon: '✨', label: 'Organizar ideas', prompt: 'Ayúdame a organizar mis notas sin clasificar en diferentes carpetas temáticas.' }
+]
 
 function ChatInput({ onSend, isLoading = false }) {
   const [value, setValue] = useState('')
@@ -37,8 +44,28 @@ function ChatInput({ onSend, isLoading = false }) {
     el.style.height = Math.min(el.scrollHeight, 200) + 'px'
   }
 
+  const handleQuickAction = (prompt) => {
+    if (isLoading) return
+    onSend(prompt)
+  }
+
   return (
     <div className="chat-input-wrap">
+      {/* Quick Actions - Hide when typing or loading */}
+      <div className={`chat-quick-actions ${value.trim() || isLoading ? 'chat-quick-actions--hidden' : ''}`}>
+        {QUICK_ACTIONS.map((action, idx) => (
+          <button 
+            key={idx} 
+            className="chat-quick-action-btn"
+            onClick={() => handleQuickAction(action.prompt)}
+            disabled={isLoading}
+          >
+            <span className="chat-quick-action-icon">{action.icon}</span>
+            <span className="chat-quick-action-label">{action.label}</span>
+          </button>
+        ))}
+      </div>
+
       <div className="chat-input">
         <textarea
           ref={textareaRef}

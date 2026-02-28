@@ -16,33 +16,9 @@ const TUTORIAL_STEPS = [
   },
   {
     targetId: 'step-upload',
-    title: 'New Content',
-    content: 'Click here to start adding files or folders to your workspace. Let’s try it now!',
+    title: 'Upload or Create Content',
+    content: 'Click the + button to bring your files into Zenith. You can also CREATE text notes directly within the platform, or organize with folders.',
     position: 'right'
-  },
-  {
-    targetId: 'step-tabs',
-    title: 'Content Types',
-    content: 'Organize your way. Choose between uploading files, creating text notes, or making new folders.',
-    position: 'bottom'
-  },
-  {
-    targetId: 'step-dropzone',
-    title: 'Smart Dropzone',
-    content: 'Drag and drop your files here. Multi-file support is built-in!',
-    position: 'top'
-  },
-  {
-    targetId: 'step-description',
-    title: 'AI Context',
-    content: 'Optionally add context. This helps Zenith’s AI find the perfect home for your files.',
-    position: 'top'
-  },
-  {
-    targetId: 'step-smart-sync',
-    title: 'Smart Auto-Sync',
-    content: 'The magic happens here. Zenith analyzes your workspace and suggests the perfect PARA category automatically.',
-    position: 'top'
   },
   {
     targetId: 'step-breadcrumbs',
@@ -50,12 +26,6 @@ const TUTORIAL_STEPS = [
     content: 'Keep track of where you are. Click on any part of the path to jump back instantly.',
     position: 'bottom'
   },
-  {
-    targetId: 'step-study',
-    title: 'AI Study Guide',
-    content: 'Inside any folder, click this button to generate a comprehensive study guide from all your documents.',
-    position: 'top'
-  }
 ]
 
 function OnboardingTutorial({ onComplete, onSkip }) {
@@ -87,7 +57,6 @@ function OnboardingTutorial({ onComplete, onSkip }) {
         setTargetRect(element.getBoundingClientRect())
         element.scrollIntoView({ behavior: 'smooth', block: 'center' })
       } else {
-        // If element not found, try to find next available step or set null
         setTargetRect(null)
       }
     }
@@ -104,23 +73,33 @@ function OnboardingTutorial({ onComplete, onSkip }) {
     }
   }, [currentStep, step.targetId])
 
+  // Auto-skip steps whose target element doesn't exist after a short delay
+  useEffect(() => {
+    const element = document.getElementById(step.targetId)
+    if (element) return // Target exists, stay on this step
+
+    // Give the element 1.5s to appear (e.g. modals opening), then auto-skip
+    const skipTimer = setTimeout(() => {
+      const el = document.getElementById(step.targetId)
+      if (!el) {
+        if (currentStep < TUTORIAL_STEPS.length - 1) {
+          setCurrentStep(prev => prev + 1)
+        } else {
+          onComplete?.()
+        }
+      }
+    }, 1500)
+
+    return () => clearTimeout(skipTimer)
+  }, [currentStep, step.targetId, onComplete])
+
   const handleNext = () => {
-    // Check if next step's element exists, if not we might need to skip to the next available one
-    // or just let it be null until the user performs the action.
     if (currentStep < TUTORIAL_STEPS.length - 1) {
       setCurrentStep(prev => prev + 1)
     } else {
       onComplete?.()
     }
   }
-
-  // Auto-skip steps that are not visible (e.g. modal steps when modal is closed)
-  // EXCEPT if they are the direct next step.
-  useEffect(() => {
-    const element = document.getElementById(step.targetId)
-    // If we are on a step that is not visible, and it's not the initial home steps, 
-    // we might want to wait. But let's show a "Placeholder" or just hide until found.
-  }, [currentStep, step.targetId])
 
   if (!isReady) return null
 

@@ -106,6 +106,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
   background: rgba(7, 13, 22, 0.68);
   padding-inline: 16px;
   font-size: 0.95rem;
+  max-width: 320px;
+  width: 100%;
 }
 
 .dashboard-toolbar .search-input input:focus {
@@ -439,18 +441,20 @@ SPDX-License-Identifier: GPL-3.0-or-later
 }
 
 .dashboard-toolbar--graph-mode .search-input {
-  width: 200px;
+  width: 160px;
   transition: width 0.3s ease;
 }
 
 .dashboard-toolbar--graph-mode .search-input input {
   background: rgba(255, 255, 255, 0.03);
   border-color: transparent;
-  min-height: 40px;
+  min-height: 36px;
+  font-size: 0.85rem;
+  padding-inline: 12px;
 }
 
 .dashboard-toolbar--graph-mode .search-input input:focus {
-  width: 280px;
+  width: 220px;
   background: rgba(255, 255, 255, 0.06);
   border-color: rgba(138, 99, 255, 0.4);
   box-shadow: 0 0 0 2px rgba(138, 99, 255, 0.15);

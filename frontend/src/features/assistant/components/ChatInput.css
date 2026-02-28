@@ -8,9 +8,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 .chat-input-wrap {
   padding: 24px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-  background: linear-gradient(180deg, rgba(10, 16, 28, 0.4), rgba(8, 14, 24, 0.7));
-  backdrop-filter: blur(24px);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -120,4 +117,61 @@ SPDX-License-Identifier: GPL-3.0-or-later
   padding: 1px 5px;
   font-family: inherit;
   font-size: 0.7rem;
+}
+
+/* ── Quick Actions ──────────────── */
+
+.chat-quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  width: min(1000px, 100%);
+  margin-bottom: 16px;
+  transition: opacity 0.3s ease, transform 0.3s ease, max-height 0.3s ease;
+  overflow: hidden;
+  max-height: 100px; /* arbitrary height to allow nice transition */
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.chat-quick-actions--hidden {
+  opacity: 0;
+  transform: translateY(10px);
+  pointer-events: none;
+  max-height: 0;
+  margin-bottom: 0;
+}
+
+.chat-quick-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  backdrop-filter: blur(10px);
+}
+
+.chat-quick-action-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 133, 122, 0.4);
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 133, 122, 0.1) inset;
+}
+
+.chat-quick-action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.chat-quick-action-icon {
+  font-size: 1rem;
 }

@@ -51,7 +51,8 @@ Rules:
 - Be concise and direct — no unnecessary filler.
 - NEVER invent files that don't exist.
 - Use markdown formatting when it helps readability (bold for filenames, lists for multiple results).
-- IMPORTANT: Whenever you mention a folder or file path, ALWAYS format it as a clickable markdown link pointing to that path. Example: `[Nombre de la carpeta](/ruta/a/la/carpeta)`.
+- IMPORTANT: When mentioning a **FOLDER**, ALWAYS format it as a clickable markdown link pointing to its path. Example: `[Nombre de la carpeta](/ruta/a/la/carpeta)`. 
+- CRITICAL: NEVER create clickable markdown links for individual files. Only use clickable links for folders. If you mention a file, just use bold text like **filename.pdf** and perhaps mention which folder it is in. do NOT link to the file itself.
 - For the top most relevant files, you will be provided with their actual raw text content. Read it carefully to answer questions about the specific text, data, or concepts inside those files.
 
 ── GENERAL FILE OVERVIEW ──
@@ -103,7 +104,15 @@ async def _build_file_overview(db: AsyncSession, user_id: int) -> str:
         overview += "Folders:\n" + "\n".join(folder_lines) + "\n"
 
     if type_lines:
-        overview += "File types:\n" + "\n".join(type_lines)
+        overview += "File types:\n" + "\n".join(type_lines) + "\n"
+
+    # Recent files (up to 50) to give the AI context about time
+    recent_files = sorted(regular_files, key=lambda x: x.created_at, reverse=True)[:50]
+    if recent_files:
+        overview += "\nRecent files (last 50):\n"
+        for f in recent_files:
+            date_str = f.created_at.strftime("%Y-%m-%d %H:%M") if f.created_at else "unknown"
+            overview += f"  • {f.name} (Uploaded: {date_str}) in {f.path}\n"
 
     return overview
 
@@ -141,11 +150,12 @@ async def _search_relevant_files(
         icon = "📁" if f.file_type == "dir" else "📄"
         size_str = f" ({f.size} bytes)" if f.size else ""
         desc_str = f" — {f.description}" if f.description else ""
+        date_str = f.created_at.strftime("%Y-%m-%d %H:%M") if getattr(f, "created_at", None) else "unknown date"
         similarity_pct = max(0, (1 - r.distance)) * 100
         
         file_info = (
             f"{i}. {icon} **{f.name}** at `{f.path}` "
-            f"[{f.mime_type or f.file_type}]{size_str}{desc_str} "
+            f"[{f.mime_type or f.file_type}, {date_str}]{size_str}{desc_str} "
             f"(relevance: {similarity_pct:.0f}%)"
         )
         lines.append(file_info)

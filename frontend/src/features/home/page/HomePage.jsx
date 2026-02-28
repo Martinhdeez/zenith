@@ -16,6 +16,7 @@ import UploadModal from '../../file/components/UploadModal.jsx'
 import FilePreviewModal from '../../file/components/FilePreviewModal.jsx'
 import ParticlesBackground from '../../landing/components/particlesBackground/ParticlesBackground.jsx'
 import { fileService } from '../../file/services/fileService'
+import { chatService } from '../../assistant/services/chatService'
 import { SideBarIcon } from '../../shared/components/SideBar.jsx'
 import OnboardingTutorial from '../components/OnboardingTutorial.jsx'
 import NeuralGraphCanvas from '../components/NeuralGraphCanvas.jsx'
@@ -33,6 +34,7 @@ function HomePage({ currentUser, onSignOut, onAuthSuccess }) {
   const [initialLoad, setInitialLoad] = useState(true)
   const [error, setError] = useState(null)
   const prevItemsRef = useRef([])
+  const tutorialDismissedRef = useRef(false)
   const [showUpload, setShowUpload] = useState(false)
   const [currentPath, setCurrentPath] = useState(() => {
     const params = new URLSearchParams(window.location.search)
@@ -49,21 +51,35 @@ function HomePage({ currentUser, onSignOut, onAuthSuccess }) {
   const [showStudySumupModal, setShowStudySumupModal] = useState(false)
   const [showTutorial, setShowTutorial] = useState(false)
   const [isGraphMode, setIsGraphMode] = useState(false) // Neural File Galaxy Mode toggle
+  const [toast, setToast] = useState({ show: false, message: '', type: 'success' })
   
+  const showToast = useCallback((message, type = 'success') => {
+    setToast({ show: true, message, type })
+    setTimeout(() => {
+      setToast(prev => ({ ...prev, show: false }))
+    }, 4000)
+  }, [])
   const normalizedSearch = search.trim().toLowerCase()
 
-  // Check for tutorial
+  // Check for tutorial — only show for users who haven't completed it (persisted in DB)
   useEffect(() => {
-    if (!currentUser || currentUser.has_completed_tutorial) {
+    if (!currentUser || currentUser.has_completed_tutorial || tutorialDismissedRef.current) {
       setShowTutorial(false)
       return
     }
 
-    // Use user ID in storage key to prevent cross-account interference
-    const storageKey = `zenith-tutorial-v1-dismissed-${currentUser.id}`
-    const hasDismissed = sessionStorage.getItem(storageKey)
-    
-    if (!hasDismissed && !showTutorial) {
+    // Safety fallback: Never show tutorial if account is older than 5 minutes (300,000 ms)
+    if (currentUser.created_at) {
+      const createdAt = new Date(currentUser.created_at).getTime()
+      const now = Date.now()
+      if (now - createdAt > 5 * 60 * 1000) {
+        setShowTutorial(false)
+        return
+      }
+    }
+
+    // Show tutorial after a brief delay for new users
+    if (!showTutorial) {
       const timer = setTimeout(() => setShowTutorial(true), 1200)
       return () => clearTimeout(timer)
     }
@@ -145,6 +161,17 @@ function HomePage({ currentUser, onSignOut, onAuthSuccess }) {
       const fetchFolderInfo = async () => {
         try {
           const data = await fileService.getFolderMetadata(currentPath)
+          
+          if (data && data.file_type === 'file') {
+            // It's actually a file, not a folder! 
+            // This happens when clicking file links from the AI chat.
+            // Open the file in the preview modal...
+            setPreviewFile(data)
+            // ...and cleanly redirect the background page to its parent folder
+            navigate(`/home?path=${encodeURIComponent(data.path)}`, { replace: true })
+            return
+          }
+
           setCurrentFolder(data || null)
           // Pre-fill the description value so the input is ready
           setDescriptionValue(data?.description || '')
@@ -308,24 +335,26 @@ function HomePage({ currentUser, onSignOut, onAuthSuccess }) {
     if (!currentFolder) return
     try {
       setIsGeneratingSummary(true)
-      // setShowStudySumupModal(false) // Removed as per instruction
       await chatService.generateFolderStudySummary(currentFolder.id)
+      
       // Refresh the view so the newly created summary file appears
       fetchData()
       if (currentPath === '/') fetchRecentFiles()
       
-      // Notify the user softly if you have a toast component, else we just refresh
-      alert("Study Guide generated successfully! You can find it in the current folder.")
+      showToast("Study Guide generated successfully!", "success")
+      setShowStudySumupModal(false) // Close modal on success
     } catch (err) {
       console.error('Failed to generate study summary:', err)
-      alert("Error generating study guide.")
+      showToast("Error generating study guide. Please try again.", "error")
+      setShowStudySumupModal(false) // Close modal on error
     } finally {
       setIsGeneratingSummary(false)
-      setShowStudySumupModal(false) // Close modal here after attempt
     }
   }
 
   const handleTutorialComplete = async () => {
+    // Set ref BEFORE async call to prevent re-triggering during the gap
+    tutorialDismissedRef.current = true
     setShowTutorial(false)
     try {
       const API_BASE_URL = import.meta.env.VITE_API_URL || '/api'
@@ -336,9 +365,6 @@ function HomePage({ currentUser, onSignOut, onAuthSuccess }) {
           'Authorization': `Bearer ${token}`
         }
       })
-      // Set session guard with unique key including user ID
-      const storageKey = `zenith-tutorial-v1-dismissed-${currentUser.id}`
-      sessionStorage.setItem(storageKey, 'true')
       // Refresh global user state to persist has_completed_tutorial: true
       onAuthSuccess?.()
     } catch (err) {
@@ -655,35 +681,62 @@ function HomePage({ currentUser, onSignOut, onAuthSuccess }) {
             </button>
 
             {showStudySumupModal && (
-              <div className="upload-overlay" onClick={() => setShowStudySumupModal(false)} role="dialog" aria-modal="true" style={{zIndex: 9999}}>
+              <div className="upload-overlay" onClick={() => !isGeneratingSummary && setShowStudySumupModal(false)} role="dialog" aria-modal="true" style={{zIndex: 9999}}>
                 <div className="upload-modal" onClick={(e) => e.stopPropagation()} style={{maxWidth: '450px', padding: '32px', textAlign: 'center'}}>
-                  <div style={{color: '#ff857a', marginBottom: '16px'}}>
-                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
-                      <line x1="12" y1="17" x2="12.01" y2="17"></line>
-                    </svg>
-                  </div>
-                  <h2 style={{margin: '0 0 8px', fontSize: '1.4rem', color: '#fff'}}>Generate Study Sumup?</h2>
-                  <p style={{margin: '0 0 24px', color: 'var(--text-muted)', lineHeight: '1.5'}}>
-                    This action will read all files inside <strong>{currentFolder?.name}</strong> and create a comprehensive markdown study guide. This might take a few moments.
-                  </p>
-                  <div style={{display: 'flex', gap: '12px'}}>
-                    <button 
-                      className="upload-btn upload-btn--manual" 
-                      style={{flex: 1, padding: '12px'}} 
-                      onClick={() => setShowStudySumupModal(false)}
-                    >
-                      Cancel
-                    </button>
-                    <button 
-                      className="upload-btn upload-btn--smart" 
-                      style={{flex: 1, padding: '12px'}} 
-                      onClick={handleGenerateStudySummary}
-                    >
-                      Generate
-                    </button>
-                  </div>
+                  {isGeneratingSummary ? (
+                    <div className="study-generating-state">
+                      <div className="study-generating-icon">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="spin-slow">
+                          <circle cx="12" cy="12" r="10"></circle>
+                          <line x1="12" y1="2" x2="12" y2="6"></line>
+                          <line x1="12" y1="18" x2="12" y2="22"></line>
+                          <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line>
+                          <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line>
+                          <line x1="2" y1="12" x2="6" y2="12"></line>
+                          <line x1="18" y1="12" x2="22" y2="12"></line>
+                          <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
+                          <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
+                        </svg>
+                      </div>
+                      <h2 style={{margin: '0 0 12px', fontSize: '1.4rem', color: '#fff'}}>Synthesizing Knowledge...</h2>
+                      <p style={{margin: '0 0 24px', color: 'var(--text-muted)', lineHeight: '1.5'}}>
+                        Zenith AI is reading <strong>{currentFolder?.name}</strong> and crafting a comprehensive study guide.
+                      </p>
+                      <div className="study-loading-bar-container">
+                        <div className="study-loading-bar-fill"></div>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div style={{color: '#ff857a', marginBottom: '16px'}}>
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <circle cx="12" cy="12" r="10"></circle>
+                          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                        </svg>
+                      </div>
+                      <h2 style={{margin: '0 0 8px', fontSize: '1.4rem', color: '#fff'}}>Generate Study Sumup?</h2>
+                      <p style={{margin: '0 0 24px', color: 'var(--text-muted)', lineHeight: '1.5'}}>
+                        This action will read all files inside <strong>{currentFolder?.name}</strong> and create a comprehensive markdown study guide. This might take a few moments.
+                      </p>
+                      <div style={{display: 'flex', gap: '12px'}}>
+                        <button 
+                          className="upload-btn upload-btn--manual" 
+                          style={{flex: 1, padding: '12px'}} 
+                          onClick={() => setShowStudySumupModal(false)}
+                        >
+                          Cancel
+                        </button>
+                        <button 
+                          className="upload-btn upload-btn--smart" 
+                          style={{flex: 1, padding: '12px'}} 
+                          onClick={handleGenerateStudySummary}
+                        >
+                          Generate
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             )}
@@ -695,6 +748,26 @@ function HomePage({ currentUser, onSignOut, onAuthSuccess }) {
           onComplete={handleTutorialComplete}
           onSkip={handleTutorialComplete}
         />
+      )}
+
+      {/* Global Toast Notification */}
+      {toast.show && (
+        <div className={`global-toast toast--${toast.type}`}>
+          {toast.type === 'success' ? (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+          ) : (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+          )}
+          <span>{toast.message}</span>
+          <button onClick={() => setToast(prev => ({ ...prev, show: false }))}>&times;</button>
+        </div>
       )}
     </div>
 

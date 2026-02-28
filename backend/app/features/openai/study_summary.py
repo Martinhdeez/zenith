@@ -80,14 +80,24 @@ async def generate_deep_study_summary(folder_id: int, user_id: int, db: AsyncSes
 
     logger.info("Gathering text for study summary from %d files in folder %s", len(files_only), folder.name)
 
-    # 3. Extract text from each file
+    # 3. Extract text from each file — skip any that can't be read
     compiled_text = ""
+    files_processed = 0
     for file in files_only:
-        text = await fetch_file_text(file)
-        if text and text.strip():
-            # Add clear delimiters so the AI knows where a document starts and ends
-            compiled_text += f"\n\n--- ARCHIVO: {file.name} (Ruta: {file.path}) ---\n"
-            compiled_text += text.strip()
+        try:
+            text = await fetch_file_text(file)
+            if text and text.strip():
+                # Add clear delimiters so the AI knows where a document starts and ends
+                compiled_text += f"\n\n--- ARCHIVO: {file.name} (Ruta: {file.path}) ---\n"
+                compiled_text += text.strip()
+                files_processed += 1
+            else:
+                logger.info("File %s returned no text, skipping.", file.name)
+        except Exception as e:
+            logger.warning("Error reading file %s for study summary, skipping: %s", file.name, e)
+            continue
+
+    logger.info("Successfully extracted text from %d/%d files in folder %s", files_processed, len(files_only), folder.name)
 
     if not compiled_text.strip():
         raise ValueError("No se pudo extraer texto legible de los archivos de esta carpeta.")
