@@ -1,15 +1,15 @@
 .folder-card {
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 14px;
+  border-radius: 16px;
   background: rgba(228, 233, 241, 0.08);
-  min-height: 74px;
-  padding: 10px 12px;
+  padding: 16px 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 16px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(10px);
 }
 
 .folder-card:hover {
@@ -44,17 +44,21 @@
 
 .folder-card h3 {
   margin: 0;
-  font-size: 1rem;
-  font-weight: 620;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fff;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .folder-card p {
-  margin: 2px 0 0;
-  font-size: 0.86rem;
-  color: rgba(214, 223, 239, 0.72);
+  margin: 4px 0 0;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.5);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .card-menu {

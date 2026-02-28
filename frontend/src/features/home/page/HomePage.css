@@ -27,7 +27,12 @@
   box-shadow: 0 22px 48px rgba(2, 8, 18, 0.34);
   padding: 24px;
   display: grid;
-  gap: 26px;
+  gap: 24px;
+}
+
+.home-shell--recents {
+  background: linear-gradient(180deg, rgba(12, 19, 31, 0.48), rgba(8, 14, 24, 0.38));
+  margin-top: 24px;
 }
 
 .home-shell__header {
@@ -150,11 +155,96 @@
   color: rgba(244, 248, 255, 0.98);
 }
 
-.folder-grid {
+/* ── Recent Files Section ────────────────── */
 
+.home-section--recents {
+  margin-bottom: 8px;
+}
+
+.recent-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 12px;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.recent-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(8px);
+}
+
+.recent-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(201, 95, 88, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.recent-card__icon {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  color: var(--accent-light, #ff857a);
+  flex-shrink: 0;
+}
+
+.recent-card__icon svg {
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
+}
+
+.recent-card__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.recent-card__name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.recent-card__path {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.folder-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.file-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.file-list {
+  display: flex;
+  flex-direction: column;
 }
 
 .file-grid {

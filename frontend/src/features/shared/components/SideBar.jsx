@@ -8,7 +8,7 @@ const navLinks = [
   { href: '/assistant', label: 'AI Assistant', icon: 'ai' },
 ]
 
-function SideBarIcon({ type }) {
+export function SideBarIcon({ type }) {
   if (type === 'home') {
     return (
       <svg viewBox="0 0 24 24" aria-hidden="true">

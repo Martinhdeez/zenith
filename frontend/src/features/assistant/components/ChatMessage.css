@@ -77,9 +77,9 @@
 /* ── Content ────────────────────── */
 
 .chat-message__content {
-  font-size: 0.95rem;
-  line-height: 1.7;
-  color: rgba(255, 255, 255, 0.88);
+  font-size: 1.05rem;
+  line-height: 1.75;
+  color: rgba(255, 255, 255, 0.92);
 }
 
 .chat-message__content p {

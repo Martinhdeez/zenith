@@ -1,0 +1,98 @@
+.file-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 8px;
+}
+
+.file-row:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.12);
+  transform: translateX(4px);
+}
+
+.file-row__main {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+
+.file-row__type-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: white;
+  flex-shrink: 0;
+}
+
+.file-row__type-icon--doc { background: #467fe8; }
+.file-row__type-icon--sheet { background: #3ba968; }
+.file-row__type-icon--slides { background: #eaac4a; color: #2e2106; }
+.file-row__type-icon--pdf { background: #db5a4f; }
+.file-row__type-icon--video { background: #d66972; }
+.file-row__type-icon--image { background: #9c69d6; }
+.file-row__type-icon--generic { background: #7d8591; }
+
+.file-row__name {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.file-row__meta {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.file-row__activity {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.file-row__avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(201, 95, 88, 0.26);
+  color: white;
+  display: grid;
+  place-items: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.row-menu {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  font-size: 1.2rem;
+  transition: background 0.2s ease;
+}
+
+.row-menu:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+}

@@ -104,5 +104,12 @@ export const fileService = {
             method: 'DELETE',
         });
     },
+
+    /**
+     * Get the most recently created files.
+     */
+    async getRecentFiles(limit = 10) {
+        return api(`/files/recent?limit=${limit}`);
+    },
 };
 

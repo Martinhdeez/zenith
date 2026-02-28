@@ -4,10 +4,12 @@ import SideBar from '../../shared/components/SideBar.jsx'
 import DashboardToolbar from '../../shared/components/DashboardToolbar.jsx'
 import FolderCard from '../../file/components/FolderCard.jsx'
 import FileCard from '../../file/components/FileCard.jsx'
+import FileRow from '../../file/components/FileRow.jsx'
 import UploadModal from '../../file/components/UploadModal.jsx'
 import FilePreviewModal from '../../file/components/FilePreviewModal.jsx'
 import ParticlesBackground from '../../landing/components/particlesBackground/ParticlesBackground.jsx'
 import { fileService } from '../../file/services/fileService'
+import { SideBarIcon } from '../../shared/components/SideBar.jsx'
 import './HomePage.css'
 
 function HomePage({ currentUser, onSignOut }) {
@@ -15,11 +17,13 @@ function HomePage({ currentUser, onSignOut }) {
 
   const [search, setSearch] = useState('')
   const [items, setItems] = useState([])
+  const [recentFiles, setRecentFiles] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [showUpload, setShowUpload] = useState(false)
   const [currentPath, setCurrentPath] = useState('/')
   const [previewFile, setPreviewFile] = useState(null)
+  const [viewMode, setViewMode] = useState('grid') // 'grid' | 'list'
   const [searchMode, setSearchMode] = useState('name') // 'name', 'semantic', 'deep'
   
   const normalizedSearch = search.trim().toLowerCase()
@@ -39,9 +43,21 @@ function HomePage({ currentUser, onSignOut }) {
     }
   }, [currentPath])
 
+  const fetchRecentFiles = useCallback(async () => {
+    try {
+      const data = await fileService.getRecentFiles(6)
+      setRecentFiles(data)
+    } catch (err) {
+      console.error('Error fetching recent files:', err)
+    }
+  }, [])
+
   useEffect(() => {
     fetchData()
-  }, [fetchData])
+    if (currentPath === '/') {
+      fetchRecentFiles()
+    }
+  }, [fetchData, fetchRecentFiles, currentPath])
 
   // Handle folder navigation
   const handleFolderClick = (folderName) => {
@@ -119,7 +135,6 @@ function HomePage({ currentUser, onSignOut }) {
       <SideBar isAuthenticated onNewClick={() => setShowUpload(true)} />
 
       <main className="home-page__content">
-
         <DashboardToolbar
           search={search}
           onSearchChange={setSearch}
@@ -130,7 +145,7 @@ function HomePage({ currentUser, onSignOut }) {
           profileLabel={`${currentUser?.username || 'User'} profile`}
         />
 
-        <section className="home-shell" aria-label="Zenith Home">
+        <section className="home-shell home-shell--main" aria-label="Zenith Home">
           <header className="home-shell__header">
             <div className="breadcrumb-nav">
               <button 
@@ -189,26 +204,77 @@ function HomePage({ currentUser, onSignOut }) {
               <div className="home-section__header">
                 <h2>Files</h2>
                 <div className="view-toggle" aria-label="View mode">
-                  <button type="button" aria-label="List view">≡</button>
-                  <button type="button" className="is-active" aria-label="Grid view">⊞</button>
+                  <button 
+                    type="button" 
+                    className={viewMode === 'list' ? 'is-active' : ''} 
+                    aria-label="List view"
+                    onClick={() => setViewMode('list')}
+                  >
+                    ≡
+                  </button>
+                  <button 
+                    type="button" 
+                    className={viewMode === 'grid' ? 'is-active' : ''} 
+                    aria-label="Grid view"
+                    onClick={() => setViewMode('grid')}
+                  >
+                    ⊞
+                  </button>
                 </div>
               </div>
 
-              <div className="file-grid">
+              <div className={viewMode === 'grid' ? 'file-grid' : 'file-list'}>
                 {files.map((file) => (
-                  <FileCard
-                    key={file.id}
-                    name={file.name}
-                    type={file.mime_type || file.format || 'file'}
-                    activity={file.updated_at ? `Modified · ${new Date(file.updated_at).toLocaleDateString()}` : 'New file'}
-                    userChar={userChar}
-                    onClick={() => setPreviewFile(file)}
-                  />
+                  viewMode === 'grid' ? (
+                    <FileCard
+                      key={file.id}
+                      name={file.name}
+                      type={file.mime_type || file.format || 'file'}
+                      activity={file.updated_at ? `Modified · ${new Date(file.updated_at).toLocaleDateString()}` : 'New file'}
+                      userChar={userChar}
+                      onClick={() => setPreviewFile(file)}
+                    />
+                  ) : (
+                    <FileRow
+                      key={file.id}
+                      name={file.name}
+                      type={file.mime_type || file.format || 'file'}
+                      activity={file.updated_at ? `Modified · ${new Date(file.updated_at).toLocaleDateString()}` : 'New file'}
+                      userChar={userChar}
+                      onClick={() => setPreviewFile(file)}
+                    />
+                  )
                 ))}
               </div>
             </section>
           )}
         </section>
+
+        {/* Recents Section — Now in a separate shell below */}
+        {currentPath === '/' && !normalizedSearch && recentFiles.length > 0 && (
+          <section className="home-shell home-shell--recents" aria-label="Recent Files">
+            <div className="home-section__header">
+              <h2>Recent Files</h2>
+            </div>
+            <div className="recent-grid">
+              {recentFiles.map((file) => (
+                <div 
+                  key={file.id} 
+                  className="recent-card"
+                  onClick={() => setPreviewFile(file)}
+                >
+                  <div className="recent-card__icon">
+                    <SideBarIcon type={file.mime_type?.includes('image') ? 'image' : 'file'} />
+                  </div>
+                  <div className="recent-card__info">
+                    <span className="recent-card__name">{file.name}</span>
+                    <span className="recent-card__path">{file.path}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
       </main>
 
       {/* Upload Modal */}
