@@ -88,6 +88,10 @@ class FileSearchResult(BaseModel):
     file_type: str
     path: str
     size: Optional[int] = None
+    format: Optional[str] = None
+    url: Optional[str] = None
+    cloudinary_public_id: Optional[str] = None
+    transcription: Optional[str] = None
     user_id: int
     uploaded_at: Optional[datetime] = None
     similarity: float = Field(description="Cosine distance: 0.0 = identical, 2.0 = opposite")
