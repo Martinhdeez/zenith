@@ -13,7 +13,7 @@ from sqlalchemy import select
 from app.core.database import AsyncSessionLocal
 from app.features.file.model import File
 from app.features.openai.client import get_llm
-from app.features.openai.study import _fetch_file_text
+from app.features.openai.utils import fetch_file_text
 from app.features.openai.embedding import generate_embedding
 
 logger = logging.getLogger(__name__)
@@ -79,7 +79,7 @@ async def start_folder_summary_update(file_id: int):
                 return
 
             # 2. Extract its text content or transcription
-            text_content = await _fetch_file_text(file_obj)
+            text_content = await fetch_file_text(file_obj)
             if not text_content or len(text_content.strip()) < 10:
                 logger.info("File %d has no extractable text. Skipping summary update.", file_id)
                 return
