@@ -10,7 +10,7 @@ from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from app.core.database import SessionLocal
+from app.core.database import AsyncSessionLocal
 from app.features.file.model import File
 from app.features.openai.client import get_llm
 from app.features.openai.study import _fetch_file_text
@@ -65,7 +65,7 @@ async def start_folder_summary_update(file_id: int):
     Updates the summaries of all parent folders starting from the uploaded file's parent.
     """
     logger.info("Starting background summary update for file_id=%d", file_id)
-    async with SessionLocal() as db:
+    async with AsyncSessionLocal() as db:
         try:
             # 1. Get the newly uploaded file
             file_obj = await db.get(File, file_id)
