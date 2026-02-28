@@ -1,4 +1,10 @@
-﻿import { useState, useEffect, useCallback } from 'react'
+// SPDX-FileCopyrightText: 2026 Martín Hernández González <m.hernandezg@udc.es>
+// SPDX-FileCopyrightText: 2026 Alex Mosquera Gundín <alex.mosquera@udc.es>
+// SPDX-FileCopyrightText: 2026 Alberto Paz Pérez <a.pazp@udc.es>
+//
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+import { useState, useEffect, useCallback } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import LandingPage from './features/landing/page/LandingPage.jsx'
 import HomePage from './features/home/page/HomePage.jsx'

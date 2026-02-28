@@ -1,3 +1,9 @@
+// SPDX-FileCopyrightText: 2026 Martín Hernández González <m.hernandezg@udc.es>
+// SPDX-FileCopyrightText: 2026 Alex Mosquera Gundín <alex.mosquera@udc.es>
+// SPDX-FileCopyrightText: 2026 Alberto Paz Pérez <a.pazp@udc.es>
+//
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import ReactMarkdown from 'react-markdown'
 import { useNavigate } from 'react-router-dom'
 import './ChatMessage.css'

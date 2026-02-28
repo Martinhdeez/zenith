@@ -1,3 +1,11 @@
+/*
+SPDX-FileCopyrightText: 2026 Martín Hernández González <m.hernandezg@udc.es>
+SPDX-FileCopyrightText: 2026 Alex Mosquera Gundín <alex.mosquera@udc.es>
+SPDX-FileCopyrightText: 2026 Alberto Paz Pérez <a.pazp@udc.es>
+
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
 .home-page {
   position: relative;
   min-height: 100vh;
@@ -11,7 +19,6 @@
 }
 
 .home-page__content {
-  position: relative; /* Context for mode transition overlay */
   width: min(1320px, 94vw);
   margin: 0 auto;
   padding: 78px 0 48px;
@@ -550,36 +557,4 @@
 @keyframes pulseGalaxy {
   0% { transform: scale(0.98); box-shadow: 0 0 40px rgba(138, 99, 255, 0.1); }
   100% { transform: scale(1.02); box-shadow: 0 0 80px rgba(138, 99, 255, 0.2), inset 0 0 30px rgba(138, 99, 255, 0.1); }
-}
-
-/* Neural Phase Transition: Glass Bloom */
-.graph-transition-overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 9999;
-  background: rgba(255, 255, 255, 0.02);
-  backdrop-filter: blur(0px);
-  pointer-events: none;
-  opacity: 0;
-  border-radius: 24px; /* Matches the shell rounding */
-}
-
-.graph-transition-overlay--active {
-  animation: glassPhase 1.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-@keyframes glassPhase {
-  0% {
-    opacity: 0;
-    backdrop-filter: blur(0px);
-  }
-  35% {
-    opacity: 1;
-    backdrop-filter: blur(30px) saturate(160%);
-    background: rgba(255, 255, 255, 0.12);
-  }
-  100% {
-    opacity: 0;
-    backdrop-filter: blur(0px);
-  }
 }

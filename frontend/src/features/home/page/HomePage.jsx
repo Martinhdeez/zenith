@@ -1,3 +1,9 @@
+// SPDX-FileCopyrightText: 2026 Martín Hernández González <m.hernandezg@udc.es>
+// SPDX-FileCopyrightText: 2026 Alex Mosquera Gundín <alex.mosquera@udc.es>
+// SPDX-FileCopyrightText: 2026 Alberto Paz Pérez <a.pazp@udc.es>
+//
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import { useEffect, useMemo, useState, useCallback } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import ReactMarkdown from 'react-markdown'
@@ -41,7 +47,6 @@ function HomePage({ currentUser, onSignOut, onAuthSuccess }) {
   const [showStudySumupModal, setShowStudySumupModal] = useState(false)
   const [showTutorial, setShowTutorial] = useState(false)
   const [isGraphMode, setIsGraphMode] = useState(false) // Neural File Galaxy Mode toggle
-  const [showGraphTransition, setShowGraphTransition] = useState(false) // Phase transition effect
   
   const normalizedSearch = search.trim().toLowerCase()
 
@@ -159,14 +164,7 @@ function HomePage({ currentUser, onSignOut, onAuthSuccess }) {
   }
 
   const toggleGraphMode = () => {
-    setShowGraphTransition(true)
-    setTimeout(() => {
-      setIsGraphMode(prev => !prev)
-    }, 450) // Switch mode during the bloom peak (now slower)
-    
-    setTimeout(() => {
-      setShowGraphTransition(false)
-    }, 1300) // Cleanup after 1.2s animation finished
+    setIsGraphMode(prev => !prev)
   }
 
   const handleGoBack = () => {
@@ -606,11 +604,6 @@ function HomePage({ currentUser, onSignOut, onAuthSuccess }) {
               ))}
             </div>
           </section>
-        )}
-
-        {/* Neural Phase Transition Overlay - Now scoped to main content */}
-        {showGraphTransition && (
-          <div className="graph-transition-overlay graph-transition-overlay--active" />
         )}
       </main>
 
