@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from app.features.auth.router import router as auth_router
 from app.features.user.router import router as user_router
+from app.features.file.router import router as file_router 
 
 app = FastAPI(
     title="Zenith API",
@@ -24,3 +25,4 @@ async def health_check():
 # incluir routers
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
 app.include_router(user_router, prefix="/users", tags=["users"])
+app.include_router(file_router, prefix="/files", tags=["files"])
