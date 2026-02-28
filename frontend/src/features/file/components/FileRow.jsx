@@ -1,10 +1,10 @@
 import { useState, useRef, useEffect } from 'react'
-import './FileCard.css'
+import './FileRow.css'
 
 /**
- * FileCard component representing a file in the file system.
+ * FileRow component representing a file in list view.
  */
-function FileCard({ name, type, activity, userChar = 'U', onClick, onMenuClick, onRename, onDelete }) {
+function FileRow({ name, type, activity, userChar = 'U', onClick, onMenuClick, onRename, onDelete }) {
   const [isEditing, setIsEditing] = useState(false)
   const [tempName, setTempName] = useState(name)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -63,7 +63,6 @@ function FileCard({ name, type, activity, userChar = 'U', onClick, onMenuClick, 
     setIsMenuOpen(false)
     onDelete?.()
   }
-  // Map backend mime types or formats to frontend types for styling
   const getTypeClass = (type) => {
     const typeLower = (type || '').toLowerCase();
     if (typeLower.includes('pdf')) return 'pdf';
@@ -78,15 +77,15 @@ function FileCard({ name, type, activity, userChar = 'U', onClick, onMenuClick, 
   const typeClass = getTypeClass(type);
 
   return (
-    <article className="file-card" onClick={onClick} role="button" tabIndex={0}>
-      <header className="file-card__header">
-        <span className={`file-card__type file-card__type--${typeClass}`}>
-          {typeClass.toUpperCase()}
+    <div className="file-row" onClick={onClick} role="button" tabIndex={0}>
+      <div className="file-row__main">
+        <span className={`file-row__type-icon file-row__type-icon--${typeClass}`}>
+          {typeClass.substring(0, 1).toUpperCase()}
         </span>
         {isEditing ? (
           <input
             ref={inputRef}
-            className="file-card__input"
+            className="file-row__input"
             value={tempName}
             onChange={(e) => setTempName(e.target.value)}
             onBlur={handleBlur}
@@ -94,20 +93,27 @@ function FileCard({ name, type, activity, userChar = 'U', onClick, onMenuClick, 
             onClick={(e) => e.stopPropagation()}
           />
         ) : (
-          <h3 onClick={handleNameClick}>{name}</h3>
+          <span className="file-row__name" onClick={handleNameClick}>{name}</span>
         )}
-        <div className="file-card__menu-container" ref={menuRef}>
+      </div>
+      
+      <div className="file-row__meta">
+        <span className="file-row__activity">{activity}</span>
+        <div className="file-row__owner">
+          <span className="file-row__avatar">{userChar}</span>
+        </div>
+        <div className="file-row__menu-container" ref={menuRef}>
           <button 
-            className={`card-menu ${isMenuOpen ? 'is-active' : ''}`}
+            className={`row-menu ${isMenuOpen ? 'is-active' : ''}`}
             type="button" 
-            aria-label={`Open ${name} options`}
             onClick={toggleMenu}
+            aria-label={`Open ${name} options`}
           >
-            <span aria-hidden="true">⋯</span>
+            ⋯
           </button>
           
           {isMenuOpen && (
-            <div className="card-menu-dropdown">
+            <div className="row-menu-dropdown">
               <button 
                 type="button" 
                 className="menu-item menu-item--danger" 
@@ -121,18 +127,9 @@ function FileCard({ name, type, activity, userChar = 'U', onClick, onMenuClick, 
             </div>
           )}
         </div>
-      </header>
-      
-      <div className={`file-card__preview file-card__preview--${typeClass}`} />
-      
-      <footer className="file-card__meta">
-        <span className="file-card__avatar" aria-hidden="true">
-          {userChar}
-        </span>
-        <span>{activity}</span>
-      </footer>
-    </article>
+      </div>
+    </div>
   )
 }
 
-export default FileCard
+export default FileRow

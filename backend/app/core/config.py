@@ -1,9 +1,14 @@
-from os import getenv
+from os import path, getenv
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-ENV_FILE = ".env.dev"
-if getenv("ENV_FILE") is not None:
-    ENV_FILE = getenv("ENV_FILE")
+# Priority: .env (if exists) overrides .env.dev
+env_files = [".env.dev"]
+if path.exists(".env"):
+    env_files.append(".env")
+
+# If ENV_FILE is explicitly set, use ONLY that one (standard behavior)
+if getenv("ENV_FILE"):
+    env_files = [getenv("ENV_FILE")]
 
 
 class Settings(BaseSettings):
@@ -37,7 +42,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     
     model_config = SettingsConfigDict(
-        env_file=ENV_FILE,
+        env_file=env_files,
         case_sensitive=True,
         extra="ignore"
     )

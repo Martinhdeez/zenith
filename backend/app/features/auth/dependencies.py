@@ -28,9 +28,21 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], db: An
     except JWTError:
         raise credentials_exception
     
-    # Query by user ID instead of username
-    result = await db.execute(select(User).where(User.id == int(user_id)))
-    user = result.scalars().first()
+    # Find user by ID, email or username
+    try:
+        # Check if user_id is numeric (original ID-based sub)
+        if user_id.isdigit():
+            result = await db.execute(select(User).where(User.id == int(user_id)))
+        else:
+            # Try finding by email or username (new string-based sub)
+            result = await db.execute(
+                select(User).where((User.email == user_id) | (User.username == user_id))
+            )
+        
+        user = result.scalars().first()
+    except (ValueError, Exception):
+        raise credentials_exception
+        
     if user is None:
         raise credentials_exception
     

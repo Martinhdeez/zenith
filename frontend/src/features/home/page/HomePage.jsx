@@ -1,35 +1,59 @@
 import { useEffect, useMemo, useState, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import SideBar from '../../shared/components/SideBar.jsx'
 import DashboardToolbar from '../../shared/components/DashboardToolbar.jsx'
 import FolderCard from '../../file/components/FolderCard.jsx'
 import FileCard from '../../file/components/FileCard.jsx'
+import FileRow from '../../file/components/FileRow.jsx'
 import UploadModal from '../../file/components/UploadModal.jsx'
 import FilePreviewModal from '../../file/components/FilePreviewModal.jsx'
 import ParticlesBackground from '../../landing/components/particlesBackground/ParticlesBackground.jsx'
 import { fileService } from '../../file/services/fileService'
+import { SideBarIcon } from '../../shared/components/SideBar.jsx'
 import './HomePage.css'
 
 function HomePage({ currentUser, onSignOut }) {
   const navigate = useNavigate()
+  const location = useLocation()
 
   const [search, setSearch] = useState('')
   const [items, setItems] = useState([])
+  const [recentFiles, setRecentFiles] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [showUpload, setShowUpload] = useState(false)
   const [currentPath, setCurrentPath] = useState('/')
   const [previewFile, setPreviewFile] = useState(null)
-  const [searchMode, setSearchMode] = useState('name') // 'name', 'semantic', 'deep'
+  const [currentFolder, setCurrentFolder] = useState(null)
+  const [isEditingDescription, setIsEditingDescription] = useState(false)
+  const [descriptionValue, setDescriptionValue] = useState('')
+  const [viewMode, setViewMode] = useState('grid') // 'grid' | 'list'
+  const [activeFilters, setActiveFilters] = useState([]) // filter keys: 'document', 'image', 'video', 'audio', 'folder'
+  const [searchMode, setSearchMode] = useState('name') // 'name', 'semantic'
   
   const normalizedSearch = search.trim().toLowerCase()
 
-  // Fetch files based on current path
+  // Handle URL query parameters for direct path navigation
+  useEffect(() => {
+    const params = new URLSearchParams(location.search)
+    const targetPath = params.get('path')
+    if (targetPath && targetPath.startsWith('/')) {
+      setCurrentPath(targetPath)
+      // Clean up the URL so back navigation doesn't get stuck
+      navigate('/home', { replace: true })
+    }
+  }, [location.search, navigate])
+
+  // Fetch files based on current path and active filters
   const fetchData = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
-      const data = await fileService.getFiles(currentPath)
+      // If a single media/document category filter is active, let the backend handle it recursively
+      const backendCategory = activeFilters.length === 1 && activeFilters[0] !== 'folder'
+        ? activeFilters[0]
+        : null
+      const data = await fileService.getFiles(currentPath, 0, 100, backendCategory)
       setItems(data)
     } catch (err) {
       console.error('Error fetching files:', err)
@@ -37,11 +61,39 @@ function HomePage({ currentUser, onSignOut }) {
     } finally {
       setLoading(false)
     }
-  }, [currentPath])
+  }, [currentPath, activeFilters])
+
+  const fetchRecentFiles = useCallback(async () => {
+    try {
+      const data = await fileService.getRecentFiles(6)
+      setRecentFiles(data)
+    } catch (err) {
+      console.error('Error fetching recent files:', err)
+    }
+  }, [])
 
   useEffect(() => {
     fetchData()
-  }, [fetchData])
+    setIsEditingDescription(false)
+    if (currentPath === '/') {
+      fetchRecentFiles()
+      setCurrentFolder(null)
+    } else {
+      const fetchFolderInfo = async () => {
+        try {
+          const data = await fileService.getFolderMetadata(currentPath)
+          setCurrentFolder(data || null)
+          // Pre-fill the description value so the input is ready
+          setDescriptionValue(data?.description || '')
+        } catch (err) {
+          console.error('Error fetching folder metadata:', err)
+          setCurrentFolder(null)
+          setDescriptionValue('')
+        }
+      }
+      fetchFolderInfo()
+    }
+  }, [fetchData, fetchRecentFiles, currentPath])
 
   // Handle folder navigation
   const handleFolderClick = (folderName) => {
@@ -77,9 +129,7 @@ function HomePage({ currentUser, onSignOut }) {
     const timer = setTimeout(async () => {
       try {
         setLoading(true)
-        // Switch between modes: 'name', 'semantic', 'deep'
-        const results = await fileService.searchFiles(normalizedSearch, searchMode)
-        // results represent the files found by search
+        const results = await fileService.searchFiles(normalizedSearch, searchMode, 10, currentPath)
         setItems(results.map(r => r.file || r))
       } catch (err) {
         console.error('Search error:', err)
@@ -89,24 +139,125 @@ function HomePage({ currentUser, onSignOut }) {
     }, 500)
 
     return () => clearTimeout(timer)
-  }, [normalizedSearch, searchMode, fetchData])
+  }, [normalizedSearch, searchMode, fetchData, currentPath])
 
   // Handle upload from modal
   const handleUpload = useCallback(async (mode, file, name, description, manualPath) => {
     let result
-    if (mode === 'smart') {
+    if (mode === 'folder') {
+      result = await fileService.createFolder(name, manualPath || currentPath, description)
+    } else if (mode === 'smart') {
       result = await fileService.smartUpload(file, name, description)
     } else {
       // Use the provided manualPath or default to currentPath
       result = await fileService.uploadFile(file, name, manualPath || currentPath, description)
     }
-    // Refresh file list after successful upload
+    
+    // Refresh data after upload/creation
     fetchData()
+    if (currentPath === '/') fetchRecentFiles()
+    
     return result
-  }, [fetchData, currentPath])
+  }, [currentPath, fetchData, fetchRecentFiles])
 
-  const folders = useMemo(() => items.filter(i => i.file_type === 'dir'), [items])
-  const files = useMemo(() => items.filter(i => i.file_type === 'file'), [items])
+  // Handle renaming a file or folder
+  const handleRename = useCallback(async (fileId, newName) => {
+    try {
+      if (!newName || newName.trim() === '') return
+      await fileService.updateFile(fileId, { name: newName.trim() })
+      fetchData()
+      if (currentPath === '/') fetchRecentFiles()
+    } catch (err) {
+      console.error('Rename error:', err)
+      setError('Failed to rename item')
+    }
+  }, [currentPath, fetchData, fetchRecentFiles])
+
+  // Handle deleting a file or folder
+  const handleDelete = useCallback(async (fileId) => {
+    if (!window.confirm('Are you sure you want to delete this item? This action cannot be undone.')) {
+      return
+    }
+    try {
+      setLoading(true)
+      await fileService.deleteFile(fileId)
+      fetchData()
+      if (currentPath === '/') fetchRecentFiles()
+    } catch (err) {
+      console.error('Delete error:', err)
+      setError('Failed to delete item')
+    } finally {
+      setLoading(false)
+    }
+  }, [currentPath, fetchData, fetchRecentFiles])
+
+  const handleDescriptionSubmit = async () => {
+    if (!currentFolder || !isEditingDescription) return
+    
+    const newValue = descriptionValue.trim()
+    const oldValue = (currentFolder.description || '').trim()
+    
+    setIsEditingDescription(false)
+    
+    if (newValue === oldValue) return
+    
+    try {
+      await fileService.updateFile(currentFolder.id, { description: newValue })
+      setCurrentFolder(prev => ({ ...prev, description: newValue }))
+      // Sync the description value back to ensure consistency
+      setDescriptionValue(newValue)
+    } catch (err) {
+      console.error('Update description error:', err)
+      setError('Failed to update description')
+      // Revert local state on error
+      setDescriptionValue(oldValue)
+    }
+  }
+
+  const handleDescriptionKeyDown = (e) => {
+    // Save on Enter (without shift)
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      handleDescriptionSubmit()
+    } else if (e.key === 'Escape') {
+      setIsEditingDescription(false)
+      setDescriptionValue(currentFolder?.description || '')
+    }
+  }
+
+  const startEditingDescription = () => {
+    // Ensure the input is pre-filled with the latest description
+    setDescriptionValue(currentFolder?.description || '')
+    setIsEditingDescription(true)
+  }
+
+  // Helper: check if a file matches a given filter category
+  const matchesFilter = (item, filterKey) => {
+    const mime = (item.mime_type || '').toLowerCase()
+    switch (filterKey) {
+      case 'document': return (
+        mime.startsWith('application/pdf') ||
+        mime.startsWith('text/') ||
+        mime.includes('word') || mime.includes('document') ||
+        mime.includes('spreadsheet') || mime.includes('presentation') ||
+        mime.includes('excel') || mime.includes('powerpoint')
+      )
+      case 'image': return mime.startsWith('image/')
+      case 'video': return mime.startsWith('video/')
+      case 'audio': return mime.startsWith('audio/')
+      case 'folder': return item.file_type === 'dir'
+      default: return true
+    }
+  }
+
+  // Apply filters
+  const filteredItems = useMemo(() => {
+    if (activeFilters.length === 0) return items
+    return items.filter((item) => activeFilters.some((f) => matchesFilter(item, f)))
+  }, [items, activeFilters])
+
+  const folders = useMemo(() => filteredItems.filter(i => i.file_type === 'dir'), [filteredItems])
+  const files = useMemo(() => filteredItems.filter(i => i.file_type === 'file'), [filteredItems])
 
   const userChar = currentUser?.username?.trim()?.charAt(0).toUpperCase() || 'U'
 
@@ -116,21 +267,19 @@ function HomePage({ currentUser, onSignOut }) {
   return (
     <div className="home-page">
       <ParticlesBackground />
-      <SideBar isAuthenticated onNewClick={() => setShowUpload(true)} />
+      <SideBar isAuthenticated onNewClick={() => setShowUpload(true)} onSignOut={onSignOut} />
 
       <main className="home-page__content">
-
         <DashboardToolbar
           search={search}
           onSearchChange={setSearch}
           searchMode={searchMode}
           onModeChange={setSearchMode}
-          onViewProfile={() => navigate('/profile')}
-          onSignOut={onSignOut}
-          profileLabel={`${currentUser?.username || 'User'} profile`}
+          activeFilters={activeFilters}
+          onFilterChange={setActiveFilters}
         />
 
-        <section className="home-shell" aria-label="Zenith Home">
+        <section className="home-shell home-shell--main" aria-label="Zenith Home">
           <header className="home-shell__header">
             <div className="breadcrumb-nav">
               <button 
@@ -161,6 +310,34 @@ function HomePage({ currentUser, onSignOut }) {
             )}
           </header>
 
+          {currentPath !== '/' && (
+            <div className="folder-description-area">
+              {isEditingDescription ? (
+                <textarea
+                  className="folder-description-input"
+                  value={descriptionValue}
+                  onChange={(e) => setDescriptionValue(e.target.value)}
+                  onBlur={handleDescriptionSubmit}
+                  onKeyDown={handleDescriptionKeyDown}
+                  autoFocus
+                  placeholder="Add a description for this folder..."
+                />
+              ) : (
+                <div 
+                  className="folder-description"
+                  onDoubleClick={startEditingDescription}
+                  title="Double click to edit description"
+                >
+                  {currentFolder?.description ? (
+                    currentFolder.description
+                  ) : (
+                    <span className="folder-description__placeholder">Add a description for this folder...</span>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
           {loading && <p className="status-msg">Loading your workspace...</p>}
           {error && <p className="status-msg error">{error}</p>}
           
@@ -178,6 +355,8 @@ function HomePage({ currentUser, onSignOut }) {
                     title={folder.name}
                     subtitle={folder.description || 'Folder'}
                     onClick={() => handleFolderClick(folder.name)}
+                    onRename={(newName) => handleRename(folder.id, newName)}
+                    onDelete={() => handleDelete(folder.id)}
                   />
                 ))}
               </div>
@@ -189,26 +368,81 @@ function HomePage({ currentUser, onSignOut }) {
               <div className="home-section__header">
                 <h2>Files</h2>
                 <div className="view-toggle" aria-label="View mode">
-                  <button type="button" aria-label="List view">≡</button>
-                  <button type="button" className="is-active" aria-label="Grid view">⊞</button>
+                  <button 
+                    type="button" 
+                    className={viewMode === 'list' ? 'is-active' : ''} 
+                    aria-label="List view"
+                    onClick={() => setViewMode('list')}
+                  >
+                    ≡
+                  </button>
+                  <button 
+                    type="button" 
+                    className={viewMode === 'grid' ? 'is-active' : ''} 
+                    aria-label="Grid view"
+                    onClick={() => setViewMode('grid')}
+                  >
+                    ⊞
+                  </button>
                 </div>
               </div>
 
-              <div className="file-grid">
+              <div className={viewMode === 'grid' ? 'file-grid' : 'file-list'}>
                 {files.map((file) => (
-                  <FileCard
-                    key={file.id}
-                    name={file.name}
-                    type={file.mime_type || file.format || 'file'}
-                    activity={file.updated_at ? `Modified · ${new Date(file.updated_at).toLocaleDateString()}` : 'New file'}
-                    userChar={userChar}
-                    onClick={() => setPreviewFile(file)}
-                  />
+                  viewMode === 'grid' ? (
+                    <FileCard
+                      key={file.id}
+                      name={file.name}
+                      type={file.mime_type || file.format || 'file'}
+                      activity={file.updated_at ? `Modified · ${new Date(file.updated_at).toLocaleDateString()}` : 'New file'}
+                      userChar={userChar}
+                      onClick={() => setPreviewFile(file)}
+                      onRename={(newName) => handleRename(file.id, newName)}
+                      onDelete={() => handleDelete(file.id)}
+                    />
+                  ) : (
+                    <FileRow
+                      key={file.id}
+                      name={file.name}
+                      type={file.mime_type || file.format || 'file'}
+                      activity={file.updated_at ? `Modified · ${new Date(file.updated_at).toLocaleDateString()}` : 'New file'}
+                      userChar={userChar}
+                      onClick={() => setPreviewFile(file)}
+                      onRename={(newName) => handleRename(file.id, newName)}
+                      onDelete={() => handleDelete(file.id)}
+                    />
+                  )
                 ))}
               </div>
             </section>
           )}
         </section>
+
+        {/* Recents Section — Now in a separate shell below */}
+        {currentPath === '/' && !normalizedSearch && recentFiles.length > 0 && (
+          <section className="home-shell home-shell--recents" aria-label="Recent Files">
+            <div className="home-section__header">
+              <h2>Recent Files</h2>
+            </div>
+            <div className="recent-grid">
+              {recentFiles.map((file) => (
+                <div 
+                  key={file.id} 
+                  className="recent-card"
+                  onClick={() => setPreviewFile(file)}
+                >
+                  <div className="recent-card__icon">
+                    <SideBarIcon type={file.mime_type?.includes('image') ? 'image' : 'file'} />
+                  </div>
+                  <div className="recent-card__info">
+                    <span className="recent-card__name">{file.name}</span>
+                    <span className="recent-card__path">{file.path}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
       </main>
 
       {/* Upload Modal */}

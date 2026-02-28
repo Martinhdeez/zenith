@@ -55,7 +55,7 @@ async def login(
         )
     
     # Create access token
-    access_token = create_access_token(data={"sub": str(user.id)})
+    access_token = create_access_token(data={"sub": user.email})
     
     return {"access_token": access_token, "token_type": "bearer"}
 
@@ -118,6 +118,6 @@ async def google_auth(
             detail="User account is inactive"
         )
         
-    access_token = create_access_token(data={"sub": str(user.id)})
+    access_token = create_access_token(data={"sub": user.email})
     
     return {"access_token": access_token, "token_type": "bearer"}

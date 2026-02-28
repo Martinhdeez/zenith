@@ -28,6 +28,17 @@ class FileRepository(BaseRepository[File]):
 
         if category:
             query = query.where(self.model.file_type == "file")
+            # Recursive: include files in this path and all sub-paths
+            if path == "/":
+                pass  # no path filter needed at root
+            else:
+                normalized = path.rstrip("/")
+                query = query.where(
+                    or_(
+                        self.model.path == normalized,
+                        self.model.path.like(f"{normalized}/%"),
+                    )
+                )
             if category == "image":
                 query = query.where(self.model.mime_type.ilike("image/%"))
             elif category == "video":
@@ -93,17 +104,25 @@ class FileRepository(BaseRepository[File]):
         return list(result.scalars().all())
 
     async def search_by_name(
-        self, user_id: int, query: str, skip: int = 0, limit: int = 20
+        self, user_id: int, query: str, skip: int = 0, limit: int = 20,
+        base_path: str = "/",
     ) -> List[File]:
-        """Search files by name using case-insensitive ILIKE matching."""
+        """Search files by name using case-insensitive ILIKE matching, scoped to base_path recursively."""
         stmt = (
             select(self.model)
             .where(self.model.user_id == user_id)
             .where(self.model.name.ilike(f"%{query}%"))
-            .order_by(self.model.name.asc())
-            .offset(skip)
-            .limit(limit)
         )
+        # Scope to current subtree
+        if base_path != "/":
+            normalized = base_path.rstrip("/")
+            stmt = stmt.where(
+                or_(
+                    self.model.path == normalized,
+                    self.model.path.like(f"{normalized}/%"),
+                )
+            )
+        stmt = stmt.order_by(self.model.name.asc()).offset(skip).limit(limit)
         result = await self.db.execute(stmt)
         return list(result.scalars().all())
 
@@ -139,4 +158,27 @@ class FileRepository(BaseRepository[File]):
         result = await self.db.execute(stmt)
         return list(result.scalars().all())
 
-    
+    async def get_file_by_full_path(self, user_id: int, full_path: str) -> Optional[File]:
+        """Find a file or folder by its absolute full path."""
+        if full_path == "/":
+            return None
+        
+        # Normalize: strip trailing slash except for root
+        normalized = full_path.rstrip("/") if full_path != "/" else "/"
+        
+        if "/" not in normalized.strip("/"):
+            parent_path = "/"
+            name = normalized.strip("/")
+        else:
+            parts = normalized.strip("/").split("/")
+            name = parts[-1]
+            parent_path = "/" + "/".join(parts[:-1])
+            
+        stmt = (
+            select(self.model)
+            .where(self.model.user_id == user_id)
+            .where(self.model.path == parent_path)
+            .where(self.model.name == name)
+        )
+        result = await self.db.execute(stmt)
+        return result.scalar_one_or_none()

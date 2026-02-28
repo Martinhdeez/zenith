@@ -1,89 +1,60 @@
 import { useEffect, useRef, useState } from 'react'
 import SearchInput from './SearchInput.jsx'
-import userIcon from '../../../assets/icons/user.svg'
 import './DashboardToolbar.css'
+
+const FILTER_OPTIONS = [
+  { key: 'document', label: 'Documents', icon: '📄' },
+  { key: 'image',    label: 'Images',    icon: '🖼️' },
+  { key: 'video',    label: 'Videos',    icon: '🎬' },
+  { key: 'audio',    label: 'Audio',     icon: '🎵' },
+  { key: 'folder',   label: 'Folders',   icon: '📁' },
+]
 
 function DashboardToolbar({
   search,
   onSearchChange,
   searchMode = 'name',
   onModeChange,
-  onViewProfile,
-  onSignOut,
-  profileLabel = 'Profile',
+  activeFilters = [],
+  onFilterChange,
 }) {
-  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
-  const profileMenuRef = useRef(null)
-  const closeTimeoutRef = useRef(null)
-  const hasProfileMenu = Boolean(onViewProfile || onSignOut)
+  const [isFilterOpen, setIsFilterOpen] = useState(false)
+  const filterRef = useRef(null)
 
+  // Close filter dropdown on outside click / escape
   useEffect(() => {
-    if (!isProfileMenuOpen) {
-      return
-    }
+    if (!isFilterOpen) return
 
     const handlePointerDown = (event) => {
-      if (!profileMenuRef.current?.contains(event.target)) {
-        setIsProfileMenuOpen(false)
+      if (!filterRef.current?.contains(event.target)) {
+        setIsFilterOpen(false)
       }
     }
-
     const handleEscape = (event) => {
-      if (event.key === 'Escape') {
-        setIsProfileMenuOpen(false)
-      }
+      if (event.key === 'Escape') setIsFilterOpen(false)
     }
 
     window.addEventListener('mousedown', handlePointerDown)
     window.addEventListener('keydown', handleEscape)
-
     return () => {
       window.removeEventListener('mousedown', handlePointerDown)
       window.removeEventListener('keydown', handleEscape)
     }
-  }, [isProfileMenuOpen])
+  }, [isFilterOpen])
 
-  const openProfileMenu = () => {
-    if (!hasProfileMenu) {
-      return
+  const toggleFilter = (key) => {
+    if (activeFilters.includes(key)) {
+      onFilterChange?.(activeFilters.filter((f) => f !== key))
+    } else {
+      onFilterChange?.([...activeFilters, key])
     }
-    if (closeTimeoutRef.current) {
-      window.clearTimeout(closeTimeoutRef.current)
-      closeTimeoutRef.current = null
-    }
-    setIsProfileMenuOpen(true)
   }
 
-  const closeProfileMenu = () => {
-    if (closeTimeoutRef.current) {
-      window.clearTimeout(closeTimeoutRef.current)
-    }
-    closeTimeoutRef.current = window.setTimeout(() => {
-      setIsProfileMenuOpen(false)
-      closeTimeoutRef.current = null
-    }, 130)
+  const clearFilters = () => {
+    onFilterChange?.([])
   }
 
-  const handleProfileButtonClick = () => {
-    if (!hasProfileMenu) {
-      return
-    }
-    if (closeTimeoutRef.current) {
-      window.clearTimeout(closeTimeoutRef.current)
-      closeTimeoutRef.current = null
-    }
-    setIsProfileMenuOpen((prev) => !prev)
-  }
-
-  const handleViewProfile = () => {
-    closeProfileMenu()
-    onViewProfile?.()
-  }
-
-  const handleSignOut = () => {
-    closeProfileMenu()
-    onSignOut?.()
-  }
+  const activeCount = activeFilters.length
 
   return (
     <div className="dashboard-toolbar-container">
@@ -101,58 +72,85 @@ function DashboardToolbar({
           placeholder="Search..."
         />
 
-        <div className="dashboard-toolbar__modes">
-          <button 
-            className={`dashboard-toolbar__mode-btn ${searchMode === 'semantic' ? 'is-active' : ''}`} 
-            type="button" 
+        {/* AI Search Toggle */}
+        <div className="dashboard-toolbar__ai-toggle">
+          <button
+            className={`dashboard-toolbar__ai-btn ${searchMode === 'semantic' ? 'is-active' : ''}`}
+            type="button"
             onClick={() => onModeChange?.(searchMode === 'semantic' ? 'name' : 'semantic')}
-            title="AI Semantic Search"
+            title="AI Semantic Search — find files by meaning"
           >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 2a4 4 0 0 1 4 4c0 1.5-.8 2.8-2 3.5V11h2a6 6 0 0 1 6 6h2v4h-2v-2H2v2H0v-4h2a6 6 0 0 1 6-6h2V9.5A4 4 0 0 1 8 6a4 4 0 0 1 4-4z"/>
+            </svg>
             AI
           </button>
-          <button 
-            className={`dashboard-toolbar__mode-btn is-deep ${searchMode === 'deep' ? 'is-active' : ''}`} 
-            type="button" 
-            onClick={() => onModeChange?.(searchMode === 'deep' ? 'name' : 'deep')}
-            title="Deep AI Search (GTP-4o)"
-          >
-            Deep
-          </button>
         </div>
 
-        <div
-          className={`dashboard-toolbar__profile-wrap${isProfileMenuOpen ? ' is-open' : ''}`}
-          ref={profileMenuRef}
-          onMouseEnter={openProfileMenu}
-          onMouseLeave={closeProfileMenu}
-        >
+        {/* Filter Button & Dropdown */}
+        <div className="dashboard-toolbar__filter-wrap" ref={filterRef}>
           <button
-            className={`dashboard-toolbar__profile${isProfileMenuOpen ? ' is-active' : ''}`}
+            className={`dashboard-toolbar__filter-btn ${activeCount > 0 ? 'has-active' : ''}`}
             type="button"
-            onClick={handleProfileButtonClick}
-            aria-label={profileLabel}
-            aria-expanded={isProfileMenuOpen}
-            aria-haspopup={hasProfileMenu ? 'menu' : undefined}
+            onClick={() => setIsFilterOpen((prev) => !prev)}
+            aria-expanded={isFilterOpen}
+            aria-haspopup="listbox"
+            title="Filter by type"
           >
-            <img src={userIcon} alt="" />
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+            </svg>
+            <span>Filters</span>
+            {activeCount > 0 && (
+              <span className="dashboard-toolbar__filter-count">{activeCount}</span>
+            )}
           </button>
 
-          {hasProfileMenu ? (
-            <div className="dashboard-toolbar__profile-menu" role="menu" aria-label="Profile options">
-              {onViewProfile ? (
-                <button type="button" role="menuitem" onClick={handleViewProfile}>
-                  View profile
+          <div className={`dashboard-toolbar__filter-dropdown ${isFilterOpen ? 'is-open' : ''}`}>
+            <div className="filter-dropdown__header">
+              <span className="filter-dropdown__title">Filter by type</span>
+              {activeCount > 0 && (
+                <button className="filter-dropdown__clear" type="button" onClick={clearFilters}>
+                  Clear all
                 </button>
-              ) : null}
-              {onSignOut ? (
-                <button type="button" role="menuitem" className="is-danger" onClick={handleSignOut}>
-                  Sign out
-                </button>
-              ) : null}
+              )}
             </div>
-          ) : null}
+            <div className="filter-dropdown__chips">
+              {FILTER_OPTIONS.map((opt) => (
+                <button
+                  key={opt.key}
+                  className={`filter-chip ${activeFilters.includes(opt.key) ? 'is-active' : ''}`}
+                  type="button"
+                  onClick={() => toggleFilter(opt.key)}
+                  aria-pressed={activeFilters.includes(opt.key)}
+                >
+                  <span className="filter-chip__icon">{opt.icon}</span>
+                  <span className="filter-chip__label">{opt.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
+
+      {/* Active filter pills shown below toolbar */}
+      {activeCount > 0 && (
+        <div className="dashboard-toolbar__active-filters">
+          {activeFilters.map((key) => {
+            const opt = FILTER_OPTIONS.find((o) => o.key === key)
+            if (!opt) return null
+            return (
+              <span key={key} className="active-filter-pill">
+                <span>{opt.icon}</span>
+                <span>{opt.label}</span>
+                <button type="button" onClick={() => toggleFilter(key)} aria-label={`Remove ${opt.label} filter`}>
+                  ×
+                </button>
+              </span>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }

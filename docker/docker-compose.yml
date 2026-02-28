@@ -37,6 +37,8 @@ services:
     restart: unless-stopped
     env_file:
       - ../backend/.env.dev
+    environment:
+      ENV_FILE: .env.dev
     volumes:
       # Sincronización de código en tiempo real
       - ../backend:/app

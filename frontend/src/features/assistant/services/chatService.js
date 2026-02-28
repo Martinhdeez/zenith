@@ -19,4 +19,32 @@ export const chatService = {
             }),
         })
     },
+
+    /**
+     * Get the chat history for the current user.
+     * @returns {Promise<{history: Array<{role: string, content: string, created_at: string}>}>}
+     */
+    async getHistory() {
+        return api('/ai/history', {
+            method: 'GET',
+        })
+    },
+
+    /**
+     * Generate study material from a file.
+     * @param {number} fileId - File ID
+     * @param {string} mode - 'quiz' | 'outline' | 'flashcards' | 'custom'
+     * @param {string} [customPrompt] - Custom prompt (required for 'custom' mode)
+     * @returns {Promise<{content: string, mode: string, file_name: string}>}
+     */
+    async generateStudy(fileId, mode, customPrompt = null) {
+        return api('/ai/study', {
+            method: 'POST',
+            body: JSON.stringify({
+                file_id: fileId,
+                mode,
+                custom_prompt: customPrompt || undefined,
+            }),
+        })
+    },
 }

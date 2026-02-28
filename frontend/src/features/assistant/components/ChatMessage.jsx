@@ -1,8 +1,32 @@
 import ReactMarkdown from 'react-markdown'
+import { useNavigate } from 'react-router-dom'
 import './ChatMessage.css'
 
 function ChatMessage({ role, content, filesUsed }) {
   const isUser = role === 'user'
+  const navigate = useNavigate()
+
+  // Custom renderer for inline code to detect paths `/folder/file`
+  const renderCode = ({ node, inline, className, children, ...props }) => {
+    const text = String(children).trim()
+    if (inline && text.startsWith('/')) {
+      return (
+        <a 
+          href={`/home?path=${encodeURIComponent(text)}`} 
+          className="chat-path-link"
+          onClick={(e) => {
+            e.preventDefault()
+            navigate(`/home?path=${encodeURIComponent(text)}`)
+          }}
+        >
+          {text}
+        </a>
+      )
+    }
+    return <code className={className} {...props}>{children}</code>
+  }
+
+  const displayContent = content
 
   return (
     <div className={`chat-message ${isUser ? 'chat-message--user' : 'chat-message--ai'}`}>
@@ -22,9 +46,36 @@ function ChatMessage({ role, content, filesUsed }) {
         <span className="chat-message__role">{isUser ? 'You' : 'Zenith AI'}</span>
         <div className="chat-message__content">
           {isUser ? (
-            <p>{content}</p>
+            <p>{displayContent}</p>
           ) : (
-            <ReactMarkdown>{content}</ReactMarkdown>
+            <ReactMarkdown
+              components={{
+                code: renderCode,
+                // We don't strictly need a text renderer if paths are usually in backticks, 
+                // but if the AI returns raw paths like /Docs, this handles Markdown links
+                a: ({ node, ...props }) => {
+                  const href = props.href || ''
+                  if (href.startsWith('/')) {
+                    // Extract children properly to ensure Link renders the text content correctly
+                    return (
+                      <a 
+                        href={`/home?path=${encodeURIComponent(href)}`} 
+                        className="chat-path-link"
+                        onClick={(e) => {
+                          e.preventDefault()
+                          navigate(`/home?path=${encodeURIComponent(href)}`)
+                        }}
+                      >
+                        {props.children}
+                      </a>
+                    )
+                  }
+                  return <a {...props} target="_blank" rel="noopener noreferrer" />
+                }
+              }}
+            >
+              {displayContent}
+            </ReactMarkdown>
           )}
         </div>
         {!isUser && typeof filesUsed === 'number' && filesUsed > 0 && (
