@@ -1,44 +1,52 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import SideBar from '../../shared/components/SideBar.jsx'
 import DashboardToolbar from '../../shared/components/DashboardToolbar.jsx'
 import './HomePage.css'
 
 const folderItems = [
-  { title: 'Informatica', subtitle: 'in My Drive' },
-  { title: 'UDC', subtitle: 'in Shared with me' },
-  { title: 'Grupo Mayorista', subtitle: 'in Shared with me' },
+  { title: 'Hackathon Assets', subtitle: 'in My Drive' },
+  { title: 'UX References', subtitle: 'in Shared with me' },
+  { title: 'Research Notes', subtitle: 'in Shared with me' },
 ]
 
 const fileItems = [
-  { name: '1.1_1 Interview group 3', type: 'doc', activity: 'Opened · 25 Feb' },
-  { name: 'TGR ACL', type: 'doc', activity: 'Opened · 26 Feb' },
-  { name: 'Comparative notes', type: 'sheet', activity: 'Opened · 20 Feb' },
-  { name: 'APUNTES-XP.pdf', type: 'pdf', activity: 'Opened · 12 Feb' },
-  { name: 'Tryhard FIC', type: 'sheet', activity: 'Opened · 19 Feb' },
-  { name: 'Notas LSI P1 general', type: 'doc', activity: 'Opened · 25 Feb' },
-  { name: '1.1_1 Interview group 2', type: 'doc', activity: 'Modified · 25 Feb' },
-  { name: 'ACL-Grupo8', type: 'slides', activity: 'Opened · 19 Feb' },
-  { name: 'Los santos inocentes...', type: 'video', activity: 'Opened · 11 Feb' },
-  { name: 'Horarios de todos', type: 'sheet', activity: 'Opened · 2 Feb' },
+  { name: 'Sprint brief v3', type: 'doc', activity: 'Opened · 25 Feb' },
+  { name: 'Architecture overview', type: 'slides', activity: 'Opened · 24 Feb' },
+  { name: 'Data model matrix', type: 'sheet', activity: 'Opened · 20 Feb' },
+  { name: 'API contract.pdf', type: 'pdf', activity: 'Opened · 19 Feb' },
+  { name: 'Roadmap timeline', type: 'sheet', activity: 'Opened · 18 Feb' },
+  { name: 'Onboarding notes', type: 'doc', activity: 'Opened · 17 Feb' },
+  { name: 'Research summary', type: 'doc', activity: 'Modified · 15 Feb' },
+  { name: 'Zenith pitch deck', type: 'slides', activity: 'Opened · 14 Feb' },
+  { name: 'Prototype demo', type: 'video', activity: 'Opened · 13 Feb' },
+  { name: 'Team planning', type: 'sheet', activity: 'Opened · 10 Feb' },
 ]
 
 function HomePage({ userName, onSignOut }) {
   const [search, setSearch] = useState('')
   const normalizedSearch = search.trim().toLowerCase()
 
-  const visibleFolders = folderItems.filter((item) => {
-    if (!normalizedSearch) {
-      return true
-    }
-    return `${item.title} ${item.subtitle}`.toLowerCase().includes(normalizedSearch)
-  })
+  const visibleFolders = useMemo(
+    () =>
+      folderItems.filter((item) => {
+        if (!normalizedSearch) {
+          return true
+        }
+        return `${item.title} ${item.subtitle}`.toLowerCase().includes(normalizedSearch)
+      }),
+    [normalizedSearch],
+  )
 
-  const visibleFiles = fileItems.filter((item) => {
-    if (!normalizedSearch) {
-      return true
-    }
-    return `${item.name} ${item.type} ${item.activity}`.toLowerCase().includes(normalizedSearch)
-  })
+  const visibleFiles = useMemo(
+    () =>
+      fileItems.filter((item) => {
+        if (!normalizedSearch) {
+          return true
+        }
+        return `${item.name} ${item.type} ${item.activity}`.toLowerCase().includes(normalizedSearch)
+      }),
+    [normalizedSearch],
+  )
 
   return (
     <div className="home-page">
@@ -53,42 +61,41 @@ function HomePage({ userName, onSignOut }) {
           profileLabel={`${userName || 'User'} profile`}
         />
 
-        <section className="drive-mockup" aria-label="Drive style mockup">
-          <h1 className="drive-mockup__title">Welcome to Zenith Drive</h1>
+        <section className="home-shell" aria-label="Zenith Home">
+          <header className="home-shell__header">
+            <h1>Zenith Home</h1>
+            <p>Your folders and recent files, organized in one place.</p>
+          </header>
 
-          <div className="drive-block">
-            <h2 className="drive-block__title">
-              <span className="drive-block__chevron" aria-hidden="true">
-                ▾
-              </span>
-              Suggested folders
-            </h2>
-
+          <section className="home-section" aria-label="Suggested folders">
+            <h2>Suggested folders</h2>
             <div className="folder-grid">
               {visibleFolders.map((folder) => (
                 <article key={folder.title} className="folder-card">
                   <div className="folder-card__left">
                     <span className="folder-card__icon" aria-hidden="true">
-                      🗂
+                      <svg viewBox="0 0 24 24">
+                        <path d="M3 7.5A2.5 2.5 0 0 1 5.5 5h4.3l1.6 1.7h7.1A2.5 2.5 0 0 1 21 9.2v7.3a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 16.5V7.5Z" />
+                      </svg>
                     </span>
                     <div>
                       <h3>{folder.title}</h3>
                       <p>{folder.subtitle}</p>
                     </div>
                   </div>
-                  <button className="folder-card__menu" type="button" aria-label={`Open ${folder.title} options`}>
-                    ⋮
+                  <button className="card-menu" type="button" aria-label={`Open ${folder.title} options`}>
+                    <span aria-hidden="true">⋯</span>
                   </button>
                 </article>
               ))}
             </div>
-          </div>
+          </section>
 
-          <div className="drive-block">
-            <div className="drive-block__header">
-              <h2 className="drive-block__title">Suggested files</h2>
-              <div className="drive-view-switch" aria-label="View mode">
-                <button type="button" className="is-muted" aria-label="List view">
+          <section className="home-section" aria-label="Suggested files">
+            <div className="home-section__header">
+              <h2>Suggested files</h2>
+              <div className="view-toggle" aria-label="View mode">
+                <button type="button" aria-label="List view">
                   ≡
                 </button>
                 <button type="button" className="is-active" aria-label="Grid view">
@@ -100,24 +107,24 @@ function HomePage({ userName, onSignOut }) {
             <div className="file-grid">
               {visibleFiles.map((file) => (
                 <article key={file.name} className="file-card">
-                  <header className="file-card__head">
+                  <header className="file-card__header">
                     <span className={`file-card__type file-card__type--${file.type}`}>{file.type.toUpperCase()}</span>
                     <h3>{file.name}</h3>
-                    <button className="file-card__menu" type="button" aria-label={`Open ${file.name} options`}>
-                      ⋮
+                    <button className="card-menu" type="button" aria-label={`Open ${file.name} options`}>
+                      <span aria-hidden="true">⋯</span>
                     </button>
                   </header>
-                  <div className="file-card__preview" />
+                  <div className={`file-card__preview file-card__preview--${file.type}`} />
                   <footer className="file-card__meta">
                     <span className="file-card__avatar" aria-hidden="true">
-                      ●
+                      {userName?.trim()?.charAt(0).toUpperCase() || 'U'}
                     </span>
                     <span>{file.activity}</span>
                   </footer>
                 </article>
               ))}
             </div>
-          </div>
+          </section>
         </section>
       </main>
     </div>

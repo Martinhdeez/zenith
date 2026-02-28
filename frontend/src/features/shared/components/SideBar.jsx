@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react'
 import './SideBar.css'
 
 const navLinks = [
-  { href: '#overview', label: 'Home', icon: 'home', isActive: false },
-  { href: '#paths', label: 'AI Assistant', icon: 'ai', isActive: false },
+  { href: '#home', label: 'Home', icon: 'home', isActive: false },
+  { href: '#assistant', label: 'AI Assistant', icon: 'ai', isActive: false },
 ]
 
 function SideBarIcon({ type }) {
@@ -49,6 +49,10 @@ function SideBar({ links = navLinks, isAuthenticated = true, onLogin, onRegister
   }, [isMobileOpen])
 
   const closeMobile = () => setIsMobileOpen(false)
+  const handleSignOut = () => {
+    closeMobile()
+    onSignOut?.()
+  }
 
   return (
     <>
@@ -67,7 +71,7 @@ function SideBar({ links = navLinks, isAuthenticated = true, onLogin, onRegister
 
       <aside id="logo-sidebar" className={`sidebar${isMobileOpen ? ' sidebar--open' : ''}`} aria-label="Sidebar">
         <div className="sidebar-scroll">
-          <a href="#overview" className="sidebar-brand" onClick={closeMobile}>
+          <a href="#home" className="sidebar-brand" onClick={closeMobile}>
             <span className="sidebar-brand-mark" aria-hidden="true">
               <span className="sidebar-brand-dot"></span>
             </span>
@@ -113,7 +117,7 @@ function SideBar({ links = navLinks, isAuthenticated = true, onLogin, onRegister
                 </ul>
 
                 {onSignOut ? (
-                  <button className="sidebar-signout" type="button" onClick={onSignOut}>
+                  <button className="sidebar-signout" type="button" onClick={handleSignOut}>
                     Sign out
                   </button>
                 ) : null}
