@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, APIRouter
 from app.features.auth.router import router as auth_router
 from app.features.user.router import router as user_router
 from app.features.file.router import router as file_router 
@@ -8,6 +8,15 @@ app = FastAPI(
     description="API para Zenith - Gestión de archivos con IA",
     version="1.0.0"
 )
+
+# Base API Router
+api_router = APIRouter()
+api_router.include_router(auth_router, prefix="/auth", tags=["auth"])
+api_router.include_router(user_router, prefix="/users", tags=["users"])
+api_router.include_router(file_router, prefix="/files", tags=["files"])
+
+# Include everything with /api prefix
+app.include_router(api_router, prefix="/api")
 
 @app.get("/")
 async def root():
@@ -22,7 +31,3 @@ async def health_check():
     """
     return {"status": "healthy", "service": "zenith-backend"}
 
-# incluir routers
-app.include_router(auth_router, prefix="/auth", tags=["auth"])
-app.include_router(user_router, prefix="/users", tags=["users"])
-app.include_router(file_router, prefix="/files", tags=["files"])
