@@ -9,7 +9,7 @@ from app.core.config import settings
 
 # JWT Configuration
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30  # 30 minutes default
+ACCESS_TOKEN_EXPIRE_MINUTES = 5000
 
 # Password hashing with Argon2 (more secure than bcrypt)
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")

@@ -251,15 +251,16 @@ async def get_recent_files(
 @router.get("/", response_model=List[FileResponse])
 async def get_my_files(
     path: str = "/",
+    category: Optional[str] = Query(None, description="Filter by category: image, video, audio, document"),
     skip: int = 0,
     limit: int = 20,
     current_user=Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_get_db if 'get_get_db' in globals() else get_db), # Just being safe with potential overrides although get_db is standard
 ):
-    """List the current user's files in a given directory path."""
+    """List the current user's files in a given directory path or by category."""
     repo = FileRepository(db)
     return await repo.get_files_by_path(
-        user_id=current_user.id, path=path, skip=skip, limit=limit
+        user_id=current_user.id, path=path, skip=skip, limit=limit, category=category
     )
 
 
