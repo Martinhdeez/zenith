@@ -38,7 +38,7 @@
   position: relative;
   z-index: 40;
   display: grid;
-  grid-template-columns: minmax(240px, 1fr) auto auto;
+  grid-template-columns: minmax(240px, 1fr) auto auto auto;
   align-items: center;
   gap: 10px;
   background: transparent;
@@ -406,4 +406,85 @@
   .dashboard-toolbar__profile-menu {
     right: -6px;
   }
+}
+
+/* ── Neural Graph Mode Styles ─────── */
+
+.dashboard-toolbar-container--graph-mode {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  width: auto;
+  z-index: 100;
+  margin-bottom: 0;
+}
+
+.dashboard-toolbar--graph-mode {
+  background: rgba(10, 15, 26, 0.4);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 100px;
+  padding: 8px 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+  grid-template-columns: auto auto auto auto;
+}
+
+.dashboard-toolbar--graph-mode .search-input {
+  width: 200px;
+  transition: width 0.3s ease;
+}
+
+.dashboard-toolbar--graph-mode .search-input input {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: transparent;
+  min-height: 40px;
+}
+
+.dashboard-toolbar--graph-mode .search-input input:focus {
+  width: 280px;
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(138, 99, 255, 0.4);
+  box-shadow: 0 0 0 2px rgba(138, 99, 255, 0.15);
+}
+
+.dashboard-toolbar__graph-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 40px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(244, 248, 255, 0.8);
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 0 16px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+}
+
+.dashboard-toolbar__graph-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.dashboard-toolbar__graph-btn.is-active {
+  border-color: rgba(255, 133, 122, 0.4);
+  background: rgba(255, 133, 122, 0.15);
+  color: #ff857a;
+  box-shadow: 0 0 20px rgba(255, 133, 122, 0.2), inset 0 0 10px rgba(255, 133, 122, 0.1);
+}
+
+.dashboard-toolbar__graph-btn svg {
+  opacity: 0.7;
+  transition: all 0.3s ease;
+}
+
+.dashboard-toolbar__graph-btn.is-active svg {
+  opacity: 1;
+  stroke: #ff857a;
+  filter: drop-shadow(0 0 4px rgba(255, 133, 122, 0.5));
 }

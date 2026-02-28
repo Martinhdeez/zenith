@@ -12,6 +12,7 @@ import ParticlesBackground from '../../landing/components/particlesBackground/Pa
 import { fileService } from '../../file/services/fileService'
 import { SideBarIcon } from '../../shared/components/SideBar.jsx'
 import OnboardingTutorial from '../components/OnboardingTutorial.jsx'
+import NeuralGraphCanvas from '../components/NeuralGraphCanvas.jsx'
 import relojIcon from '../../../assets/icons/reloj.svg'
 import './HomePage.css'
 
@@ -39,6 +40,8 @@ function HomePage({ currentUser, onSignOut, onAuthSuccess }) {
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false)
   const [showStudySumupModal, setShowStudySumupModal] = useState(false)
   const [showTutorial, setShowTutorial] = useState(false)
+  const [isGraphMode, setIsGraphMode] = useState(false) // Neural File Galaxy Mode toggle
+  const [showGraphTransition, setShowGraphTransition] = useState(false) // Phase transition effect
   
   const normalizedSearch = search.trim().toLowerCase()
 
@@ -151,7 +154,19 @@ function HomePage({ currentUser, onSignOut, onAuthSuccess }) {
   // Handle folder navigation via query parameters
   const handleFolderClick = (folderName) => {
     const newPath = currentPath === '/' ? `/${folderName}` : `${currentPath}/${folderName}`
+    setCurrentPath(newPath)
     navigate(`/home?path=${encodeURIComponent(newPath)}`)
+  }
+
+  const toggleGraphMode = () => {
+    setShowGraphTransition(true)
+    setTimeout(() => {
+      setIsGraphMode(prev => !prev)
+    }, 450) // Switch mode during the bloom peak (now slower)
+    
+    setTimeout(() => {
+      setShowGraphTransition(false)
+    }, 1300) // Cleanup after 1.2s animation finished
   }
 
   const handleGoBack = () => {
@@ -360,9 +375,14 @@ function HomePage({ currentUser, onSignOut, onAuthSuccess }) {
   const pathParts = currentPath.split('/').filter(Boolean)
 
   return (
-    <div className="home-page">
+    <div className={`home-page ${isGraphMode ? 'home-page--graph-mode' : ''}`}>
       <ParticlesBackground />
-      <SideBar isAuthenticated onNewClick={() => setShowUpload(true)} onSignOut={onSignOut} />
+      <SideBar 
+        isAuthenticated 
+        onNewClick={() => setShowUpload(true)} 
+        onSignOut={onSignOut} 
+        isGraphMode={isGraphMode}
+      />
 
       <main className="home-page__content">
         <DashboardToolbar
@@ -372,9 +392,41 @@ function HomePage({ currentUser, onSignOut, onAuthSuccess }) {
           onModeChange={setSearchMode}
           activeFilters={activeFilters}
           onFilterChange={setActiveFilters}
+          isGraphMode={isGraphMode}
+          onGraphModeToggle={toggleGraphMode}
         />
 
-        <section className="home-shell home-shell--main" aria-label="Zenith Home">
+        {/* Neural File Galaxy Canvas Placeholder */}
+        {isGraphMode && (
+          <div className="neural-galaxy-canvas">
+            {loading ? (
+              <div className="neural-galaxy-placeholder">
+                <h3>Neural Graph Active</h3>
+                <p>Deploying Dynamic Space Depth...</p>
+              </div>
+            ) : (
+              <NeuralGraphCanvas 
+                items={filteredItems} 
+                currentPath={currentPath}
+                onGoBack={handleGoBack}
+                onBreadcrumbClick={handleBreadcrumbClick}
+                onNodeClick={(item) => {
+                  if (item.file_type === 'dir') {
+                    handleFolderClick(item.name);
+                  } else {
+                    setPreviewFile(item);
+                  }
+                }}
+              />
+            )}
+          </div>
+        )}
+
+        <section 
+          className="home-shell home-shell--main" 
+          aria-label="Zenith Home"
+          style={{ display: isGraphMode ? 'none' : '' }}
+        >
           <header className="home-shell__header">
             <div id="step-breadcrumbs" className="breadcrumb-nav">
               <button 
@@ -528,7 +580,11 @@ function HomePage({ currentUser, onSignOut, onAuthSuccess }) {
 
         {/* Recents Section — Now in a separate shell below */}
         {currentPath === '/' && !normalizedSearch && recentFiles.length > 0 && (
-          <section className="home-shell home-shell--recents" aria-label="Recent Files">
+          <section 
+            className="home-shell home-shell--recents" 
+            aria-label="Recent Files"
+            style={{ display: isGraphMode ? 'none' : '' }}
+          >
             <div className="home-section__header">
               <h2>Recent Files</h2>
             </div>
@@ -551,22 +607,26 @@ function HomePage({ currentUser, onSignOut, onAuthSuccess }) {
             </div>
           </section>
         )}
+
+        {/* Neural Phase Transition Overlay - Now scoped to main content */}
+        {showGraphTransition && (
+          <div className="graph-transition-overlay graph-transition-overlay--active" />
+        )}
       </main>
 
-      {/* Upload Modal */}
+      {/* Shared Modals */}
       {showUpload && (
-        <UploadModal
+        <UploadModal 
+          onClose={() => setShowUpload(false)} 
+          onSuccess={fetchData}
           currentPath={currentPath}
-          onUpload={handleUpload}
-          onClose={() => setShowUpload(false)}
         />
       )}
-
-      {/* File Preview Modal */}
       {previewFile && (
-        <FilePreviewModal
-          file={previewFile}
-          onClose={() => setPreviewFile(null)}
+        <FilePreviewModal 
+          file={previewFile} 
+          onClose={() => setPreviewFile(null)} 
+          onDeleteSuccess={fetchData}
         />
       )}
 

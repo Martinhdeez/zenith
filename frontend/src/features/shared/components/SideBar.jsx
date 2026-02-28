@@ -64,7 +64,7 @@ export function SideBarIcon({ type }) {
   )
 }
 
-function SideBar({ links = navLinks, isAuthenticated = true, onLogin, onRegister, onNewClick, onSignOut }) {
+function SideBar({ links = navLinks, isAuthenticated = true, onLogin, onRegister, onNewClick, onSignOut, isGraphMode = false }) {
   const [isMobileOpen, setIsMobileOpen] = useState(false)
   const [isCollapsed, setIsCollapsed] = useState(() => {
     const saved = localStorage.getItem('sidebar-collapsed')
@@ -112,7 +112,7 @@ function SideBar({ links = navLinks, isAuthenticated = true, onLogin, onRegister
 
       <aside 
         id="logo-sidebar" 
-        className={`sidebar${isMobileOpen ? ' sidebar--open' : ''}${isCollapsed ? ' sidebar--collapsed' : ''}`} 
+        className={`sidebar${isMobileOpen ? ' sidebar--open' : ''}${isCollapsed ? ' sidebar--collapsed' : ''}${isGraphMode ? ' sidebar--graph-mode' : ''}`} 
         aria-label="Sidebar"
       >
         <div className="sidebar-scroll">
