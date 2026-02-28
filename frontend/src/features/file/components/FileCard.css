@@ -161,6 +161,16 @@
   font-weight: 500;
 }
 
+.file-card__preview-text p.is-raw-text {
+  font-family: var(--font-mono, 'Courier New', Courier, monospace);
+  font-size: 0.65rem;
+  line-height: 1.6;
+  font-weight: 400;
+  color: #475569;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
 .file-card__preview-text::after {
   content: '';
   position: absolute;
