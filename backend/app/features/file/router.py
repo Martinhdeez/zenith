@@ -4,7 +4,7 @@ File router — CRUD operations, download, and search.
 import logging
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status, UploadFile, File as FastAPIFile, Form
+from fastapi import APIRouter, Depends, HTTPException, Query, status, UploadFile, File as FastAPIFile, Form, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 import cloudinary
 import cloudinary.uploader
@@ -19,12 +19,15 @@ from app.features.file.schemas import (
     FileContent,
     FileSearchResult,
     SmartUploadResponse,
+    SuggestPathRequest,
+    SuggestPathResponse,
 )
 from app.features.auth.dependencies import get_current_user
 from app.features.openai.search import search_files
 from app.features.openai.organizer import suggest_file_path
 from app.features.openai.transcription import transcribe_media, is_transcribable
 from app.features.openai.embedding import generate_embedding
+from app.features.openai.summarizer import start_folder_summary_update
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +40,7 @@ router = APIRouter()
 
 @router.post("/", response_model=FileResponse, status_code=status.HTTP_201_CREATED)
 async def upload_file(
+    background_tasks: BackgroundTasks,
     file: Optional[UploadFile] = FastAPIFile(None),
     name: str = Form(...),
     description: Optional[str] = Form(None),
@@ -110,6 +114,11 @@ async def upload_file(
 
     repo = FileRepository(db)
     new_file = await repo.create(file_data.model_dump())
+
+    # Trigger background folder summarization
+    if file_type == "file":
+        background_tasks.add_task(start_folder_summary_update, new_file.id)
+
     return new_file
 
 
@@ -117,8 +126,39 @@ async def upload_file(
 # Smart Upload — AI-powered file organization
 # ──────────────────────────────────────────────
 
+@router.post("/suggest-path", response_model=SuggestPathResponse, status_code=status.HTTP_200_OK)
+async def suggest_path_only(
+    request: SuggestPathRequest,
+    current_user=Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Get an AI suggestion for the optimal folder path for a file, without uploading it.
+    Used for the confirmation step in Smart Auto-Sync.
+    """
+    repo = FileRepository(db)
+
+    user_folders = await repo.get_user_folders(current_user.id)
+    logger.info("Suggest path: user %s has folders %s", current_user.id, user_folders)
+
+    suggestion = await suggest_file_path(
+        filename=request.filename,
+        mime_type=request.mime_type or "unknown",
+        existing_folders=user_folders,
+    )
+    
+    logger.info("AI suggested path (preview): %s (new_folder=%s)", suggestion.path, suggestion.new_folder)
+
+    return SuggestPathResponse(
+        suggested_path=suggestion.path,
+        is_new_folder=suggestion.new_folder,
+        reason=suggestion.reason
+    )
+
+
 @router.post("/smart-upload", response_model=SmartUploadResponse, status_code=status.HTTP_201_CREATED)
 async def smart_upload(
+    background_tasks: BackgroundTasks,
     file: UploadFile = FastAPIFile(...),
     name: str = Form(...),
     description: Optional[str] = Form(None),
@@ -215,6 +255,9 @@ async def smart_upload(
         transcription=transcription,
     )
     new_file = await repo.create(file_data.model_dump())
+
+    # Trigger background folder summarization
+    background_tasks.add_task(start_folder_summary_update, new_file.id)
 
     return SmartUploadResponse(
         id=new_file.id,
@@ -376,7 +419,7 @@ async def search(
             url=r.file.url,
             cloudinary_public_id=r.file.cloudinary_public_id,
             transcription=r.file.transcription,
-            user_id=r.file.user_id,
+            user_id=rv.file.user_id,
             uploaded_at=r.file.created_at,
             similarity=r.distance,
         )

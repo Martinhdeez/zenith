@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback } from 'react'
+import { fileService } from '../services/fileService'
 import './UploadModal.css'
 
 /**
@@ -23,6 +24,9 @@ function UploadModal({ currentPath = '/', onUpload, onClose }) {
   const [result, setResult] = useState(null)
   const [error, setError] = useState(null)
   const [isDragOver, setIsDragOver] = useState(false)
+  const [smartState, setSmartState] = useState('initial') // 'initial' | 'suggesting' | 'confirming'
+  const [suggestedPath, setSuggestedPath] = useState('')
+  const [aiReason, setAiReason] = useState('')
   const fileInputRef = useRef(null)
 
   const handleDrop = useCallback((e) => {
@@ -76,14 +80,38 @@ function UploadModal({ currentPath = '/', onUpload, onClose }) {
       return
     }
 
+    if (mode === 'smart' && smartState === 'initial') {
+      try {
+        setSmartState('suggesting')
+        setError(null)
+        const mimeType = uploadFile ? uploadFile.type : 'text/plain'
+        const suggestion = await fileService.suggestPath(name.trim(), mimeType)
+        setSuggestedPath(suggestion.suggested_path)
+        setAiReason(suggestion.reason)
+        setSmartState('confirming')
+      } catch (err) {
+        console.error('Path suggestion failed:', err)
+        setError('Could not get AI suggestion. You can still upload manually.')
+        setSmartState('initial')
+      }
+      return
+    }
+
     setUploading(true)
     setError(null)
     setResult(null)
 
     try {
-      const uploadMode = tab === 'folder' ? 'folder' : mode
-      const res = await onUpload(uploadMode, uploadFile, name.trim(), description.trim(), manualPath)
-      setResult(res)
+      if (smartState === 'confirming') {
+         // Finalize the smart upload using the confirmed path via the standard manual route
+         const res = await onUpload('manual', uploadFile, name.trim(), description.trim(), suggestedPath)
+         setResult(res)
+         setSmartState('initial')
+      } else {
+         const uploadMode = tab === 'folder' ? 'folder' : mode
+         const res = await onUpload(uploadMode, uploadFile, name.trim(), description.trim(), manualPath)
+         setResult(res)
+      }
     } catch (err) {
       console.error('Upload failed:', err)
       setError(err.message || 'Upload failed. Please try again.')
@@ -117,7 +145,8 @@ function UploadModal({ currentPath = '/', onUpload, onClose }) {
             role="tab"
             aria-selected={tab === 'file'}
             className={tab === 'file' ? 'is-active' : ''}
-            onClick={() => setTab('file')}
+            onClick={() => { setTab('file'); setSmartState('initial'); }}
+            disabled={smartState !== 'initial' && smartState !== 'confirming'}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -130,7 +159,8 @@ function UploadModal({ currentPath = '/', onUpload, onClose }) {
             role="tab"
             aria-selected={tab === 'text'}
             className={tab === 'text' ? 'is-active' : ''}
-            onClick={() => setTab('text')}
+            onClick={() => { setTab('text'); setSmartState('initial'); }}
+            disabled={smartState !== 'initial' && smartState !== 'confirming'}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
@@ -144,8 +174,10 @@ function UploadModal({ currentPath = '/', onUpload, onClose }) {
             className={tab === 'folder' ? 'is-active' : ''}
             onClick={() => {
               setTab('folder')
+              setSmartState('initial')
               if (!name) setName('')
             }}
+            disabled={smartState !== 'initial' && smartState !== 'confirming'}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
@@ -215,18 +247,41 @@ function UploadModal({ currentPath = '/', onUpload, onClose }) {
           <div className="upload-modal__fields">
             <label>
               <span>File Name</span>
-              <input type="text" placeholder="e.g. meeting_notes" value={name} onChange={(e) => setName(e.target.value)} />
+              <input type="text" placeholder="e.g. meeting_notes" value={name} onChange={(e) => setName(e.target.value)} disabled={smartState !== 'initial'} />
             </label>
             <label>
               <span>Description</span>
-              <input type="text" placeholder="Optional context..." value={description} onChange={(e) => setDescription(e.target.value)} />
+              <input type="text" placeholder="Optional context..." value={description} onChange={(e) => setDescription(e.target.value)} disabled={smartState !== 'initial'} />
             </label>
           </div>
 
-          <details className="upload-modal__manual-section">
-            <summary>Advanced Path Settings</summary>
-            <input type="text" placeholder="Destination path (e.g. /work/2026)" value={manualPath} onChange={(e) => setManualPath(e.target.value)} />
-          </details>
+          {smartState === 'confirming' && (
+            <div className="upload-modal__confirmation">
+              <div className="confirmation-header">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#72fba1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+                <h3>AI Recommendation Ready</h3>
+              </div>
+              <p className="ai-reason">"{aiReason}"</p>
+              <label>
+                <span>Suggested Path (You can edit this)</span>
+                <input 
+                  type="text" 
+                  value={suggestedPath} 
+                  onChange={(e) => setSuggestedPath(e.target.value)} 
+                  className="path-input-highlight"
+                />
+              </label>
+            </div>
+          )}
+
+          {smartState === 'initial' && (
+            <details className="upload-modal__manual-section">
+              <summary>Advanced Path Settings</summary>
+              <input type="text" placeholder="Destination path (e.g. /work/2026)" value={manualPath} onChange={(e) => setManualPath(e.target.value)} />
+            </details>
+          )}
 
           {error && <p className="upload-modal__error">{error}</p>}
           
@@ -258,19 +313,29 @@ function UploadModal({ currentPath = '/', onUpload, onClose }) {
               )}
               {uploading ? 'Creating...' : 'Create Folder'}
             </button>
-          ) : (
+          ) : smartState === 'confirming' ? (
             <>
               <button className="upload-btn upload-btn--smart" onClick={() => handleUpload('smart')} disabled={uploading}>
-                {uploading ? <div className="upload-btn__spinner" /> : (
+                {uploading ? <div className="upload-btn__spinner" /> : null}
+                {uploading ? 'Uploading...' : 'Confirm & Upload'}
+              </button>
+              <button className="upload-btn upload-btn--manual" onClick={() => setSmartState('initial')} disabled={uploading}>
+                Cancel
+              </button>
+            </>
+          ) : (
+            <>
+              <button className="upload-btn upload-btn--smart" onClick={() => handleUpload('smart')} disabled={uploading || smartState === 'suggesting'}>
+                {smartState === 'suggesting' ? <div className="upload-btn__spinner" /> : (
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M12 2a10 10 0 1 0 10 10H12V2z"></path>
                     <path d="M12 12L2.5 4.5"></path>
                     <path d="M12 12V22a10 10 0 0 0 10-10H12z"></path>
                   </svg>
                 )}
-                {uploading ? 'Processing...' : 'Smart Auto-Sync'}
+                {smartState === 'suggesting' ? 'Analyzing...' : 'Smart Auto-Sync'}
               </button>
-              <button className="upload-btn upload-btn--manual" onClick={() => handleUpload('manual')} disabled={uploading}>
+              <button className="upload-btn upload-btn--manual" onClick={() => handleUpload('manual')} disabled={uploading || smartState === 'suggesting'}>
                 Manual Place
               </button>
             </>

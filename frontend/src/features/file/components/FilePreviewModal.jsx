@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { fileService } from '../services/fileService'
+import ReactMarkdown from 'react-markdown'
 import StudyPanel from './StudyPanel.jsx'
 import './FilePreviewModal.css'
 
@@ -24,6 +25,8 @@ function FilePreviewModal({ file, onClose }) {
   
   const isText = (file.mime_type?.startsWith('text/') || 
                ['txt', 'md', 'json', 'js', 'py'].includes(file.format?.toLowerCase())) && !isPdf;
+  
+  const isMarkdown = file.mime_type === 'text/markdown' || file.format?.toLowerCase() === 'md';
 
   const canStudy = isText || isPdf || isAudio || isVideo;
 
@@ -168,8 +171,14 @@ function FilePreviewModal({ file, onClose }) {
                   )}
 
                   {isText && content && (
-                    <div className="preview-content preview-content--text">
-                      <pre>{content}</pre>
+                    <div className={`preview-content preview-content--text ${isMarkdown ? 'markdown-view' : ''}`}>
+                      {isMarkdown ? (
+                        <div className="rendered-markdown">
+                          <ReactMarkdown>{content}</ReactMarkdown>
+                        </div>
+                      ) : (
+                        <pre>{content}</pre>
+                      )}
                     </div>
                   )}
 

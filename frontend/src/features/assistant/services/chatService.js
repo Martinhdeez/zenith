@@ -47,4 +47,15 @@ export const chatService = {
             }),
         })
     },
+
+    /**
+     * Generate a comprehensive study summary for an entire folder.
+     * @param {number} folderId - Folder ID
+     * @returns {Promise<Object>} - The newly created file record containing the summary
+     */
+    async generateFolderStudySummary(folderId) {
+        return api(`/ai/folder/${folderId}/study-summary`, {
+            method: 'POST',
+        })
+    },
 }

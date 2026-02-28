@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, useCallback } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+import ReactMarkdown from 'react-markdown'
 import SideBar from '../../shared/components/SideBar.jsx'
 import DashboardToolbar from '../../shared/components/DashboardToolbar.jsx'
 import FolderCard from '../../file/components/FolderCard.jsx'
@@ -9,6 +10,8 @@ import UploadModal from '../../file/components/UploadModal.jsx'
 import FilePreviewModal from '../../file/components/FilePreviewModal.jsx'
 import ParticlesBackground from '../../landing/components/particlesBackground/ParticlesBackground.jsx'
 import { fileService } from '../../file/services/fileService'
+import { chatService } from '../../assistant/services/chatService'
+import { SideBarIcon } from '../../shared/components/SideBar.jsx'
 import relojIcon from '../../../assets/icons/reloj.svg'
 import './HomePage.css'
 
@@ -30,6 +33,8 @@ function HomePage({ currentUser, onSignOut }) {
   const [viewMode, setViewMode] = useState('grid') // 'grid' | 'list'
   const [activeFilters, setActiveFilters] = useState([]) // filter keys: 'document', 'image', 'video', 'audio', 'folder'
   const [searchMode, setSearchMode] = useState('name') // 'name', 'semantic'
+  const [isGeneratingSummary, setIsGeneratingSummary] = useState(false)
+  const [showStudySumupModal, setShowStudySumupModal] = useState(false)
   
   const normalizedSearch = search.trim().toLowerCase()
 
@@ -231,6 +236,27 @@ function HomePage({ currentUser, onSignOut }) {
     setIsEditingDescription(true)
   }
 
+  const handleGenerateStudySummary = async () => {
+    if (!currentFolder) return
+    try {
+      setIsGeneratingSummary(true)
+      // setShowStudySumupModal(false) // Removed as per instruction
+      await chatService.generateFolderStudySummary(currentFolder.id)
+      // Refresh the view so the newly created summary file appears
+      fetchData()
+      if (currentPath === '/') fetchRecentFiles()
+      
+      // Notify the user softly if you have a toast component, else we just refresh
+      alert("Study Guide generated successfully! You can find it in the current folder.")
+    } catch (err) {
+      console.error('Failed to generate study summary:', err)
+      alert("Error generating study guide.")
+    } finally {
+      setIsGeneratingSummary(false)
+      setShowStudySumupModal(false) // Close modal here after attempt
+    }
+  }
+
   // Helper: check if a file matches a given filter category
   const matchesFilter = (item, filterKey) => {
     const mime = (item.mime_type || '').toLowerCase()
@@ -311,7 +337,7 @@ function HomePage({ currentUser, onSignOut }) {
           </header>
 
           {currentPath !== '/' && (
-            <div className="folder-description-area">
+            <div className="folder-description-area" style={{ marginBottom: '24px' }}>
               {isEditingDescription ? (
                 <textarea
                   className="folder-description-input"
@@ -333,6 +359,20 @@ function HomePage({ currentUser, onSignOut }) {
                   ) : (
                     <span className="folder-description__placeholder">Add a description for this folder...</span>
                   )}
+                </div>
+              )}
+
+              {currentFolder?.summary && (
+                <div className="folder-sumup-card" style={{ marginTop: '16px' }}>
+                  <div className="folder-sumup-card__header">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ff857a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                    </svg>
+                    <h4>AI Folder Sum-up</h4>
+                  </div>
+                  <div className="folder-sumup-card__content">
+                    <ReactMarkdown>{currentFolder.summary}</ReactMarkdown>
+                  </div>
                 </div>
               )}
             </div>
@@ -392,9 +432,7 @@ function HomePage({ currentUser, onSignOut }) {
                   viewMode === 'grid' ? (
                     <FileCard
                       key={file.id}
-                      name={file.name}
-                      type={file.mime_type || file.format || 'file'}
-                      activity={file.updated_at ? `Modified · ${new Date(file.updated_at).toLocaleDateString()}` : 'New file'}
+                      file={file}
                       userChar={userChar}
                       onClick={() => setPreviewFile(file)}
                       onRename={(newName) => handleRename(file.id, newName)}
@@ -416,6 +454,7 @@ function HomePage({ currentUser, onSignOut }) {
               </div>
             </section>
           )}
+
         </section>
 
         {/* Recents Section — Now in a separate shell below */}
@@ -461,6 +500,61 @@ function HomePage({ currentUser, onSignOut }) {
           onClose={() => setPreviewFile(null)}
         />
       )}
+
+      {/* Floating Action Button for Study Summary */}
+        {currentPath !== '/' && currentFolder && (
+          <>
+            <button 
+              className="fab-study-summary" 
+              onClick={() => setShowStudySumupModal(true)}
+              disabled={isGeneratingSummary}
+              title="Generate Study Guide"
+            >
+              {isGeneratingSummary ? (
+                <div className="fab-spinner"></div>
+              ) : (
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                </svg>
+              )}
+              <span>{isGeneratingSummary ? 'Generating...' : 'Study Sumup'}</span>
+            </button>
+
+            {showStudySumupModal && (
+              <div className="upload-overlay" onClick={() => setShowStudySumupModal(false)} role="dialog" aria-modal="true" style={{zIndex: 9999}}>
+                <div className="upload-modal" onClick={(e) => e.stopPropagation()} style={{maxWidth: '450px', padding: '32px', textAlign: 'center'}}>
+                  <div style={{color: '#ff857a', marginBottom: '16px'}}>
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                      <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                  </div>
+                  <h2 style={{margin: '0 0 8px', fontSize: '1.4rem', color: '#fff'}}>Generate Study Sumup?</h2>
+                  <p style={{margin: '0 0 24px', color: 'var(--text-muted)', lineHeight: '1.5'}}>
+                    This action will read all files inside <strong>{currentFolder?.name}</strong> and create a comprehensive markdown study guide. This might take a few moments.
+                  </p>
+                  <div style={{display: 'flex', gap: '12px'}}>
+                    <button 
+                      className="upload-btn upload-btn--manual" 
+                      style={{flex: 1, padding: '12px'}} 
+                      onClick={() => setShowStudySumupModal(false)}
+                    >
+                      Cancel
+                    </button>
+                    <button 
+                      className="upload-btn upload-btn--smart" 
+                      style={{flex: 1, padding: '12px'}} 
+                      onClick={handleGenerateStudySummary}
+                    >
+                      Generate
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
+        )}
     </div>
 
 

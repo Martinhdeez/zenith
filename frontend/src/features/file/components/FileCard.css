@@ -122,10 +122,64 @@
     linear-gradient(90deg, rgba(214, 105, 114, 0.14), rgba(214, 105, 114, 0.06));
 }
 
-.file-card__preview--image {
+/* Remove gradients for text/image previews if they contain actual content */
+.file-card__preview--image:not(:has(img)),
+.file-card__preview--doc:not(:has(.file-card__preview-text)) {
   background:
     linear-gradient(180deg, rgba(246, 247, 251, 0.95), rgba(226, 230, 241, 0.92)),
     linear-gradient(90deg, rgba(156, 105, 214, 0.14), rgba(156, 105, 214, 0.06));
+}
+
+.file-card__preview-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.file-card__preview-text {
+  padding: 12px 14px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: white; /* Ensure text is readable over the card */
+  color: #334155;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  overflow: hidden;
+  position: relative;
+}
+
+.file-card__preview-text p {
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+}
+
+.file-card__preview-text p.is-raw-text {
+  font-family: var(--font-mono, 'Courier New', Courier, monospace);
+  font-size: 0.65rem;
+  line-height: 1.6;
+  font-weight: 400;
+  color: #475569;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.file-card__preview-text::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
+  background: linear-gradient(to bottom, transparent, white);
+  pointer-events: none;
 }
 
 .file-card__meta {

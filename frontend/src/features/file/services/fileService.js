@@ -70,6 +70,16 @@ export const fileService = {
     },
 
     /**
+     * Get an AI suggestion for the path before uploading.
+     */
+    async suggestPath(filename, mimeType) {
+        return api(`/files/suggest-path`, {
+            method: 'POST',
+            body: JSON.stringify({ filename, mime_type: mimeType })
+        });
+    },
+
+    /**
      * Create a folder.
      */
     async createFolder(name, path = '/', description = '') {
