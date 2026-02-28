@@ -3,7 +3,7 @@
   min-height: 100vh;
   overflow: visible;
   color: var(--text-primary);
-  --sidebar-space: 344px;
+  --sidebar-space: 16rem;
   --primary: #c95f58;
   --primary-strong: #e07a6d;
   --accent: #e07a6d;
