@@ -25,7 +25,7 @@ function FilePreviewModal({ file, onClose }) {
   const isText = (file.mime_type?.startsWith('text/') || 
                ['txt', 'md', 'json', 'js', 'py'].includes(file.format?.toLowerCase())) && !isPdf;
 
-  const canStudy = isText || isPdf || isAudio;
+  const canStudy = isText || isPdf || isAudio || isVideo;
 
   const [pdfUrl, setPdfUrl] = useState(null);
 

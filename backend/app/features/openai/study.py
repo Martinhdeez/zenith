@@ -62,19 +62,28 @@ ALWAYS respond in the SAME LANGUAGE as the document content.
 
 
 async def _fetch_file_text(file_obj: File) -> Optional[str]:
-    """Download file content from its URL and attempt to extract text."""
+    """
+    Get text content for AI study.
+    Prioritizes stored transcription (for audio/video) then downloads text/PDF.
+    """
+    # 1. If we already have a transcription (audio/video or even text), use it!
+    if file_obj.transcription:
+        return file_obj.transcription
+
     if not file_obj.url:
         return None
 
-    # Only process text-based files
+    # 2. Otherwise, check if it's a direct text/PDF file we can download
     mime = (file_obj.mime_type or "").lower()
     fmt = (file_obj.format or "").lower()
+    
     is_text = mime.startswith("text/") or fmt in (
         "txt", "md", "json", "js", "py", "csv", "xml", "html", "css",
     )
     is_pdf = mime == "application/pdf" or fmt == "pdf"
 
     if not is_text and not is_pdf:
+        # If it's not text/pdf AND has no transcription, we can't study it
         return None
 
     try:
@@ -84,8 +93,7 @@ async def _fetch_file_text(file_obj: File) -> Optional[str]:
                 return None
 
             if is_pdf:
-                # For PDFs, we extract what we can from raw bytes as text
-                # GPT can still work with the raw text representation
+                # For PDFs, we return raw text (Whisper doesn't apply here, just raw extract)
                 try:
                     return response.text
                 except Exception:
@@ -129,8 +137,9 @@ async def generate_study_material(
     if not text_content or len(text_content.strip()) < 20:
         return (
             "⚠️ **No se pudo extraer contenido de texto** de este archivo.\n\n"
-            "El panel de estudio funciona con archivos de texto (`.txt`, `.md`, `.pdf`, etc.). "
-            "Los archivos de imagen o binarios no son compatibles."
+            "El panel de estudio funciona con archivos de texto (`.txt`, `.md`, `.pdf`), "
+            "o archivos de audio/vídeo que tengan transcripción.\n\n"
+            "Si acabas de subir el archivo, espera unos segundos a que termine la transcripción."
         )
 
     # Truncate very long content to ~12k chars to stay within context limits
