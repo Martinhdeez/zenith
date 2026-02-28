@@ -24,6 +24,9 @@ function HomePage({ currentUser, onSignOut }) {
   const [showUpload, setShowUpload] = useState(false)
   const [currentPath, setCurrentPath] = useState('/')
   const [previewFile, setPreviewFile] = useState(null)
+  const [currentFolder, setCurrentFolder] = useState(null)
+  const [isEditingDescription, setIsEditingDescription] = useState(false)
+  const [descriptionValue, setDescriptionValue] = useState('')
   const [viewMode, setViewMode] = useState('grid') // 'grid' | 'list'
   const [activeFilters, setActiveFilters] = useState([]) // filter keys: 'document', 'image', 'video', 'audio', 'folder'
   const [searchMode, setSearchMode] = useState('name') // 'name', 'semantic'
@@ -67,8 +70,24 @@ function HomePage({ currentUser, onSignOut }) {
 
   useEffect(() => {
     fetchData()
+    setIsEditingDescription(false)
     if (currentPath === '/') {
       fetchRecentFiles()
+      setCurrentFolder(null)
+    } else {
+      const fetchFolderInfo = async () => {
+        try {
+          const data = await fileService.getFolderMetadata(currentPath)
+          setCurrentFolder(data || null)
+          // Pre-fill the description value so the input is ready
+          setDescriptionValue(data?.description || '')
+        } catch (err) {
+          console.error('Error fetching folder metadata:', err)
+          setCurrentFolder(null)
+          setDescriptionValue('')
+        }
+      }
+      fetchFolderInfo()
     }
   }, [fetchData, fetchRecentFiles, currentPath])
 
@@ -137,6 +156,77 @@ function HomePage({ currentUser, onSignOut }) {
     return result
   }, [currentPath, fetchData, fetchRecentFiles])
 
+  // Handle renaming a file or folder
+  const handleRename = useCallback(async (fileId, newName) => {
+    try {
+      if (!newName || newName.trim() === '') return
+      await fileService.updateFile(fileId, { name: newName.trim() })
+      fetchData()
+      if (currentPath === '/') fetchRecentFiles()
+    } catch (err) {
+      console.error('Rename error:', err)
+      setError('Failed to rename item')
+    }
+  }, [currentPath, fetchData, fetchRecentFiles])
+
+  // Handle deleting a file or folder
+  const handleDelete = useCallback(async (fileId) => {
+    if (!window.confirm('Are you sure you want to delete this item? This action cannot be undone.')) {
+      return
+    }
+    try {
+      setLoading(true)
+      await fileService.deleteFile(fileId)
+      fetchData()
+      if (currentPath === '/') fetchRecentFiles()
+    } catch (err) {
+      console.error('Delete error:', err)
+      setError('Failed to delete item')
+    } finally {
+      setLoading(false)
+    }
+  }, [currentPath, fetchData, fetchRecentFiles])
+
+  const handleDescriptionSubmit = async () => {
+    if (!currentFolder || !isEditingDescription) return
+    
+    const newValue = descriptionValue.trim()
+    const oldValue = (currentFolder.description || '').trim()
+    
+    setIsEditingDescription(false)
+    
+    if (newValue === oldValue) return
+    
+    try {
+      await fileService.updateFile(currentFolder.id, { description: newValue })
+      setCurrentFolder(prev => ({ ...prev, description: newValue }))
+      // Sync the description value back to ensure consistency
+      setDescriptionValue(newValue)
+    } catch (err) {
+      console.error('Update description error:', err)
+      setError('Failed to update description')
+      // Revert local state on error
+      setDescriptionValue(oldValue)
+    }
+  }
+
+  const handleDescriptionKeyDown = (e) => {
+    // Save on Enter (without shift)
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      handleDescriptionSubmit()
+    } else if (e.key === 'Escape') {
+      setIsEditingDescription(false)
+      setDescriptionValue(currentFolder?.description || '')
+    }
+  }
+
+  const startEditingDescription = () => {
+    // Ensure the input is pre-filled with the latest description
+    setDescriptionValue(currentFolder?.description || '')
+    setIsEditingDescription(true)
+  }
+
   // Helper: check if a file matches a given filter category
   const matchesFilter = (item, filterKey) => {
     const mime = (item.mime_type || '').toLowerCase()
@@ -173,7 +263,7 @@ function HomePage({ currentUser, onSignOut }) {
   return (
     <div className="home-page">
       <ParticlesBackground />
-      <SideBar isAuthenticated onNewClick={() => setShowUpload(true)} onViewProfile={() => navigate('/profile')} onSignOut={onSignOut} />
+      <SideBar isAuthenticated onNewClick={() => setShowUpload(true)} onSignOut={onSignOut} />
 
       <main className="home-page__content">
         <DashboardToolbar
@@ -216,6 +306,34 @@ function HomePage({ currentUser, onSignOut }) {
             )}
           </header>
 
+          {currentPath !== '/' && (
+            <div className="folder-description-area">
+              {isEditingDescription ? (
+                <textarea
+                  className="folder-description-input"
+                  value={descriptionValue}
+                  onChange={(e) => setDescriptionValue(e.target.value)}
+                  onBlur={handleDescriptionSubmit}
+                  onKeyDown={handleDescriptionKeyDown}
+                  autoFocus
+                  placeholder="Add a description for this folder..."
+                />
+              ) : (
+                <div 
+                  className="folder-description"
+                  onDoubleClick={startEditingDescription}
+                  title="Double click to edit description"
+                >
+                  {currentFolder?.description ? (
+                    currentFolder.description
+                  ) : (
+                    <span className="folder-description__placeholder">Add a description for this folder...</span>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
           {loading && <p className="status-msg">Loading your workspace...</p>}
           {error && <p className="status-msg error">{error}</p>}
           
@@ -233,6 +351,8 @@ function HomePage({ currentUser, onSignOut }) {
                     title={folder.name}
                     subtitle={folder.description || 'Folder'}
                     onClick={() => handleFolderClick(folder.name)}
+                    onRename={(newName) => handleRename(folder.id, newName)}
+                    onDelete={() => handleDelete(folder.id)}
                   />
                 ))}
               </div>
@@ -273,6 +393,8 @@ function HomePage({ currentUser, onSignOut }) {
                       activity={file.updated_at ? `Modified · ${new Date(file.updated_at).toLocaleDateString()}` : 'New file'}
                       userChar={userChar}
                       onClick={() => setPreviewFile(file)}
+                      onRename={(newName) => handleRename(file.id, newName)}
+                      onDelete={() => handleDelete(file.id)}
                     />
                   ) : (
                     <FileRow
@@ -282,6 +404,8 @@ function HomePage({ currentUser, onSignOut }) {
                       activity={file.updated_at ? `Modified · ${new Date(file.updated_at).toLocaleDateString()}` : 'New file'}
                       userChar={userChar}
                       onClick={() => setPreviewFile(file)}
+                      onRename={(newName) => handleRename(file.id, newName)}
+                      onDelete={() => handleDelete(file.id)}
                     />
                   )
                 ))}

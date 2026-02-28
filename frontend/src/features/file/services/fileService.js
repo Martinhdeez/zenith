@@ -111,5 +111,13 @@ export const fileService = {
     async getRecentFiles(limit = 10) {
         return api(`/files/recent?limit=${limit}`);
     },
+
+    /**
+     * Get metadata for a specific folder or file by its path.
+     */
+    async getFolderMetadata(path) {
+        const queryParams = new URLSearchParams({ path });
+        return api(`/files/info?${queryParams.toString()}`);
+    },
 };
 

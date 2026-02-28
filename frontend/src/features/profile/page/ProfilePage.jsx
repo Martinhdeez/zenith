@@ -231,16 +231,12 @@ function ProfilePage({ currentUser, onSignOut }) {
 
   return (
     <div className="profile-page">
-      <SideBar isAuthenticated />
+      <SideBar isAuthenticated onSignOut={onSignOut} />
 
       <main className="profile-page__content">
         <DashboardToolbar
           search={search}
           onSearchChange={setSearch}
-          onAiClick={() => {}}
-          onViewProfile={() => {}}
-          onSignOut={onSignOut}
-          profileLabel={`${profile?.username || currentUser?.username || 'User'} profile`}
         />
 
         <section className="profile-shell">

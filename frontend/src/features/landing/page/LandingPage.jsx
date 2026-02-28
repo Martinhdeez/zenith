@@ -58,6 +58,7 @@ function LandingPage({ currentUser, onAuthSuccess, onSignOut }) {
           isAuthenticated={Boolean(currentUser)}
           onLogin={openLogin}
           onRegister={openRegister}
+          onSignOut={onSignOut}
         />
         <Hero words={typewriterWords} onStart={openRegister} />
         <FeaturesSection featureCards={featureCards} />

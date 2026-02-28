@@ -255,10 +255,20 @@ async def get_my_files(
     db: AsyncSession = Depends(get_db),
 ):
     """List the current user's files in a given directory path."""
-    repo = FileRepository(db)
     return await repo.get_files_by_path(
         user_id=current_user.id, path=path, skip=skip, limit=limit
     )
+
+
+@router.get("/info", response_model=Optional[FileResponse])
+async def get_file_info(
+    path: str = "/",
+    current_user=Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Get metadata for a specific file or folder by its absolute path."""
+    repo = FileRepository(db)
+    return await repo.get_file_by_full_path(user_id=current_user.id, full_path=path)
 
 
 # ──────────────────────────────────────────────

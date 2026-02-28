@@ -110,6 +110,64 @@
   font-size: 1.1rem;
 }
 
+.folder-description-area {
+  margin-top: -12px;
+  margin-bottom: 4px;
+  padding: 0 8px;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.folder-description {
+  color: rgba(214, 223, 239, 0.55);
+  font-size: 0.95rem;
+  font-style: italic;
+  cursor: pointer;
+  min-height: 24px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: all 0.2s;
+  display: inline-block;
+  max-width: 100%;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.folder-description:hover {
+  color: rgba(214, 223, 239, 0.85);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.folder-description-input {
+  background: rgba(25, 30, 41, 0.6);
+  border: 1px solid rgba(255, 133, 122, 0.3);
+  border-radius: 6px;
+  color: #fff;
+  font-size: 0.95rem;
+  font-style: italic;
+  padding: 4px 8px;
+  width: 100%;
+  max-width: 600px;
+  outline: none;
+  display: block;
+  font-family: inherit;
+  resize: none;
+  min-height: 32px;
+}
+
+.folder-description-input:focus {
+  border-color: rgba(255, 133, 122, 0.6);
+  box-shadow: 0 0 0 2px rgba(255, 133, 122, 0.15);
+}
+
+.folder-description__placeholder {
+  opacity: 0.4;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 .status-msg.error {
   color: #db5a4f;
 }

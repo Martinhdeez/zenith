@@ -77,3 +77,28 @@ class FileRepository(BaseRepository[File]):
         )
         result = await self.db.execute(stmt)
         return list(result.scalars().all())
+
+    async def get_file_by_full_path(self, user_id: int, full_path: str) -> Optional[File]:
+        """Find a file or folder by its absolute full path."""
+        if full_path == "/":
+            return None
+        
+        # Normalize: strip trailing slash except for root
+        normalized = full_path.rstrip("/") if full_path != "/" else "/"
+        
+        if "/" not in normalized.strip("/"):
+            parent_path = "/"
+            name = normalized.strip("/")
+        else:
+            parts = normalized.strip("/").split("/")
+            name = parts[-1]
+            parent_path = "/" + "/".join(parts[:-1])
+            
+        stmt = (
+            select(self.model)
+            .where(self.model.user_id == user_id)
+            .where(self.model.path == parent_path)
+            .where(self.model.name == name)
+        )
+        result = await self.db.execute(stmt)
+        return result.scalar_one_or_none()

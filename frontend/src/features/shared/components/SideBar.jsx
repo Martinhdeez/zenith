@@ -64,7 +64,7 @@ export function SideBarIcon({ type }) {
   )
 }
 
-function SideBar({ links = navLinks, isAuthenticated = true, onLogin, onRegister, onNewClick, onViewProfile, onSignOut }) {
+function SideBar({ links = navLinks, isAuthenticated = true, onLogin, onRegister, onNewClick, onSignOut }) {
   const [isMobileOpen, setIsMobileOpen] = useState(false)
   const [isCollapsed, setIsCollapsed] = useState(() => {
     const saved = localStorage.getItem('sidebar-collapsed')
@@ -197,18 +197,20 @@ function SideBar({ links = navLinks, isAuthenticated = true, onLogin, onRegister
           </ul>
 
           <div className="sidebar-bottom">
-            {isAuthenticated && onViewProfile && (
-              <button
-                className="sidebar-menu-link"
-                type="button"
-                onClick={() => { onViewProfile(); closeMobile(); }}
+            {isAuthenticated && (
+              <NavLink
+                to="/profile"
+                className={({ isActive }) =>
+                  `sidebar-menu-link${isActive ? ' sidebar-menu-link--active' : ''}`
+                }
+                onClick={closeMobile}
                 title={isCollapsed ? "Profile" : ""}
               >
                 <span className="sidebar-menu-icon">
                   <SideBarIcon type="profile" />
                 </span>
                 {!isCollapsed && <span>Profile</span>}
-              </button>
+              </NavLink>
             )}
             {isAuthenticated && onSignOut && (
               <button
