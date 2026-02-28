@@ -28,17 +28,83 @@
   gap: 26px;
 }
 
-.home-shell__header h1 {
-  margin: 0;
-  font-size: clamp(1.75rem, 2.8vw, 2.35rem);
-  font-weight: 670;
-  letter-spacing: 0.01em;
+.home-shell__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 8px;
 }
 
-.home-shell__header p {
-  margin: 7px 0 0;
-  color: rgba(220, 227, 241, 0.75);
-  font-size: 1.02rem;
+.breadcrumb-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.breadcrumb-item {
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  font-weight: 640;
+  padding: 4px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.breadcrumb-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-primary);
+}
+
+.breadcrumb-item.is-active {
+  color: #ff857a;
+  cursor: default;
+}
+
+.breadcrumb-item.is-active:hover {
+  background: transparent;
+}
+
+.breadcrumb-separator {
+  color: rgba(255, 255, 255, 0.2);
+  font-weight: 400;
+  font-size: 1rem;
+}
+
+.back-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-muted);
+  padding: 8px 16px;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.back-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(201, 95, 88, 0.4);
+  color: var(--text-primary);
+  transform: translateX(-4px);
+}
+
+.status-msg {
+  text-align: center;
+  padding: 40px;
+  color: rgba(214, 223, 239, 0.72);
+  font-size: 1.1rem;
+}
+
+.status-msg.error {
+  color: #db5a4f;
 }
 
 .home-section {
@@ -82,18 +148,8 @@
   color: rgba(244, 248, 255, 0.98);
 }
 
-.status-msg {
-  text-align: center;
-  padding: 40px;
-  color: rgba(214, 223, 239, 0.72);
-  font-size: 1.1rem;
-}
-
-.status-msg.error {
-  color: #db5a4f;
-}
-
 .folder-grid {
+
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 12px;
@@ -144,37 +200,6 @@
 }
 
 /* ── FAB Upload Button ─────────────────────── */
-.fab-upload {
-  position: fixed;
-  bottom: 28px;
-  right: 28px;
-  z-index: 800;
-  width: 56px;
-  height: 56px;
-  border: 0;
-  border-radius: 999px;
-  background: linear-gradient(135deg, var(--primary), var(--primary-strong));
-  color: #070b14;
-  font-size: 1.8rem;
-  font-weight: 700;
-  cursor: pointer;
-  display: grid;
-  place-items: center;
-  box-shadow: 0 6px 28px rgba(98, 240, 255, 0.3);
-  transition: all 0.2s ease;
-}
+/* Removed as requested - functionality moved to Sidebar */
 
-.fab-upload:hover {
-  transform: scale(1.08);
-  box-shadow: 0 8px 36px rgba(98, 240, 255, 0.45);
-}
-
-.fab-upload:active {
-  transform: scale(0.96);
-}
-
-.fab-upload span {
-  line-height: 1;
-  margin-top: -1px;
-}
 

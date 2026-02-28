@@ -327,13 +327,19 @@ async def download_file(
         )
 
     try:
-        import urllib.request
-
-        req = urllib.request.Request(
-            file_obj.url, headers={"User-Agent": "Mozilla/5.0"}
-        )
-        with urllib.request.urlopen(req) as response:
-            file_data = response.read()
+        import httpx
+        async with httpx.AsyncClient() as client:
+            # Cloudinary URLs are usually public, but we add a User-Agent just in case
+            response = await client.get(file_obj.url, follow_redirects=True, timeout=30.0)
+            
+            if response.status_code != 200:
+                logger.error(f"Download from Cloudinary failed with status {response.status_code}: {response.text}")
+                raise HTTPException(
+                    status_code=status.HTTP_502_BAD_GATEWAY,
+                    detail=f"Cloudinary returned error {response.status_code}: {response.reason_phrase}"
+                )
+            
+            file_data = response.content
 
         return {
             "name": file_obj.name,
@@ -343,6 +349,8 @@ async def download_file(
             "mime_type": file_obj.mime_type,
             "content": file_data,
         }
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error("File download failed: %s", e)
         raise HTTPException(

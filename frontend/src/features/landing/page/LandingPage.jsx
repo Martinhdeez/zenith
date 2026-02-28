@@ -12,43 +12,9 @@ import ProfilePage from '../../profile/page/ProfilePage.jsx'
 import { featureCards, typewriterWords } from './landingData.js'
 import './LandingPage.css'
 
-function LandingPage() {
+function LandingPage({ onAuthSuccess }) {
   const [isRegisterOpen, setIsRegisterOpen] = useState(false)
   const [isLoginOpen, setIsLoginOpen] = useState(false)
-  const [currentUser, setCurrentUser] = useState(null)
-  const [currentView, setCurrentView] = useState('home')
-
-  const fetchCurrentUser = async () => {
-    const token = localStorage.getItem('token')
-    if (!token) {
-      setCurrentUser(null)
-      return
-    }
-
-    try {
-      const API_BASE_URL = import.meta.env.VITE_API_URL || '/api'
-      const response = await fetch(`${API_BASE_URL}/users/me`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-
-      if (!response.ok) {
-        throw new Error('Session expired')
-      }
-
-      const user = await response.json()
-      setCurrentUser(user)
-    } catch (error) {
-      console.error('Unable to restore user session', error)
-      localStorage.removeItem('token')
-      setCurrentUser(null)
-    }
-  }
-
-  useEffect(() => {
-    void fetchCurrentUser()
-  }, [])
 
   const openRegister = () => {
     setIsLoginOpen(false)
@@ -66,46 +32,10 @@ function LandingPage() {
   const isModalOpen = isRegisterOpen || isLoginOpen
 
   const handleLoginSuccess = async () => {
-    await fetchCurrentUser()
-    setCurrentView('home')
-  }
-
-  const handleSignOut = () => {
-    localStorage.removeItem('token')
-    setCurrentUser(null)
-    setCurrentView('home')
-  }
-
-  const handleNavigate = (href) => {
-    if (href === '#home') {
-      setCurrentView('home')
-      return
+    closeLogin()
+    if (onAuthSuccess) {
+      await onAuthSuccess()
     }
-    if (href === '#profile') {
-      setCurrentView('profile')
-    }
-  }
-
-  if (currentUser) {
-    if (currentView === 'profile') {
-      return (
-        <ProfilePage
-          currentUser={currentUser}
-          onSignOut={handleSignOut}
-          onViewHome={() => setCurrentView('home')}
-          onNavigate={handleNavigate}
-        />
-      )
-    }
-
-    return (
-      <HomePage
-        currentUser={currentUser}
-        onSignOut={handleSignOut}
-        onViewProfile={() => setCurrentView('profile')}
-        onNavigate={handleNavigate}
-      />
-    )
   }
 
   return (

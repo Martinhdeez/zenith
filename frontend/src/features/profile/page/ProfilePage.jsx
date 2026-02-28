@@ -21,7 +21,7 @@ function extractErrorMessage(rawValue, fallbackMessage) {
   return typeof rawValue === 'string' ? rawValue : fallbackMessage
 }
 
-function ProfilePage({ currentUser, onSignOut, onViewHome, onNavigate }) {
+function ProfilePage({ currentUser, onSignOut }) {
   const [search, setSearch] = useState('')
   const [profile, setProfile] = useState(currentUser || null)
   const [formValues, setFormValues] = useState({
@@ -78,13 +78,6 @@ function ProfilePage({ currentUser, onSignOut, onViewHome, onNavigate }) {
     void fetchProfile()
   }, [fetchProfile])
 
-  const handleNavigate = (href) => {
-    if (href === '#home') {
-      onViewHome?.()
-      return
-    }
-    onNavigate?.(href)
-  }
 
   const handleFieldChange = (event) => {
     const { name, value } = event.target
@@ -163,7 +156,7 @@ function ProfilePage({ currentUser, onSignOut, onViewHome, onNavigate }) {
 
   return (
     <div className="profile-page">
-      <SideBar isAuthenticated onNavigate={handleNavigate} />
+      <SideBar isAuthenticated />
 
       <main className="profile-page__content">
         <DashboardToolbar

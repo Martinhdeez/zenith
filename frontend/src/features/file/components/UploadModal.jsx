@@ -54,7 +54,6 @@ function UploadModal({ currentPath = '/', onUpload, onClose }) {
 
   const getUploadFile = () => {
     if (tab === 'file') return file
-    // For text mode, create a Blob as a .txt file
     if (!textContent.trim()) return null
     const blob = new Blob([textContent], { type: 'text/plain' })
     return new File([blob], name || 'note.txt', { type: 'text/plain' })
@@ -94,15 +93,18 @@ function UploadModal({ currentPath = '/', onUpload, onClose }) {
   }
 
   return (
-    <div className="upload-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-label="Upload file">
+    <div className="upload-overlay" onClick={onClose} role="dialog" aria-modal="true">
       <div className="upload-modal" onClick={(e) => e.stopPropagation()}>
-        {/* Header */}
         <header className="upload-modal__header">
-          <h2>Create new</h2>
-          <button className="upload-modal__close" onClick={onClose} aria-label="Close">&times;</button>
+          <h2>New Content</h2>
+          <button className="upload-modal__close" onClick={onClose} aria-label="Close">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
         </header>
 
-        {/* Tab switcher */}
         <div className="upload-modal__tabs" role="tablist">
           <button
             role="tab"
@@ -110,7 +112,12 @@ function UploadModal({ currentPath = '/', onUpload, onClose }) {
             className={tab === 'file' ? 'is-active' : ''}
             onClick={() => setTab('file')}
           >
-            <span className="tab-icon">📁</span> Upload File
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            Upload File
           </button>
           <button
             role="tab"
@@ -118,11 +125,14 @@ function UploadModal({ currentPath = '/', onUpload, onClose }) {
             className={tab === 'text' ? 'is-active' : ''}
             onClick={() => setTab('text')}
           >
-            <span className="tab-icon">📝</span> Paste Text
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+            Text Note
           </button>
         </div>
 
-        {/* Content area */}
         <div className="upload-modal__body">
           {tab === 'file' ? (
             <div
@@ -131,35 +141,33 @@ function UploadModal({ currentPath = '/', onUpload, onClose }) {
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onClick={() => fileInputRef.current?.click()}
-              role="button"
-              tabIndex={0}
             >
-              <input
-                ref={fileInputRef}
-                type="file"
-                onChange={handleFileSelect}
-                hidden
-              />
+              <input ref={fileInputRef} type="file" onChange={handleFileSelect} hidden />
               {file ? (
                 <div className="upload-dropzone__selected">
-                  <span className="upload-dropzone__file-icon">📄</span>
+                  <span className="upload-dropzone__file-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ff857a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+                      <polyline points="13 2 13 9 20 9"></polyline>
+                    </svg>
+                  </span>
                   <div className="upload-dropzone__file-info">
                     <strong>{file.name}</strong>
                     <span>{formatSize(file.size)}</span>
                   </div>
-                  <button
-                    className="upload-dropzone__clear"
-                    onClick={(e) => { e.stopPropagation(); setFile(null) }}
-                    aria-label="Remove file"
-                  >
-                    ✕
-                  </button>
+                  <button className="upload-dropzone__clear" onClick={(e) => { e.stopPropagation(); setFile(null) }}>✕</button>
                 </div>
               ) : (
                 <>
-                  <span className="upload-dropzone__icon">⬆</span>
+                  <div className="upload-dropzone__icon">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                      <path d="M12 18V8"></path>
+                      <path d="m9 11 3-3 3 3"></path>
+                    </svg>
+                  </div>
                   <p className="upload-dropzone__label">
-                    Drag & drop a file here, or <strong>click to browse</strong>
+                    Drop file or <strong>browse</strong>
                   </p>
                 </>
               )}
@@ -167,94 +175,67 @@ function UploadModal({ currentPath = '/', onUpload, onClose }) {
           ) : (
             <textarea
               className="upload-textarea"
-              placeholder="Paste or type your text here..."
+              placeholder="What's on your mind?..."
               value={textContent}
               onChange={(e) => setTextContent(e.target.value)}
-              rows={8}
+              rows={6}
             />
           )}
 
-          {/* Name & description */}
           <div className="upload-modal__fields">
             <label>
-              <span>Name</span>
-              <input
-                type="text"
-                placeholder={tab === 'text' ? 'my_note.txt' : 'File name'}
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
+              <span>File Name</span>
+              <input type="text" placeholder="e.g. meeting_notes" value={name} onChange={(e) => setName(e.target.value)} />
             </label>
             <label>
-              <span>Description <small>(optional)</small></span>
-              <input
-                type="text"
-                placeholder="Brief description..."
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-              />
+              <span>Description</span>
+              <input type="text" placeholder="Optional context..." value={description} onChange={(e) => setDescription(e.target.value)} />
             </label>
           </div>
 
-          {/* Manual path input */}
           <details className="upload-modal__manual-section">
-            <summary>Manual path (for manual upload)</summary>
-            <label>
-              <input
-                type="text"
-                placeholder="/"
-                value={manualPath}
-                onChange={(e) => setManualPath(e.target.value)}
-              />
-            </label>
+            <summary>Advanced Path Settings</summary>
+            <input type="text" placeholder="Destination path (e.g. /work/2026)" value={manualPath} onChange={(e) => setManualPath(e.target.value)} />
           </details>
 
-          {/* Error / Success */}
           {error && <p className="upload-modal__error">{error}</p>}
+          
           {result && (
             <div className="upload-modal__success">
-              <span>✅</span>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#72fba1" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{marginTop: '2px'}}>
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
               <div>
-                <strong>{result.name}</strong> uploaded
+                <strong>{result.name}</strong> successfully synced
                 {result.suggested_path && (
                   <span className="upload-modal__ai-path">
-                    → AI placed in <code>{result.suggested_path}</code>
-                    {result.created_new_folder && <em> (new folder)</em>}
+                     Organized to <code>{result.suggested_path}</code>
                   </span>
-                )}
-                {result.ai_reason && (
-                  <p className="upload-modal__ai-reason">{result.ai_reason}</p>
                 )}
               </div>
             </div>
           )}
         </div>
 
-        {/* Actions */}
         <footer className="upload-modal__actions">
-          <button
-            className="upload-btn upload-btn--smart"
-            onClick={() => handleUpload('smart')}
-            disabled={uploading}
-          >
-            {uploading ? (
-              <span className="upload-btn__spinner" />
-            ) : (
-              <span className="upload-btn__icon">🧠</span>
+          <button className="upload-btn upload-btn--smart" onClick={() => handleUpload('smart')} disabled={uploading}>
+            {uploading ? <div className="upload-btn__spinner" /> : (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2a10 10 0 1 0 10 10H12V2z"></path>
+                <path d="M12 12L2.5 4.5"></path>
+                <path d="M12 12V22a10 10 0 0 0 10-10H12z"></path>
+              </svg>
             )}
-            {uploading ? 'AI is organizing...' : 'Smart Upload'}
+            {uploading ? 'Processing...' : 'Smart Auto-Sync'}
           </button>
-          <button
-            className="upload-btn upload-btn--manual"
-            onClick={() => handleUpload('manual')}
-            disabled={uploading}
-          >
-            Manual Upload
+          <button className="upload-btn upload-btn--manual" onClick={() => handleUpload('manual')} disabled={uploading}>
+            Manual Place
           </button>
         </footer>
       </div>
     </div>
   )
 }
+
 
 export default UploadModal

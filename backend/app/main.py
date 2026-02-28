@@ -1,4 +1,5 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, APIRouter
+from fastapi.middleware.cors import CORSMiddleware
 from app.features.auth.router import router as auth_router
 from app.features.user.router import router as user_router
 from app.features.file.router import router as file_router 
@@ -10,15 +11,6 @@ app = FastAPI(
 )
 
 # Configurar CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# Configuración de CORS
 # Permitimos todos los orígenes para desarrollo/hackathon, 
 # pero idealmente se restringiría a los dominios del frontend.
 app.add_middleware(

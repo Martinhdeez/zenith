@@ -1,0 +1,228 @@
+.preview-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 950;
+  display: flex;
+  flex-direction: column;
+  background: rgba(3, 8, 20, 0.92);
+  backdrop-filter: blur(16px) saturate(180%);
+  animation: previewIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes previewIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.preview-modal {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+/* ── Header ────────────────────────────────── */
+.preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 32px;
+}
+
+.preview-header__info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.preview-icon {
+  font-size: 2rem;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.preview-titles h3 {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.preview-titles p {
+  margin: 4px 0 0;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.preview-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.preview-download-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+  padding: 12px 20px;
+  border-radius: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.preview-download-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: #ff857a;
+  transform: translateY(-2px);
+}
+
+.preview-close {
+  background: rgba(219, 90, 79, 0.12);
+  color: #ff857a;
+  border: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.preview-close:hover {
+  background: #c95f58;
+  color: white;
+  transform: scale(1.1);
+}
+
+/* ── Body ──────────────────────────────────── */
+.preview-body {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  padding: 20px 40px 60px;
+  overflow: auto;
+}
+
+.preview-content {
+  width: 100%;
+  max-height: fit-content;
+  display: flex;
+  justify-content: center;
+  animation: contentFadeUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.preview-content--image {
+  align-items: center;
+}
+
+.preview-content--text {
+  align-items: flex-start;
+}
+
+@keyframes contentFadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Image preview */
+.preview-content--image img {
+  max-width: 100%;
+  max-height: 80vh;
+  object-fit: contain;
+  border-radius: 20px;
+  box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Text preview */
+.preview-content--text {
+  width: 100%;
+  max-width: 900px;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  padding: 40px;
+  overflow: auto;
+  text-align: left;
+}
+
+.preview-content--text pre {
+  margin: 0;
+  font-family: 'Fira Code', var(--font-mono);
+  font-size: 1rem;
+  line-height: 1.7;.preview-content--pdf {
+  width: 100%;
+  height: calc(100vh - 120px);
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.preview-content--pdf iframe {
+  border: none;
+}
+  color: #e0e7f1;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+/* Generic / Loading / Error */
+.preview-status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.preview-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(201, 95, 88, 0.2);
+  border-top-color: #ff857a;
+  border-radius: 999px;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.preview-content--generic {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  text-align: center;
+}
+
+.generic-preview-icon {
+  font-size: 5rem;
+  opacity: 0.25;
+}
+
+@media (max-width: 768px) {
+  .preview-header {
+    padding: 16px;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .preview-body {
+    padding: 12px;
+  }
+
+  .preview-download-btn span {
+    display: none;
+  }
+}
