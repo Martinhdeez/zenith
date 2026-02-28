@@ -3,6 +3,7 @@ import SideBar from '../../shared/components/SideBar.jsx'
 import DashboardToolbar from '../../shared/components/DashboardToolbar.jsx'
 import FolderCard from '../../file/components/FolderCard.jsx'
 import FileCard from '../../file/components/FileCard.jsx'
+import UploadModal from '../../file/components/UploadModal.jsx'
 import { fileService } from '../../file/services/fileService'
 import './HomePage.css'
 
@@ -11,6 +12,7 @@ function HomePage({ currentUser, onSignOut, onViewProfile, onNavigate }) {
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [showUpload, setShowUpload] = useState(false)
   
   const normalizedSearch = search.trim().toLowerCase()
 
@@ -56,6 +58,19 @@ function HomePage({ currentUser, onSignOut, onViewProfile, onNavigate }) {
 
     return () => clearTimeout(timer)
   }, [normalizedSearch, fetchData])
+
+  // Handle upload from modal
+  const handleUpload = useCallback(async (mode, file, name, description, manualPath) => {
+    let result
+    if (mode === 'smart') {
+      result = await fileService.smartUpload(file, name, description)
+    } else {
+      result = await fileService.uploadFile(file, name, manualPath, description)
+    }
+    // Refresh file list after successful upload
+    fetchData()
+    return result
+  }, [fetchData])
 
   const folders = useMemo(() => items.filter(i => i.file_type === 'dir'), [items])
   const files = useMemo(() => items.filter(i => i.file_type === 'file'), [items])
@@ -131,9 +146,28 @@ function HomePage({ currentUser, onSignOut, onViewProfile, onNavigate }) {
           )}
         </section>
       </main>
+
+      {/* Floating action button */}
+      <button
+        className="fab-upload"
+        onClick={() => setShowUpload(true)}
+        aria-label="Upload or create new file"
+      >
+        <span>+</span>
+      </button>
+
+      {/* Upload Modal */}
+      {showUpload && (
+        <UploadModal
+          currentPath="/"
+          onUpload={handleUpload}
+          onClose={() => setShowUpload(false)}
+        />
+      )}
     </div>
   )
 }
 
 
 export default HomePage
+

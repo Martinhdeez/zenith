@@ -142,3 +142,39 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ── FAB Upload Button ─────────────────────── */
+.fab-upload {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: 800;
+  width: 56px;
+  height: 56px;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-strong));
+  color: #070b14;
+  font-size: 1.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 6px 28px rgba(98, 240, 255, 0.3);
+  transition: all 0.2s ease;
+}
+
+.fab-upload:hover {
+  transform: scale(1.08);
+  box-shadow: 0 8px 36px rgba(98, 240, 255, 0.45);
+}
+
+.fab-upload:active {
+  transform: scale(0.96);
+}
+
+.fab-upload span {
+  line-height: 1;
+  margin-top: -1px;
+}
+
