@@ -107,6 +107,7 @@ function UploadModal({ currentPath = '/', onUpload, onClose }) {
          const res = await onUpload('manual', uploadFile, name.trim(), description.trim(), suggestedPath)
          setResult(res)
          setSmartState('initial')
+         onClose?.()
       } else if (mode === 'pending') {
          // Ensure /Pending folder exists
          try {
@@ -123,10 +124,12 @@ function UploadModal({ currentPath = '/', onUpload, onClose }) {
          const uploadMode = tab === 'folder' ? 'folder' : 'manual'
          const res = await onUpload(uploadMode, uploadFile, name.trim(), description.trim(), '/Pending')
          setResult(res)
+         onClose?.()
       } else {
          const uploadMode = tab === 'folder' ? 'folder' : mode
          const res = await onUpload(uploadMode, uploadFile, name.trim(), description.trim(), manualPath)
          setResult(res)
+         onClose?.()
       }
     } catch (err) {
       console.error('Upload failed:', err)
