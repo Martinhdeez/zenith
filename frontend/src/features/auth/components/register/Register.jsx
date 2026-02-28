@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import githubLogo from '../../../../assets/icons/GitHub_Invertocat_White.png'
 import './Register.css'
 
 function Register({ isOpen, onClose, onSignIn }) {
@@ -140,6 +141,13 @@ function Register({ isOpen, onClose, onSignIn }) {
             <span className="gsi-material-button-contents">Sign up with Google</span>
             <span className="gsi-hidden-text">Sign up with Google</span>
           </div>
+        </button>
+
+        <button className="oauth-github-button" type="button" disabled={loading}>
+          <span className="oauth-github-button__icon" aria-hidden="true">
+            <img src={githubLogo} alt="" />
+          </span>
+          <span>Continue with GitHub</span>
         </button>
 
         {error ? <p className="register-error">{error}</p> : null}

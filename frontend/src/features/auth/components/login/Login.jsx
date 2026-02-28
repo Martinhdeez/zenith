@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import githubLogo from '../../../../assets/icons/GitHub_Invertocat_White.png'
 import './Login.css'
 
 function Login({ isOpen = true, onClose, onSignUp, onLoginSuccess }) {
@@ -133,6 +134,13 @@ function Login({ isOpen = true, onClose, onSignUp, onLoginSuccess }) {
             <span className="gsi-material-button-contents">Sign in with Google</span>
             <span className="gsi-hidden-text">Sign in with Google</span>
           </div>
+        </button>
+
+        <button className="oauth-github-button" type="button" disabled={loading}>
+          <span className="oauth-github-button__icon" aria-hidden="true">
+            <img src={githubLogo} alt="" />
+          </span>
+          <span>Continue with GitHub</span>
         </button>
 
         {error ? <p className="login-error">{error}</p> : null}
