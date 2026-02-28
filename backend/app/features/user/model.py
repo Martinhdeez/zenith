@@ -18,7 +18,11 @@ class User(Base):
     # User credentials
     email = Column(String(255), unique=True, index=True, nullable=False)
     username = Column(String(50), unique=True, index=True, nullable=False)
-    hashed_password = Column(String(255), nullable=False)
+    hashed_password = Column(String(255), nullable=True)  # Nullable for social login users
+    
+    # Social Auth
+    auth_provider = Column(String(50), default="local", nullable=False)
+    auth_provider_id = Column(String(255), nullable=True, index=True)
     
     # Status
     is_active = Column(Boolean, default=True, nullable=False)

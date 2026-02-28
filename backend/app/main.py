@@ -1,5 +1,4 @@
-from fastapi import FastAPI, APIRouter
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI
 from app.features.auth.router import router as auth_router
 from app.features.user.router import router as user_router
 from app.features.file.router import router as file_router 
@@ -8,6 +7,15 @@ app = FastAPI(
     title="Zenith API",
     description="API para Zenith - Gestión de archivos con IA",
     version="1.0.0"
+)
+
+# Configurar CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Configuración de CORS
