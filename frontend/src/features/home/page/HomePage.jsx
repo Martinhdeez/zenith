@@ -244,10 +244,10 @@ function HomePage({ currentUser, onSignOut }) {
       if (currentPath === '/') fetchRecentFiles()
       
       // Notify the user softly if you have a toast component, else we just refresh
-      alert("¡Guía de Estudio generada con éxito! Ya la tienes en la carpeta.")
+      alert("Study Guide generated successfully! You can find it in the current folder.")
     } catch (err) {
       console.error('Failed to generate study summary:', err)
-      alert("Error al generar la guía de estudio.")
+      alert("Error generating study guide.")
     } finally {
       setIsGeneratingSummary(false)
     }
@@ -515,7 +515,7 @@ function HomePage({ currentUser, onSignOut }) {
                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
              </svg>
           )}
-          <span>{isGeneratingSummary ? 'Analizando...' : 'Guía de Estudio'}</span>
+          <span>{isGeneratingSummary ? 'Analyzing...' : 'Study Sumup'}</span>
         </button>
       )}
     </div>

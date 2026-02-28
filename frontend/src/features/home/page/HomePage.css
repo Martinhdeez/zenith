@@ -418,8 +418,56 @@
     grid-template-columns: 1fr;
   }
 }
+/* ── Floating Action Button (Study Sumup) ── */
 
-/* ── FAB Upload Button ─────────────────────── */
-/* Removed as requested - functionality moved to Sidebar */
+.fab-study-summary {
+  position: fixed;
+  bottom: 40px;
+  right: 40px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #ff4d4d; /* Background rojo */
+  color: #ffffff;      /* Letras blancas */
+  border: none;
+  border-radius: 999px;
+  padding: 14px 28px;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(255, 77, 77, 0.4);
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.fab-study-summary:hover:not(:disabled) {
+  background: #ff3333;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 77, 77, 0.6);
+}
+
+.fab-study-summary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.fab-study-summary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.fab-spinner {
+  display: inline-block;
+  animation: fab-spin 1s linear infinite;
+  font-size: 1.2rem;
+}
+
+@keyframes fab-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 
 
