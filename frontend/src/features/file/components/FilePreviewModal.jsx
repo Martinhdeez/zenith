@@ -21,19 +21,25 @@ function FilePreviewModal({ file, onClose }) {
   const [showStudyPanel, setShowStudyPanel] = useState(false)
   const [isStudyFullscreen, setIsStudyFullscreen] = useState(false)
 
+  const extension = file.name?.split('.').pop()?.toLowerCase() || '';
+
   const isImage = file.mime_type?.startsWith('image/') || 
-                ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(file.format?.toLowerCase());
+                ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(file.format?.toLowerCase()) ||
+                ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(extension);
   
   const isVideo = !isImage && (file.mime_type?.startsWith('video/') ||
-                (['mp4', 'webm', 'mov', 'avi', 'mkv'].includes(file.format?.toLowerCase()) && file.format?.toLowerCase() !== 'ogg'));
+                (['mp4', 'webm', 'mov', 'avi', 'mkv'].includes(file.format?.toLowerCase()) && file.format?.toLowerCase() !== 'ogg') ||
+                (['mp4', 'webm', 'mov', 'avi', 'mkv'].includes(extension) && extension !== 'ogg'));
   
   const isAudio = !isImage && !isVideo && (file.mime_type?.startsWith('audio/') ||
-                ['mp3', 'wav', 'ogg', 'flac', 'aac', 'm4a', 'wma'].includes(file.format?.toLowerCase()));
+                ['mp3', 'wav', 'ogg', 'flac', 'aac', 'm4a', 'wma'].includes(file.format?.toLowerCase()) ||
+                ['mp3', 'wav', 'ogg', 'flac', 'aac', 'm4a', 'wma'].includes(extension));
   
   // Universal Text Fallback: If it's not a known media type, treat it as text-capable for preview
   // Note: PDF is now excluded from specialized preview and handled as text or generic download
   const isKnownMedia = isImage || isVideo || isAudio;
   const isText = !isKnownMedia;
+  const isPdf = file.mime_type === 'application/pdf' || file.format?.toLowerCase() === 'pdf';
   
   const isMarkdown = file.mime_type === 'text/markdown' || file.format?.toLowerCase() === 'md';
 

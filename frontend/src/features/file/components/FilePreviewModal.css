@@ -172,7 +172,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
   display: flex;
   justify-content: center;
   animation: contentFadeUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  flex-shrink: 0;
+  flex-shrink: 1; /* Allow shrinking so scroll works */
+  min-height: 0; /* Required for nested scrolling in flexbox */
 }
 
 @keyframes contentFadeUp {
@@ -198,17 +199,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
 .preview-content--text {
   width: 100%;
   max-width: 900px;
-  height: max-content;
-  max-height: 100%;
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 24px;
   padding: 40px;
-  overflow: auto;
+  overflow-y: auto;
   text-align: left;
   display: flex;
   flex-direction: column;
-  margin: auto 0;
+  justify-content: flex-start; /* Overrides .preview-content's center to stop vertical top-clipping */
+  margin: 0 auto; /* Horizontally center, avoid vertical auto which causes top clip */
 }
 
 
