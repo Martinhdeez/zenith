@@ -105,3 +105,20 @@ class SmartUploadResponse(FileResponse):
     suggested_path: str = Field(description="Path suggested by GPT-4o")
     created_new_folder: bool = Field(description="Whether a new folder was created")
     ai_reason: str = Field(description="Brief reasoning from the AI")
+
+
+# ──────────────────────────────────────────────
+# Smart Auto-Sync Suggestion schemas
+# ──────────────────────────────────────────────
+
+class SuggestPathRequest(BaseModel):
+    """Schema for requesting an AI path suggestion without uploading."""
+    filename: str = Field(..., description="Name of the file to be uploaded")
+    mime_type: Optional[str] = Field(None, description="MIME type of the file")
+
+
+class SuggestPathResponse(BaseModel):
+    """Schema for the AI path suggestion response."""
+    suggested_path: str = Field(..., description="The path suggested by the AI")
+    is_new_folder: bool = Field(False, description="Whether the suggested path would be a new folder")
+    reason: str = Field(..., description="Reasoning provided by the AI")

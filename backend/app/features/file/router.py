@@ -16,9 +16,10 @@ from app.features.file.schemas import (
     FileResponse,
     FileCreateDB,
     FileUpdate,
-    FileContent,
     FileSearchResult,
     SmartUploadResponse,
+    SuggestPathRequest,
+    SuggestPathResponse,
 )
 from app.features.auth.dependencies import get_current_user
 from app.features.openai.search import search_files
@@ -123,6 +124,36 @@ async def upload_file(
 # ──────────────────────────────────────────────
 # Smart Upload — AI-powered file organization
 # ──────────────────────────────────────────────
+
+@router.post("/suggest-path", response_model=SuggestPathResponse, status_code=status.HTTP_200_OK)
+async def suggest_path_only(
+    request: SuggestPathRequest,
+    current_user=Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Get an AI suggestion for the optimal folder path for a file, without uploading it.
+    Used for the confirmation step in Smart Auto-Sync.
+    """
+    repo = FileRepository(db)
+
+    user_folders = await repo.get_user_folders(current_user.id)
+    logger.info("Suggest path: user %s has folders %s", current_user.id, user_folders)
+
+    suggestion = await suggest_file_path(
+        filename=request.filename,
+        mime_type=request.mime_type or "unknown",
+        existing_folders=user_folders,
+    )
+    
+    logger.info("AI suggested path (preview): %s (new_folder=%s)", suggestion.path, suggestion.new_folder)
+
+    return SuggestPathResponse(
+        suggested_path=suggestion.path,
+        is_new_folder=suggestion.new_folder,
+        reason=suggestion.reason
+    )
+
 
 @router.post("/smart-upload", response_model=SmartUploadResponse, status_code=status.HTTP_201_CREATED)
 async def smart_upload(
