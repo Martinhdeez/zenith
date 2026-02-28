@@ -16,6 +16,7 @@ from app.features.file.schemas import (
     FileResponse,
     FileCreateDB,
     FileUpdate,
+    FileContent,
     FileSearchResult,
     SmartUploadResponse,
     SuggestPathRequest,
