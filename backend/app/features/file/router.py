@@ -18,9 +18,11 @@ from app.features.file.schemas import (
     FileUpdate,
     FileContent,
     FileSearchResult,
+    SmartUploadResponse,
 )
 from app.features.auth.dependencies import get_current_user
 from app.features.openai.search import search_files
+from app.features.openai.organizer import suggest_file_path
 
 logger = logging.getLogger(__name__)
 
@@ -97,6 +99,124 @@ async def upload_file(
     repo = FileRepository(db)
     new_file = await repo.create(file_data.model_dump())
     return new_file
+
+
+# ──────────────────────────────────────────────
+# Smart Upload — AI-powered file organization
+# ──────────────────────────────────────────────
+
+@router.post("/smart-upload", response_model=SmartUploadResponse, status_code=status.HTTP_201_CREATED)
+async def smart_upload(
+    file: UploadFile = FastAPIFile(...),
+    name: str = Form(...),
+    description: Optional[str] = Form(None),
+    current_user=Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Upload a file and let GPT-4o decide the best folder.
+
+    The AI analyzes the file name and type against the user's existing
+    folder structure and suggests (or creates) the optimal path.
+    """
+    repo = FileRepository(db)
+
+    # 1. Get user's existing folders for AI context
+    user_folders = await repo.get_user_folders(current_user.id)
+    logger.info("Smart upload: user %s has folders %s", current_user.id, user_folders)
+
+    # 2. Ask GPT-4o for the best path
+    suggestion = await suggest_file_path(
+        filename=name,
+        mime_type=file.content_type,
+        existing_folders=user_folders,
+    )
+    logger.info("AI suggested path: %s (new_folder=%s)", suggestion.path, suggestion.new_folder)
+
+    # 3. Create new folder in DB if AI suggests one that doesn't exist
+    created_new_folder = False
+    if suggestion.new_folder or suggestion.path not in user_folders:
+        # Check if the folder already exists to avoid duplicates
+        existing = await repo.get_files_by_path(
+            user_id=current_user.id, path="/", skip=0, limit=1000
+        )
+        folder_names = {f.name for f in existing if f.file_type == "dir"}
+        folder_name = suggestion.path.strip("/")
+
+        if folder_name and folder_name not in folder_names:
+            folder_data = FileCreateDB(
+                name=folder_name,
+                description=f"Auto-created by Zenith AI",
+                path="/",
+                file_type="dir",
+                user_id=current_user.id,
+                url=None,
+                cloudinary_public_id=None,
+                size=0,
+                format=None,
+                mime_type=None,
+            )
+            await repo.create(folder_data.model_dump())
+            created_new_folder = True
+            logger.info("Created new folder: %s", folder_name)
+
+    # 4. Upload file to Cloudinary
+    try:
+        cloudinary.config(cloudinary_url=settings.CLOUDINARY_URL)
+        result = cloudinary.uploader.upload(
+            file.file,
+            folder="zenith_files",
+            resource_type="auto",
+            use_filename=True,
+            unique_filename=True,
+        )
+    except Exception as e:
+        logger.error("Cloudinary upload failed during smart-upload: %s", e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error uploading file to Cloudinary: {str(e)}",
+        )
+
+    # 5. Save file record with the AI-suggested path
+    file_data = FileCreateDB(
+        name=name,
+        description=description,
+        path=suggestion.path,
+        file_type="file",
+        mime_type=file.content_type,
+        user_id=current_user.id,
+        url=result["secure_url"],
+        cloudinary_public_id=result["public_id"],
+        size=result["bytes"],
+        format=result.get(
+            "format",
+            file.filename.split(".")[-1]
+            if file.filename and "." in file.filename
+            else "unknown",
+        ),
+    )
+    new_file = await repo.create(file_data.model_dump())
+
+    # 6. Build enriched response
+    return SmartUploadResponse(
+        id=new_file.id,
+        user_id=new_file.user_id,
+        name=new_file.name,
+        description=new_file.description,
+        path=new_file.path,
+        file_type=new_file.file_type,
+        mime_type=new_file.mime_type,
+        url=new_file.url,
+        cloudinary_public_id=new_file.cloudinary_public_id,
+        size=new_file.size,
+        format=new_file.format,
+        created_at=new_file.created_at,
+        updated_at=new_file.updated_at,
+        suggested_path=suggestion.path,
+        created_new_folder=created_new_folder,
+        ai_reason=suggestion.reason,
+    )
+
 
 
 # ──────────────────────────────────────────────
