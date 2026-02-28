@@ -110,16 +110,21 @@ function HomePage({ currentUser, onSignOut }) {
   // Handle upload from modal
   const handleUpload = useCallback(async (mode, file, name, description, manualPath) => {
     let result
-    if (mode === 'smart') {
+    if (mode === 'folder') {
+      result = await fileService.createFolder(name, manualPath || currentPath, description)
+    } else if (mode === 'smart') {
       result = await fileService.smartUpload(file, name, description)
     } else {
       // Use the provided manualPath or default to currentPath
       result = await fileService.uploadFile(file, name, manualPath || currentPath, description)
     }
-    // Refresh file list after successful upload
+    
+    // Refresh data after upload/creation
     fetchData()
+    if (currentPath === '/') fetchRecentFiles()
+    
     return result
-  }, [fetchData, currentPath])
+  }, [currentPath, fetchData, fetchRecentFiles])
 
   const folders = useMemo(() => items.filter(i => i.file_type === 'dir'), [items])
   const files = useMemo(() => items.filter(i => i.file_type === 'file'), [items])

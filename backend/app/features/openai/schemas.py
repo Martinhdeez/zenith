@@ -24,3 +24,23 @@ class ChatResponse(BaseModel):
     """Response from the AI assistant."""
     reply: str = Field(..., description="AI assistant response")
     files_used: int = Field(description="Number of user files used as context")
+
+
+class StudyRequest(BaseModel):
+    """Request body for the study material endpoint."""
+    file_id: int = Field(..., description="ID of the file to study")
+    mode: str = Field(
+        ...,
+        description="Study mode: 'quiz', 'outline', 'flashcards', or 'custom'",
+    )
+    custom_prompt: Optional[str] = Field(
+        default=None,
+        description="Custom prompt (required when mode is 'custom')",
+    )
+
+
+class StudyResponse(BaseModel):
+    """Response with generated study material."""
+    content: str = Field(..., description="Generated study material in markdown")
+    mode: str = Field(..., description="The study mode used")
+    file_name: str = Field(..., description="Name of the source file")
