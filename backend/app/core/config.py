@@ -22,6 +22,9 @@ class Settings(BaseSettings):
     # Almacenamiento físico de archivos
     STORAGE_PATH: str = "/app/storage"
     
+    # Cloudinary
+    CLOUDINARY_URL: str
+    
     # Security
     JWT_SECRET: str
     JWT_ALGORITHM: str = "HS256"
