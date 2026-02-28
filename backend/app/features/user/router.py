@@ -37,7 +37,8 @@ async def register_user(
             "email": user_data.email,
             "username": user_data.username,
             "hashed_password": hashed_password,
-            "is_active": True
+            "is_active": True,
+            "has_completed_tutorial": False
         })
         return user
     except AlreadyExistsException as e:
@@ -153,6 +154,16 @@ async def update_user(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e.message)
         )
+
+
+@router.patch("/me/tutorial-complete", response_model=UserRead)
+async def complete_tutorial(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    """Mark the current user as having completed the onboarding tutorial."""
+    repo = UserRepository(db)
+    return await repo.update(current_user.id, {"has_completed_tutorial": True})
 
 
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)

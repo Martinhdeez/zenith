@@ -65,7 +65,7 @@ function DashboardToolbar({
       
       <div className="dashboard-toolbar" role="region" aria-label="Dashboard toolbar">
         <SearchInput
-          id="dashboard-search"
+          id="step-search"
           label="Search"
           value={search}
           onChange={onSearchChange}

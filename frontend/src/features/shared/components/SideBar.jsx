@@ -132,17 +132,18 @@ function SideBar({ links = navLinks, isAuthenticated = true, onLogin, onRegister
 
           {isAuthenticated ? (
             onNewClick && (
-              <button
-                className="sidebar-new"
-                type="button"
-                onClick={onNewClick}
-                title={isCollapsed ? "New item" : ""}
-              >
-                <span className="sidebar-new-plus" aria-hidden="true">
-                  +
-                </span>
-                {!isCollapsed && <span>New</span>}
-              </button>
+                <button
+                  id="step-upload"
+                  className="sidebar-new"
+                  type="button"
+                  onClick={onNewClick}
+                  title={isCollapsed ? "New item" : ""}
+                >
+                  <span className="sidebar-new-plus" aria-hidden="true">
+                    +
+                  </span>
+                  {!isCollapsed && <span>New</span>}
+                </button>
             )
           ) : (
             <button

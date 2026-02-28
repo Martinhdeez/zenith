@@ -10,12 +10,12 @@ import UploadModal from '../../file/components/UploadModal.jsx'
 import FilePreviewModal from '../../file/components/FilePreviewModal.jsx'
 import ParticlesBackground from '../../landing/components/particlesBackground/ParticlesBackground.jsx'
 import { fileService } from '../../file/services/fileService'
-import { chatService } from '../../assistant/services/chatService'
 import { SideBarIcon } from '../../shared/components/SideBar.jsx'
+import OnboardingTutorial from '../components/OnboardingTutorial.jsx'
 import relojIcon from '../../../assets/icons/reloj.svg'
 import './HomePage.css'
 
-function HomePage({ currentUser, onSignOut }) {
+function HomePage({ currentUser, onSignOut, onAuthSuccess }) {
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -38,8 +38,26 @@ function HomePage({ currentUser, onSignOut }) {
   const [searchMode, setSearchMode] = useState('name') // 'name', 'semantic'
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false)
   const [showStudySumupModal, setShowStudySumupModal] = useState(false)
+  const [showTutorial, setShowTutorial] = useState(false)
   
   const normalizedSearch = search.trim().toLowerCase()
+
+  // Check for tutorial
+  useEffect(() => {
+    if (!currentUser || currentUser.has_completed_tutorial) {
+      setShowTutorial(false)
+      return
+    }
+
+    // Use user ID in storage key to prevent cross-account interference
+    const storageKey = `zenith-tutorial-v1-dismissed-${currentUser.id}`
+    const hasDismissed = sessionStorage.getItem(storageKey)
+    
+    if (!hasDismissed && !showTutorial) {
+      const timer = setTimeout(() => setShowTutorial(true), 1200)
+      return () => clearTimeout(timer)
+    }
+  }, [currentUser, showTutorial])
 
   // Handle URL query parameters to make the URL the source of truth for the folder path
   useEffect(() => {
@@ -287,6 +305,27 @@ function HomePage({ currentUser, onSignOut }) {
     }
   }
 
+  const handleTutorialComplete = async () => {
+    setShowTutorial(false)
+    try {
+      const API_BASE_URL = import.meta.env.VITE_API_URL || '/api'
+      const token = localStorage.getItem('token')
+      await fetch(`${API_BASE_URL}/users/me/tutorial-complete`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      // Set session guard with unique key including user ID
+      const storageKey = `zenith-tutorial-v1-dismissed-${currentUser.id}`
+      sessionStorage.setItem(storageKey, 'true')
+      // Refresh global user state to persist has_completed_tutorial: true
+      onAuthSuccess?.()
+    } catch (err) {
+      console.error('Failed to mark tutorial as complete:', err)
+    }
+  }
+
   // Helper: check if a file matches a given filter category
   const matchesFilter = (item, filterKey) => {
     const mime = (item.mime_type || '').toLowerCase()
@@ -337,7 +376,7 @@ function HomePage({ currentUser, onSignOut }) {
 
         <section className="home-shell home-shell--main" aria-label="Zenith Home">
           <header className="home-shell__header">
-            <div className="breadcrumb-nav">
+            <div id="step-breadcrumbs" className="breadcrumb-nav">
               <button 
                 className={`breadcrumb-item ${currentPath === '/' ? 'is-active' : ''}`}
                 onClick={() => handleBreadcrumbClick(-1)}
@@ -535,6 +574,7 @@ function HomePage({ currentUser, onSignOut }) {
         {currentPath !== '/' && currentFolder && (
           <>
             <button 
+              id="step-study"
               className="fab-study-summary" 
               onClick={() => setShowStudySumupModal(true)}
               disabled={isGeneratingSummary}
@@ -585,6 +625,13 @@ function HomePage({ currentUser, onSignOut }) {
             )}
           </>
         )}
+
+      {showTutorial && (
+        <OnboardingTutorial 
+          onComplete={handleTutorialComplete}
+          onSkip={handleTutorialComplete}
+        />
+      )}
     </div>
 
 
