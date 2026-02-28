@@ -75,33 +75,42 @@
 .sidebar-brand {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
   margin: 0 8px 18px;
   color: var(--text-primary);
 }
 
-.sidebar-brand-mark {
-  width: 20px;
-  height: 20px;
-  border-radius: 999px;
-  background: linear-gradient(135deg, #d0665f, #e48779);
-  display: grid;
-  place-items: center;
-}
-
-.sidebar-brand-dot {
-  width: 12px;
-  height: 12px;
-  background: #c95f58;
-  border-radius: 999px;
-  box-shadow: 0 0 12px rgba(201, 95, 88, 0.4);
-}
-
-.sidebar-logo {
-  font-size: 2.15rem;
+.sidebar-logo-word {
+  display: inline-flex;
+  align-items: center;
+  font-size: 3.5rem;
   font-weight: 690;
   letter-spacing: 0.01em;
-  color: #62f0ff;
+  line-height: 1;
+  color: #ffffff;
+}
+
+.sidebar-brand-mark {
+  width: 1.18em;
+  height: 1.18em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+  margin-right: -0.16em;
+}
+
+.sidebar-brand-mark img {
+  object-fit: cover;
+  display: block;
+  transform: scale(2.55);
+  transform-origin: center;
+  filter: drop-shadow(0 3px 9px rgba(201, 95, 88, 0.28));
+  margin-top: 0.075em;
+}
+
+.sidebar-logo-rest {
+  transform: translateY(0.01em);
 }
 
 .sidebar-new {
@@ -150,7 +159,7 @@
   border-radius: 12px;
   background: transparent;
   color: rgba(219, 226, 241, 0.95);
-  font-size: 1.03rem;
+  font-size: 1.6rem;
   font-weight: 620;
   text-decoration: none;
   display: inline-flex;

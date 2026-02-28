@@ -1,4 +1,5 @@
 import TypewriterText from '../typewriterText/TypewriterText.jsx'
+import zenithLogo from '../../../../assets/logo/LOGO-DEFINITIVO.png'
 import './Hero.css'
 
 function Hero({ words, onStart }) {
@@ -6,7 +7,12 @@ function Hero({ words, onStart }) {
     <main className="hero hero-centered" id="overview">
       <div className="hero-copy hero-copy-centered">
         <p className="eyebrow">Digital brain platform</p>
-        <p className="hero-brand">Zenith</p>
+        <p className="hero-brand">
+          <span className="hero-brand-z" aria-hidden="true">
+            <img src={zenithLogo} alt="" className="hero-brand-logo" />
+          </span>
+          <span className="hero-brand-rest">enith</span>
+        </p>
         <h1>
           Capture. Organize.
           <span className="accent">Activate your Digital Brain.</span>
