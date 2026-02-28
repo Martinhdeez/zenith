@@ -32,7 +32,7 @@
   background: rgba(201, 95, 88, 0.18);
   display: grid;
   place-items: center;
-  color: rgba(253, 228, 223, 0.95);
+  color: #ff857a;
   flex-shrink: 0;
 }
 

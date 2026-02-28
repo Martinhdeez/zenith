@@ -9,7 +9,7 @@ import UploadModal from '../../file/components/UploadModal.jsx'
 import FilePreviewModal from '../../file/components/FilePreviewModal.jsx'
 import ParticlesBackground from '../../landing/components/particlesBackground/ParticlesBackground.jsx'
 import { fileService } from '../../file/services/fileService'
-import { SideBarIcon } from '../../shared/components/SideBar.jsx'
+import relojIcon from '../../../assets/icons/reloj.svg'
 import './HomePage.css'
 
 function HomePage({ currentUser, onSignOut }) {
@@ -432,7 +432,7 @@ function HomePage({ currentUser, onSignOut }) {
                   onClick={() => setPreviewFile(file)}
                 >
                   <div className="recent-card__icon">
-                    <SideBarIcon type={file.mime_type?.includes('image') ? 'image' : 'file'} />
+                    <img src={relojIcon} alt="" aria-hidden="true" />
                   </div>
                   <div className="recent-card__info">
                     <span className="recent-card__name">{file.name}</span>
@@ -469,4 +469,3 @@ function HomePage({ currentUser, onSignOut }) {
 
 
 export default HomePage
-
