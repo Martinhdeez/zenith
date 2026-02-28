@@ -1,23 +1,35 @@
-"""Auth router with login endpoint."""
+"""Auth router with login and OAuth2 endpoints."""
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.responses import RedirectResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
-from starlette.config import Config
-#from authlib.integrations.starlette_client import OAuth
+from authlib.integrations.starlette_client import OAuth
+import os
 import uuid
+
+# Permitir HTTP para OAuth2 en desarrollo local
+os.environ['AUTHLIB_INSECURE_TRANSPORT'] = '1'
 
 from app.core.database import get_db
 from app.core.config import settings
 from app.core.security import create_access_token, verify_password
-from app.features.auth.schemas import Token, GoogleTokenRequest
+from app.features.auth.schemas import Token
 from app.features.user.repository import UserRepository
 from app.features.user.model import User
 
-from google.oauth2 import id_token
-from google.auth.transport import requests
-
 router = APIRouter()
+
+# Setup Authlib OAuth
+oauth = OAuth()
+oauth.register(
+    name='google',
+    client_id=settings.GOOGLE_CLIENT_ID,
+    client_secret=settings.GOOGLE_CLIENT_SECRET,
+    server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
+    client_kwargs={
+        'scope': 'openid email profile'
+    }
+)
 
 @router.post("/token", response_model=Token)
 async def login(
@@ -54,52 +66,59 @@ async def login(
             detail="User account is inactive"
         )
     
-    # Create access token
-    access_token = create_access_token(data={"sub": user.email})
+    # Create access token — CRITICAL FIX: use user.id (as string)
+    access_token = create_access_token(data={"sub": str(user.id)})
     
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@router.post("/google", response_model=Token)
-async def google_auth(
-    token_request: GoogleTokenRequest,
-    db: AsyncSession = Depends(get_db)
-):
-    """
-    Verifies a Google Identity Services (GSI) credential token.
-    Creates a new user if one doesn't exist, and returns a Zenith JWT token.
-    """
-    try:
-        # Verify the Google JWT token
-        # id_token.verify_oauth2_token verifies the signature, expiration, and audience (client_id)
-        idinfo = id_token.verify_oauth2_token(
-            token_request.credential,
-            requests.Request(),
-            settings.GOOGLE_CLIENT_ID
-        )
+# ──────────────────────────────────────────────
+# Traditional Google OAuth2 Flow
+# ──────────────────────────────────────────────
 
-        google_email = idinfo.get('email')
-        google_id = str(idinfo.get('sub'))
-        base_username = idinfo.get('given_name', '').lower() or google_email.split('@')[0]
+@router.get("/google/login")
+async def google_login(request: Request):
+    """Redirects the user to Google's OAuth2 login page."""
+    # Intentar obtener la URL de callback de forma robusta
+    try:
+        redirect_uri = str(request.url_for('auth_callback'))
+        # En algunos entornos (Docker/Proxies), url_for puede devolver http en lugar de https
+        # o localhost en lugar de la IP real. Si detectamos desajustes, podemos forzarlo.
+    except Exception:
+        # Fallback manual si url_for falla
+        redirect_uri = f"{request.base_url}api/auth/google/callback"
         
-        if not google_email:
-            raise ValueError("Token didn't contain an email")
-            
-    except ValueError as e:
-        # Invalid token
+    return await oauth.google.authorize_redirect(request, redirect_uri)
+
+
+@router.get("/google/callback", name="auth_callback")
+async def auth_callback(request: Request, db: AsyncSession = Depends(get_db)):
+    """Handles the callback from Google OAuth2."""
+    try:
+        token = await oauth.google.authorize_access_token(request)
+    except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Invalid Google token: {str(e)}",
-            headers={"WWW-Authenticate": "Bearer"},
+            detail=f"OAuth error: {str(e)}"
         )
-        
+
+    user_info = token.get('userinfo')
+    if not user_info:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Failed to fetch user info from Google"
+        )
+
+    google_email = user_info.get('email')
+    google_id = str(user_info.get('sub'))
+    base_username = user_info.get('given_name', '').lower() or google_email.split('@')[0]
+
     repo = UserRepository(db)
-    
     user = await repo.get_by_email(google_email)
-    
+
     if not user:
+        # Create new user for social login
         unique_username = f"{base_username}_{str(uuid.uuid4())[:6]}"
-        
         user = User(
             email=google_email,
             username=unique_username,
@@ -109,7 +128,6 @@ async def google_auth(
             is_active=True
         )
         db.add(user)
-        # Commit to the DB
         await db.commit()
         await db.refresh(user)
     elif not user.is_active:
@@ -117,7 +135,12 @@ async def google_auth(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="User account is inactive"
         )
-        
-    access_token = create_access_token(data={"sub": user.email})
-    
-    return {"access_token": access_token, "token_type": "bearer"}
+
+    # Generate JWT token with user.id
+    access_token = create_access_token(data={"sub": str(user.id)})
+
+    # Redirect to frontend with token
+    # Ensure no double slashes or missing base items
+    frontend_base = settings.FRONTEND_URL.rstrip('/')
+    redirect_url = f"{frontend_base}/auth/callback?token={access_token}"
+    return RedirectResponse(url=redirect_url)

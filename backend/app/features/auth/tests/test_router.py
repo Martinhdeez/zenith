@@ -165,43 +165,7 @@ async def test_login_token_can_be_used(test_client: AsyncClient, db_session: Asy
     assert data["email"] == "tokenuser@example.com"
     assert data["id"] == user.id
 
-@pytest.mark.asyncio
-async def test_google_login_success(test_client: AsyncClient, db_session: AsyncSession, mocker):
-    """Test successful Google GSI login creating a new user."""
-    # Mock the Google token verification
-    mock_verify = mocker.patch("app.features.auth.router.id_token.verify_oauth2_token")
-    mock_verify.return_value = {
-        "email": "googleuser@example.com",
-        "sub": "1234567890",
-        "given_name": "Google",
-    }
-    
-    response = await test_client.post("/api/auth/google", json={
-        "credential": "valid_mock_token"
-    })
-    
-    assert response.status_code == 200
-    data = response.json()
-    assert "access_token" in data
-    assert data["token_type"] == "bearer"
-    
-    # Verify user was created in DB
-    repo = UserRepository(db_session)
-    user = await repo.get_by_email("googleuser@example.com")
-    assert user is not None
-    assert user.auth_provider == "google"
-    assert user.auth_provider_id == "1234567890"
-
-@pytest.mark.asyncio
-async def test_google_login_invalid_token(test_client: AsyncClient, mocker):
-    """Test Google login with invalid token."""
-    # Mock the Google token verification to raise ValueError
-    mock_verify = mocker.patch("app.features.auth.router.id_token.verify_oauth2_token")
-    mock_verify.side_effect = ValueError("Invalid token signature")
-    
-    response = await test_client.post("/api/auth/google", json={
-        "credential": "invalid_mock_token"
-    })
-    
-    assert response.status_code == 401
-    assert "Invalid Google token" in response.json()["detail"]
+    assert me_response.status_code == 200
+    data = me_response.json()
+    assert data["email"] == "tokenuser@example.com"
+    assert data["id"] == user.id

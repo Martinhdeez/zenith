@@ -11,7 +11,7 @@ from app.core.config import settings
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 5000
 
-# Password hashing with Argon2 (more secure than bcrypt)
+# Password hashing with Argon2 (more secure than bcrypst)
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
 

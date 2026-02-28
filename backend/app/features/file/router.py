@@ -25,7 +25,7 @@ from app.features.file.schemas import (
 from app.features.auth.dependencies import get_current_user
 from app.features.openai.search import search_files
 from app.features.openai.organizer import suggest_file_path
-from app.features.openai.transcription import transcribe_media, is_transcribable
+from app.features.openai.transcription import transcribe_media, is_transcribable, transcribe_audio
 from app.features.openai.embedding import generate_embedding
 from app.features.openai.summarizer import start_folder_summary_update
 
@@ -244,7 +244,7 @@ async def smart_upload(
         logger.info("Media file detected (%s). Transcribing: %s", file.content_type, name)
         # Read file once for transcription
         file_bytes = await file.read()
-        transcription = transcribe_media(file_bytes, file.filename or name)
+        transcription = transcribe_audio(file_bytes, file.filename or name)
         # Reset file pointer for Cloudinary upload
         file.file.seek(0)
 
