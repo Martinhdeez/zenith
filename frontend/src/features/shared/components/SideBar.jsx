@@ -41,6 +41,22 @@ export function SideBarIcon({ type }) {
     )
   }
 
+  if (type === 'profile') {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v2h20v-2c0-3.3-6.7-5-10-5z" />
+      </svg>
+    )
+  }
+
+  if (type === 'signout') {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z" />
+      </svg>
+    )
+  }
+
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
       <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 0 0-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 0 0-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 0 0-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 0 0-1.065-2.572c-1.543-.94-3.31-.826-2.37-2.37a1.724 1.724 0 0 0 2.572-1.065ZM12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7Z" />
@@ -48,7 +64,7 @@ export function SideBarIcon({ type }) {
   )
 }
 
-function SideBar({ links = navLinks, isAuthenticated = true, onLogin, onRegister, onNewClick }) {
+function SideBar({ links = navLinks, isAuthenticated = true, onLogin, onRegister, onNewClick, onViewProfile, onSignOut }) {
   const [isMobileOpen, setIsMobileOpen] = useState(false)
   const [isCollapsed, setIsCollapsed] = useState(() => {
     const saved = localStorage.getItem('sidebar-collapsed')
@@ -181,6 +197,32 @@ function SideBar({ links = navLinks, isAuthenticated = true, onLogin, onRegister
           </ul>
 
           <div className="sidebar-bottom">
+            {isAuthenticated && onViewProfile && (
+              <button
+                className="sidebar-menu-link"
+                type="button"
+                onClick={() => { onViewProfile(); closeMobile(); }}
+                title={isCollapsed ? "Profile" : ""}
+              >
+                <span className="sidebar-menu-icon">
+                  <SideBarIcon type="profile" />
+                </span>
+                {!isCollapsed && <span>Profile</span>}
+              </button>
+            )}
+            {isAuthenticated && onSignOut && (
+              <button
+                className="sidebar-menu-link sidebar-menu-link--danger"
+                type="button"
+                onClick={() => { onSignOut(); closeMobile(); }}
+                title={isCollapsed ? "Sign out" : ""}
+              >
+                <span className="sidebar-menu-icon">
+                  <SideBarIcon type="signout" />
+                </span>
+                {!isCollapsed && <span>Sign out</span>}
+              </button>
+            )}
             <button
               type="button"
               className="sidebar-collapse-toggle"

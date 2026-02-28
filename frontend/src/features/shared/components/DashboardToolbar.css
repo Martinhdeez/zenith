@@ -49,6 +49,51 @@
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
 }
 
+/* ── AI Search Toggle ─────── */
+
+.dashboard-toolbar__ai-toggle {
+  display: flex;
+  align-items: center;
+}
+
+.dashboard-toolbar__ai-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 42px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(244, 248, 255, 0.8);
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 0 14px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+}
+
+.dashboard-toolbar__ai-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.dashboard-toolbar__ai-btn.is-active {
+  border-color: rgba(138, 99, 255, 0.5);
+  background: rgba(138, 99, 255, 0.15);
+  color: #b08cff;
+  box-shadow: 0 0 14px rgba(138, 99, 255, 0.15);
+}
+
+.dashboard-toolbar__ai-btn svg {
+  opacity: 0.7;
+}
+
+.dashboard-toolbar__ai-btn.is-active svg {
+  opacity: 1;
+  stroke: #b08cff;
+}
+
 .dashboard-toolbar .search-input input {
   min-height: 44px;
   border-radius: 50px;
@@ -63,15 +108,18 @@
   box-shadow: 0 0 0 3px rgba(201, 95, 88, 0.17);
 }
 
-.dashboard-toolbar__modes {
-  display: flex;
-  gap: 8px;
-  align-items: center;
+/* ── Filter Button & Dropdown ─────── */
+
+.dashboard-toolbar__filter-wrap {
+  position: relative;
+  z-index: 60;
 }
 
-.dashboard-toolbar__mode-btn {
+.dashboard-toolbar__filter-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   min-height: 42px;
-  min-width: 52px;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.04);
@@ -81,26 +129,194 @@
   padding: 0 14px;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
 }
 
-.dashboard-toolbar__mode-btn:hover {
+.dashboard-toolbar__filter-btn svg {
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.dashboard-toolbar__filter-btn:hover {
   background: rgba(255, 255, 255, 0.08);
   border-color: rgba(255, 255, 255, 0.2);
 }
 
-.dashboard-toolbar__mode-btn.is-active {
-  border-color: rgba(201, 95, 88, 0.6);
-  background: rgba(201, 95, 88, 0.18);
-  color: #ff857a;
-  box-shadow: 0 0 15px rgba(201, 95, 88, 0.2);
+.dashboard-toolbar__filter-btn:hover svg {
+  opacity: 1;
 }
 
-.dashboard-toolbar__mode-btn.is-deep.is-active {
-  border-color: rgba(255, 149, 0, 0.6);
-  background: rgba(255, 149, 0, 0.15);
-  color: #ffb347;
-  box-shadow: 0 0 15px rgba(255, 149, 0, 0.2);
+.dashboard-toolbar__filter-btn.has-active {
+  border-color: rgba(201, 95, 88, 0.5);
+  background: rgba(201, 95, 88, 0.12);
+  color: #ff857a;
 }
+
+.dashboard-toolbar__filter-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 10px;
+  background: rgba(255, 133, 122, 0.25);
+  color: #ff857a;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0 5px;
+}
+
+/* ── Filter Dropdown ─────── */
+
+.dashboard-toolbar__filter-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 260px;
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(180deg, rgba(14, 22, 35, 0.96), rgba(9, 15, 26, 0.98));
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-6px) scale(0.97);
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+  z-index: 120;
+}
+
+.dashboard-toolbar__filter-dropdown.is-open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.filter-dropdown__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.filter-dropdown__title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.filter-dropdown__clear {
+  border: none;
+  background: none;
+  color: #ff857a;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+
+.filter-dropdown__clear:hover {
+  background: rgba(255, 133, 122, 0.1);
+}
+
+/* ── Filter Chips ─────── */
+
+.filter-dropdown__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  user-select: none;
+}
+
+.filter-chip:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.15);
+  transform: translateY(-1px);
+}
+
+.filter-chip.is-active {
+  border-color: rgba(255, 133, 122, 0.45);
+  background: rgba(255, 133, 122, 0.12);
+  color: #fff;
+  box-shadow: 0 0 12px rgba(255, 133, 122, 0.12);
+}
+
+.filter-chip__icon {
+  font-size: 1.05em;
+}
+
+.filter-chip__label {
+  line-height: 1;
+}
+
+/* ── Active Filter Pills (below toolbar) ─────── */
+
+.dashboard-toolbar__active-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-left: 4px;
+}
+
+.active-filter-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: rgba(255, 133, 122, 0.1);
+  border: 1px solid rgba(255, 133, 122, 0.2);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.78rem;
+  font-weight: 600;
+  animation: pillFadeIn 0.2s ease;
+}
+
+.active-filter-pill button {
+  border: none;
+  background: none;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 1em;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  transition: color 0.15s;
+}
+
+.active-filter-pill button:hover {
+  color: #ff857a;
+}
+
+@keyframes pillFadeIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* ── Profile ─────── */
 
 .dashboard-toolbar__profile-wrap {
   position: relative;
@@ -183,6 +399,11 @@
 @media (max-width: 760px) {
   .dashboard-toolbar {
     grid-template-columns: 1fr auto auto;
+  }
+
+  .dashboard-toolbar__filter-dropdown {
+    right: -40px;
+    min-width: 220px;
   }
 
   .dashboard-toolbar__profile-menu {

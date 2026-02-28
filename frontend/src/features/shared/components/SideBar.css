@@ -273,11 +273,27 @@
 
 .sidebar-bottom {
   margin-top: auto;
+  padding-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
-.sidebar-bottom {
-  margin-top: auto;
-  padding-top: 24px;
+.sidebar-menu-link--danger {
+  color: rgba(255, 130, 120, 0.8) !important;
+}
+
+.sidebar-menu-link--danger:hover {
+  color: #ff857a !important;
+  background: rgba(255, 133, 122, 0.08) !important;
+}
+
+.sidebar-menu-link--danger .sidebar-menu-icon {
+  color: rgba(255, 130, 120, 0.5);
+}
+
+.sidebar-menu-link--danger:hover .sidebar-menu-icon {
+  color: rgba(255, 130, 120, 0.8);
 }
 
 .sidebar-collapse-toggle {

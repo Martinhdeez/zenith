@@ -25,7 +25,8 @@ function HomePage({ currentUser, onSignOut }) {
   const [currentPath, setCurrentPath] = useState('/')
   const [previewFile, setPreviewFile] = useState(null)
   const [viewMode, setViewMode] = useState('grid') // 'grid' | 'list'
-  const [searchMode, setSearchMode] = useState('name') // 'name', 'semantic', 'deep'
+  const [activeFilters, setActiveFilters] = useState([]) // filter keys: 'document', 'image', 'video', 'audio', 'folder'
+  const [searchMode, setSearchMode] = useState('name') // 'name', 'semantic'
   
   const normalizedSearch = search.trim().toLowerCase()
 
@@ -105,9 +106,7 @@ function HomePage({ currentUser, onSignOut }) {
     const timer = setTimeout(async () => {
       try {
         setLoading(true)
-        // Switch between modes: 'name', 'semantic', 'deep'
         const results = await fileService.searchFiles(normalizedSearch, searchMode)
-        // results represent the files found by search
         setItems(results.map(r => r.file || r))
       } catch (err) {
         console.error('Search error:', err)
@@ -138,8 +137,33 @@ function HomePage({ currentUser, onSignOut }) {
     return result
   }, [currentPath, fetchData, fetchRecentFiles])
 
-  const folders = useMemo(() => items.filter(i => i.file_type === 'dir'), [items])
-  const files = useMemo(() => items.filter(i => i.file_type === 'file'), [items])
+  // Helper: check if a file matches a given filter category
+  const matchesFilter = (item, filterKey) => {
+    const mime = (item.mime_type || '').toLowerCase()
+    switch (filterKey) {
+      case 'document': return (
+        mime.startsWith('application/pdf') ||
+        mime.startsWith('text/') ||
+        mime.includes('word') || mime.includes('document') ||
+        mime.includes('spreadsheet') || mime.includes('presentation') ||
+        mime.includes('excel') || mime.includes('powerpoint')
+      )
+      case 'image': return mime.startsWith('image/')
+      case 'video': return mime.startsWith('video/')
+      case 'audio': return mime.startsWith('audio/')
+      case 'folder': return item.file_type === 'dir'
+      default: return true
+    }
+  }
+
+  // Apply filters
+  const filteredItems = useMemo(() => {
+    if (activeFilters.length === 0) return items
+    return items.filter((item) => activeFilters.some((f) => matchesFilter(item, f)))
+  }, [items, activeFilters])
+
+  const folders = useMemo(() => filteredItems.filter(i => i.file_type === 'dir'), [filteredItems])
+  const files = useMemo(() => filteredItems.filter(i => i.file_type === 'file'), [filteredItems])
 
   const userChar = currentUser?.username?.trim()?.charAt(0).toUpperCase() || 'U'
 
@@ -149,7 +173,7 @@ function HomePage({ currentUser, onSignOut }) {
   return (
     <div className="home-page">
       <ParticlesBackground />
-      <SideBar isAuthenticated onNewClick={() => setShowUpload(true)} />
+      <SideBar isAuthenticated onNewClick={() => setShowUpload(true)} onViewProfile={() => navigate('/profile')} onSignOut={onSignOut} />
 
       <main className="home-page__content">
         <DashboardToolbar
@@ -157,9 +181,8 @@ function HomePage({ currentUser, onSignOut }) {
           onSearchChange={setSearch}
           searchMode={searchMode}
           onModeChange={setSearchMode}
-          onViewProfile={() => navigate('/profile')}
-          onSignOut={onSignOut}
-          profileLabel={`${currentUser?.username || 'User'} profile`}
+          activeFilters={activeFilters}
+          onFilterChange={setActiveFilters}
         />
 
         <section className="home-shell home-shell--main" aria-label="Zenith Home">

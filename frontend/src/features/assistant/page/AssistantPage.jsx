@@ -98,7 +98,7 @@ function AssistantPage({ currentUser, onSignOut }) {
   return (
     <div className="assistant-page">
       <ParticlesBackground />
-      <SideBar isAuthenticated onNewClick={() => navigate('/home')} />
+      <SideBar isAuthenticated onNewClick={() => navigate('/home')} onSignOut={onSignOut} />
 
       <main className="assistant-page__main">
         {/* Header */}
