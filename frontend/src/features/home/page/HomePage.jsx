@@ -311,45 +311,29 @@ function HomePage({ currentUser, onSignOut }) {
             )}
           </header>
 
-          {currentPath !== '/' && currentFolder && (
-            <div className="folder-context-area">
-              <div className="folder-description-area">
-                {isEditingDescription ? (
-                  <textarea
-                    className="folder-description-input"
-                    value={descriptionValue}
-                    onChange={(e) => setDescriptionValue(e.target.value)}
-                    onBlur={handleDescriptionSubmit}
-                    onKeyDown={handleDescriptionKeyDown}
-                    autoFocus
-                    placeholder="Add a description for this folder..."
-                  />
-                ) : (
-                  <div 
-                    className="folder-description"
-                    onDoubleClick={startEditingDescription}
-                    title="Double click to edit description"
-                  >
-                    {currentFolder?.description ? (
-                      currentFolder.description
-                    ) : (
-                      <span className="folder-description__placeholder">Add a description for this folder...</span>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {currentFolder.summary && (
-                <div className="folder-sumup-card">
-                  <div className="folder-sumup-card__header">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ff857a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                    </svg>
-                    <h4>AI Folder Sum-up</h4>
-                  </div>
-                  <div className="folder-sumup-card__content">
-                    <ReactMarkdown>{currentFolder.summary}</ReactMarkdown>
-                  </div>
+          {currentPath !== '/' && (
+            <div className="folder-description-area" style={{ marginBottom: '24px' }}>
+              {isEditingDescription ? (
+                <textarea
+                  className="folder-description-input"
+                  value={descriptionValue}
+                  onChange={(e) => setDescriptionValue(e.target.value)}
+                  onBlur={handleDescriptionSubmit}
+                  onKeyDown={handleDescriptionKeyDown}
+                  autoFocus
+                  placeholder="Add a description for this folder..."
+                />
+              ) : (
+                <div 
+                  className="folder-description"
+                  onDoubleClick={startEditingDescription}
+                  title="Double click to edit description"
+                >
+                  {currentFolder?.description ? (
+                    currentFolder.description
+                  ) : (
+                    <span className="folder-description__placeholder">Add a description for this folder...</span>
+                  )}
                 </div>
               )}
             </div>
@@ -433,6 +417,24 @@ function HomePage({ currentUser, onSignOut }) {
               </div>
             </section>
           )}
+
+          {/* AI Folder Sum-up moved underneath the files list */}
+          {currentPath !== '/' && currentFolder?.summary && (
+            <div className="folder-context-area" style={{ marginTop: '24px' }}>
+              <div className="folder-sumup-card">
+                <div className="folder-sumup-card__header">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ff857a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                  </svg>
+                  <h4>AI Folder Sum-up</h4>
+                </div>
+                <div className="folder-sumup-card__content">
+                  <ReactMarkdown>{currentFolder.summary}</ReactMarkdown>
+                </div>
+              </div>
+            </div>
+          )}
+
         </section>
 
         {/* Recents Section — Now in a separate shell below */}

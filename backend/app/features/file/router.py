@@ -224,6 +224,9 @@ async def smart_upload(
     )
     new_file = await repo.create(file_data.model_dump())
 
+    # Trigger background folder summarization
+    background_tasks.add_task(start_folder_summary_update, new_file.id)
+
     return SmartUploadResponse(
         id=new_file.id,
         user_id=new_file.user_id,
