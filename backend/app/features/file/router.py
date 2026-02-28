@@ -255,7 +255,7 @@ async def get_my_files(
     skip: int = 0,
     limit: int = 20,
     current_user=Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_get_db if 'get_get_db' in globals() else get_db),
 ):
     """List the current user's files in a given directory path or by category."""
     repo = FileRepository(db)
