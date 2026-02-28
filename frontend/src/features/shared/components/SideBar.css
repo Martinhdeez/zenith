@@ -167,15 +167,23 @@
   background: rgba(255, 255, 255, 0.05);
   color: #fff;
   font-size: 1.3rem;
-  margin-left: 12px;
   font-weight: 600;
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  display: flex;
   align-items: center;
-  justify-items: center;
+  justify-content: center;
+  gap: 12px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   margin-bottom: 32px; /* Increased spacing */
+}
+
+.sidebar--collapsed .sidebar-new {
+  min-height: 48px;
+  width: 48px;        /* Force a square so it centers perfectly */
+  border-radius: 14px;
+  padding: 0;
+  margin: 0 auto 32px auto; /* Centers the button itself inside the sidebar */
+  justify-content: center;
 }
 
 .sidebar-new:hover {
@@ -185,17 +193,15 @@
 }
 
 .sidebar-new-plus {
-  grid-column: 1;
-  justify-self: end;
   font-size: 2.0rem;
   font-weight: 400;
   color: var(--accent-primary);
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.sidebar-new > span:last-child {
-  grid-column: 2;
-  justify-self: center;
-}
 
 .sidebar-auth-btn--primary {
   background: rgba(255, 133, 122, 0.08) !important;
