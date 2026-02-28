@@ -10,6 +10,7 @@ import UploadModal from '../../file/components/UploadModal.jsx'
 import FilePreviewModal from '../../file/components/FilePreviewModal.jsx'
 import ParticlesBackground from '../../landing/components/particlesBackground/ParticlesBackground.jsx'
 import { fileService } from '../../file/services/fileService'
+import { chatService } from '../../assistant/services/chatService'
 import { SideBarIcon } from '../../shared/components/SideBar.jsx'
 import './HomePage.css'
 
@@ -31,6 +32,7 @@ function HomePage({ currentUser, onSignOut }) {
   const [viewMode, setViewMode] = useState('grid') // 'grid' | 'list'
   const [activeFilters, setActiveFilters] = useState([]) // filter keys: 'document', 'image', 'video', 'audio', 'folder'
   const [searchMode, setSearchMode] = useState('name') // 'name', 'semantic'
+  const [isGeneratingSummary, setIsGeneratingSummary] = useState(false)
   
   const normalizedSearch = search.trim().toLowerCase()
 
@@ -230,6 +232,25 @@ function HomePage({ currentUser, onSignOut }) {
     // Ensure the input is pre-filled with the latest description
     setDescriptionValue(currentFolder?.description || '')
     setIsEditingDescription(true)
+  }
+
+  const handleGenerateStudySummary = async () => {
+    if (!currentFolder) return
+    try {
+      setIsGeneratingSummary(true)
+      await chatService.generateFolderStudySummary(currentFolder.id)
+      // Refresh the view so the newly created summary file appears
+      fetchData()
+      if (currentPath === '/') fetchRecentFiles()
+      
+      // Notify the user softly if you have a toast component, else we just refresh
+      alert("¡Guía de Estudio generada con éxito! Ya la tienes en la carpeta.")
+    } catch (err) {
+      console.error('Failed to generate study summary:', err)
+      alert("Error al generar la guía de estudio.")
+    } finally {
+      setIsGeneratingSummary(false)
+    }
   }
 
   // Helper: check if a file matches a given filter category
@@ -476,6 +497,26 @@ function HomePage({ currentUser, onSignOut }) {
           file={previewFile}
           onClose={() => setPreviewFile(null)}
         />
+      )}
+
+      {/* Floating Action Button for Study Summary */}
+      {currentPath !== '/' && currentFolder && (
+        <button 
+          className="fab-study-summary" 
+          onClick={handleGenerateStudySummary}
+          disabled={isGeneratingSummary}
+          title="Generar Guía de Estudio Exahustiva"
+        >
+          {isGeneratingSummary ? (
+            <span className="fab-spinner">↻</span>
+          ) : (
+             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+               <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+               <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+             </svg>
+          )}
+          <span>{isGeneratingSummary ? 'Analizando...' : 'Guía de Estudio'}</span>
+        </button>
       )}
     </div>
 
