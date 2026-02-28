@@ -37,6 +37,9 @@ class File(Base):
     # Vector embedding for semantic search (1536 dims = OpenAI text-embedding-3-small)
     embedding = Column(Vector(EMBEDDING_DIM), nullable=True)
 
+    # Transcription for audio/video files
+    transcription = Column(Text, nullable=True)
+
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

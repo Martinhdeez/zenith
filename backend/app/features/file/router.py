@@ -203,6 +203,7 @@ async def smart_upload(
         embedding=generate_embedding(
             f"{name} {description or ''} {transcription or ''}"
         ),
+        transcription=transcription,
     )
     new_file = await repo.create(file_data.model_dump())
 
@@ -218,6 +219,7 @@ async def smart_upload(
         cloudinary_public_id=new_file.cloudinary_public_id,
         size=new_file.size,
         format=new_file.format,
+        transcription=new_file.transcription,
         created_at=new_file.created_at,
         updated_at=new_file.updated_at,
         suggested_path=suggestion.path,
@@ -249,15 +251,39 @@ async def get_recent_files(
 @router.get("/", response_model=List[FileResponse])
 async def get_my_files(
     path: str = "/",
+    category: Optional[str] = Query(None, description="Filter by category: image, video, audio, document"),
     skip: int = 0,
     limit: int = 20,
     current_user=Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """List the current user's files in a given directory path."""
+    """List the current user's files in a given directory path or by category."""
     repo = FileRepository(db)
     return await repo.get_files_by_path(
-        user_id=current_user.id, path=path, skip=skip, limit=limit
+        user_id=current_user.id, path=path, skip=skip, limit=limit, category=category
+    )
+
+
+@router.get("/all", response_model=List[FileResponse])
+async def get_all_files(
+    category: Optional[str] = Query(None, description="Filter by category: image, video, audio, document"),
+    mime_type: Optional[str] = Query(None, description="Filter by specific MIME type (supports * wildcard)"),
+    skip: int = 0,
+    limit: int = 50,
+    current_user=Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Get all user files across all paths (flat view).
+    Supports filtering by category or specific MIME type.
+    """
+    repo = FileRepository(db)
+    return await repo.get_all_files(
+        user_id=current_user.id,
+        skip=skip,
+        limit=limit,
+        category=category,
+        mime_type=mime_type
     )
 
 

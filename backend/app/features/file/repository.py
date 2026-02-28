@@ -2,7 +2,7 @@
 File repository.
 Implements database operations for files, including search.
 """
-from sqlalchemy import select
+from sqlalchemy import select, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional
 
@@ -17,17 +17,78 @@ class FileRepository(BaseRepository[File]):
         super().__init__(File, db)
 
     async def get_files_by_path(
-        self, user_id: int, path: str, skip: int = 0, limit: int = 20
+        self,
+        user_id: int,
+        path: str,
+        skip: int = 0,
+        limit: int = 20,
+        category: Optional[str] = None,
     ) -> List[File]:
-        """List files in a directory path (file-tree style)."""
-        query = (
-            select(self.model)
-            .where(self.model.user_id == user_id)
-            .where(self.model.path == path)
-            .order_by(self.model.file_type.asc(), self.model.name.asc())
-            .offset(skip)
-            .limit(limit)
-        )
+        query = select(self.model).where(self.model.user_id == user_id)
+
+        if category:
+            query = query.where(self.model.file_type == "file")
+            if category == "image":
+                query = query.where(self.model.mime_type.ilike("image/%"))
+            elif category == "video":
+                query = query.where(self.model.mime_type.ilike("video/%"))
+            elif category == "audio":
+                query = query.where(self.model.mime_type.ilike("audio/%"))
+            elif category == "document":
+                query = query.where(
+                    or_(
+                        self.model.mime_type.ilike("text/%"),
+                        self.model.mime_type == "application/pdf",
+                        self.model.mime_type.ilike("application/vnd.ms-%"),
+                        self.model.mime_type.ilike("application/vnd.openxmlformats-officedocument%"),
+                    )
+                )
+        else:
+            query = query.where(self.model.path == path)
+
+        query = query.order_by(self.model.file_type.asc(), self.model.name.asc()).offset(skip)
+        
+        query = query.limit(limit)
+
+        result = await self.db.execute(query)
+        return list(result.scalars().all())
+
+    async def get_all_files(
+        self,
+        user_id: int,
+        skip: int = 0,
+        limit: int = 50,
+        category: Optional[str] = None,
+        mime_type: Optional[str] = None,
+    ) -> List[File]:
+        query = select(self.model).where(self.model.user_id == user_id).where(self.model.file_type == "file")
+
+        if category:
+            if category == "image":
+                query = query.where(self.model.mime_type.ilike("image/%"))
+            elif category == "video":
+                query = query.where(self.model.mime_type.ilike("video/%"))
+            elif category == "audio":
+                query = query.where(self.model.mime_type.ilike("audio/%"))
+            elif category == "document":
+                query = query.where(
+                    or_(
+                        self.model.mime_type.ilike("text/%"),
+                        self.model.mime_type == "application/pdf",
+                        self.model.mime_type.ilike("application/vnd.ms-%"),
+                        self.model.mime_type.ilike("application/vnd.openxmlformats-officedocument%"),
+                    )
+                )
+        
+        if mime_type:
+            if "%" in mime_type or "*" in mime_type:
+                query = query.where(self.model.mime_type.ilike(mime_type.replace("*", "%")))
+            else:
+                query = query.where(self.model.mime_type == mime_type)
+
+        query = query.order_by(self.model.name.asc()).offset(skip)
+        query = query.limit(limit)
+
         result = await self.db.execute(query)
         return list(result.scalars().all())
 

@@ -11,6 +11,13 @@ function Login({ isOpen = true, onClose, onSignUp, onLoginSuccess }) {
 
   useEffect(() => {
     if (isOpen) {
+      const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
+      if (clientId && window.google) {
+        window.google.accounts.id.initialize({
+          client_id: clientId,
+          callback: handleGoogleLogin,
+        })
+      }
       return
     }
 
@@ -18,6 +25,61 @@ function Login({ isOpen = true, onClose, onSignUp, onLoginSuccess }) {
     setError(null)
     setFormKey((prev) => prev + 1)
   }, [isOpen])
+
+  const handleGoogleLogin = async (response) => {
+    try {
+      setLoading(true)
+      setError(null)
+
+      const API_BASE_URL = import.meta.env.VITE_API_URL || '/api'
+      const res = await fetch(`${API_BASE_URL}/auth/google`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          credential: response.credential,
+        }),
+      })
+
+      if (!res.ok) {
+        let payload = null
+        try {
+          payload = await res.json()
+        } catch {
+          payload = await res.text()
+        }
+
+        throw new Error(
+          getAuthErrorMessage({
+            mode: 'login',
+            status: res.status,
+            payload,
+          }),
+        )
+      }
+
+      const data = await res.json()
+
+      if (!data.access_token) {
+        throw new Error('Missing access token')
+      }
+
+      localStorage.setItem('token', data.access_token)
+      onLoginSuccess?.(data)
+      onClose?.()
+    } catch (err) {
+      setError(err.message || 'Google login failed. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleGoogleButtonClick = () => {
+    if (window.google) {
+      window.google.accounts.id.prompt()
+    }
+  }
 
   if (!isOpen) {
     return null
@@ -143,7 +205,7 @@ function Login({ isOpen = true, onClose, onSignUp, onLoginSuccess }) {
           <span>or</span>
         </div>
 
-        <button className="gsi-material-button" type="button" disabled={loading}>
+        <button className="gsi-material-button" type="button" disabled={loading} onClick={handleGoogleButtonClick}>
           <div className="gsi-material-button-state"></div>
           <div className="gsi-material-button-content-wrapper">
             <div className="gsi-material-button-icon">
