@@ -68,6 +68,7 @@ async def test_smart_upload_existing_folder(test_client, auth_headers, admin_use
     }
     
     with patch("app.features.file.router.suggest_file_path", return_value=suggestion), \
+         patch("app.features.file.router.generate_embedding", return_value=[0.1] * 1536), \
          patch("cloudinary.uploader.upload", return_value=cloudinary_result):
         
         # We need a real file content for UploadFile
@@ -104,6 +105,7 @@ async def test_smart_upload_new_folder(test_client, auth_headers, db_session):
     }
     
     with patch("app.features.file.router.suggest_file_path", return_value=suggestion), \
+         patch("app.features.file.router.generate_embedding", return_value=[0.1] * 1536), \
          patch("cloudinary.uploader.upload", return_value=cloudinary_result):
         
         files = {"file": ("receta.pdf", b"pdf content", "application/pdf")}
@@ -131,3 +133,81 @@ async def test_smart_upload_new_folder(test_client, auth_headers, db_session):
         folder = result.scalar_one_or_none()
         assert folder is not None
         assert folder.path == "/"
+
+
+@pytest.mark.asyncio
+async def test_smart_upload_audio_with_transcription(test_client, auth_headers, db_session):
+    """Test smart upload with an audio file (triggers transcription)."""
+    # Mock OpenAI suggestion
+    suggestion = PathSuggestion(path="/Audios", new_folder=True, reason="Audio detectado")
+    
+    # Mock Cloudinary upload
+    cloudinary_result = {
+        "secure_url": "https://cloudinary.com/audio.mp3",
+        "public_id": "audio_public_id",
+        "bytes": 2048,
+        "format": "mp3"
+    }
+
+    # Mock transcription
+    transcript_text = "Esta es una transcripción de prueba del audio."
+    
+    with patch("app.features.file.router.suggest_file_path", return_value=suggestion), \
+         patch("app.features.file.router.generate_embedding", return_value=[0.1] * 1536), \
+         patch("app.features.file.router.transcribe_audio", return_value=transcript_text), \
+         patch("cloudinary.uploader.upload", return_value=cloudinary_result):
+        
+        files = {"file": ("audio.mp3", b"fake mp3 data", "audio/mpeg")}
+        data = {"name": "audio.mp3", "description": "mi grabación"}
+        
+        response = await test_client.post(
+            "/api/files/smart-upload",
+            headers=auth_headers,
+            data=data,
+            files=files
+        )
+        
+        assert response.status_code == 201
+        res_data = response.json()
+        assert "transcription" not in res_data
+        assert res_data["path"] == "/Audios"
+
+
+@pytest.mark.asyncio
+async def test_get_recent_files(test_client, auth_headers, admin_user, db_session):
+    """Test getting recent files via API."""
+    from app.features.file.model import File
+    
+    # 1. Seed some files
+    for i in range(5):
+        db_session.add(File(
+            user_id=admin_user.id,
+            name=f"recent_{i}.txt",
+            path="/",
+            file_type="file",
+            url=f"https://test.com/{i}.txt",
+            cloudinary_public_id=f"id_{i}",
+            size=100
+        ))
+    await db_session.flush()
+    
+    # 2. Call endpoint
+    response = await test_client.get(
+        "/api/files/recent?limit=3",
+        headers=auth_headers
+    )
+    
+    assert response.status_code == 200
+    res_data = response.json()
+    assert len(res_data) == 3
+    # Should be ordered by most recent (highest ID/created_at)
+    assert res_data[0]["name"] == "recent_4.txt"
+    assert res_data[1]["name"] == "recent_3.txt"
+    assert res_data[2]["name"] == "recent_2.txt"
+
+
+@pytest.mark.asyncio
+async def test_get_recent_files_unauthorized(test_client):
+    """Test getting recent files without auth."""
+    response = await test_client.get("/api/files/recent")
+    assert response.status_code == 401
