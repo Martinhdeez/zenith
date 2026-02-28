@@ -336,6 +336,20 @@ function HomePage({ currentUser, onSignOut }) {
                   )}
                 </div>
               )}
+
+              {currentFolder?.summary && (
+                <div className="folder-sumup-card" style={{ marginTop: '16px' }}>
+                  <div className="folder-sumup-card__header">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ff857a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                    </svg>
+                    <h4>AI Folder Sum-up</h4>
+                  </div>
+                  <div className="folder-sumup-card__content">
+                    <ReactMarkdown>{currentFolder.summary}</ReactMarkdown>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -416,23 +430,6 @@ function HomePage({ currentUser, onSignOut }) {
                 ))}
               </div>
             </section>
-          )}
-
-          {/* AI Folder Sum-up moved underneath the files list */}
-          {currentPath !== '/' && currentFolder?.summary && (
-            <div className="folder-context-area" style={{ marginTop: '24px' }}>
-              <div className="folder-sumup-card">
-                <div className="folder-sumup-card__header">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ff857a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                  </svg>
-                  <h4>AI Folder Sum-up</h4>
-                </div>
-                <div className="folder-sumup-card__content">
-                  <ReactMarkdown>{currentFolder.summary}</ReactMarkdown>
-                </div>
-              </div>
-            </div>
           )}
 
         </section>
