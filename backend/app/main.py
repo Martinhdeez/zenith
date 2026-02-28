@@ -1,5 +1,8 @@
 from fastapi import FastAPI, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.sessions import SessionMiddleware
+
+from app.core.config import settings
 from app.features.auth.router import router as auth_router
 from app.features.user.router import router as user_router
 from app.features.file.router import router as file_router
@@ -11,11 +14,6 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Configurar CORS
-
-# Configuración de CORS
-# Permitimos todos los orígenes para desarrollo/hackathon, 
-# pero idealmente se restringiría a los dominios del frontend.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -23,6 +21,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Sesiones para OAuth2 state management
+app.add_middleware(SessionMiddleware, secret_key=settings.SESSION_SECRET)
 
 # Base API Router
 api_router = APIRouter()
