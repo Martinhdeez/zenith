@@ -69,7 +69,7 @@ function SideBar({ links = navLinks, isAuthenticated = true, onLogin, onRegister
       <aside id="logo-sidebar" className={`sidebar${isMobileOpen ? ' sidebar--open' : ''}`} aria-label="Sidebar">
         <div className="sidebar-scroll">
           <Link
-            to="/home"
+            to="/"
             className="sidebar-brand"
             onClick={closeMobile}
           >
@@ -79,70 +79,72 @@ function SideBar({ links = navLinks, isAuthenticated = true, onLogin, onRegister
             <span className="sidebar-logo">Zenith</span>
           </Link>
 
+          {isAuthenticated && (
+            <button
+              className="sidebar-new"
+              type="button"
+              onClick={onNewClick}
+            >
+              <span className="sidebar-new-plus" aria-hidden="true">
+                +
+              </span>
+              <span>New</span>
+            </button>
+          )}
+
+          <ul className="sidebar-menu">
+            {links.map((link) => (
+              <li key={link.href}>
+                <NavLink
+                  to={link.href}
+                  className={({ isActive }) => 
+                    `sidebar-menu-link${isActive ? ' sidebar-menu-link--active' : ''}`
+                  }
+                  onClick={closeMobile}
+                >
+                  <span className="sidebar-menu-icon">
+                    <SideBarIcon type={link.icon} />
+                  </span>
+                  <span>{link.label}</span>
+                </NavLink>
+              </li>
+            ))}
+          </ul>
+
           {isAuthenticated ? (
-            <>
-              <button
-                className="sidebar-new"
-                type="button"
-                onClick={onNewClick}
-              >
-                <span className="sidebar-new-plus" aria-hidden="true">
-                  +
-                </span>
-                <span>New</span>
-              </button>
-
+            <div className="sidebar-bottom">
               <ul className="sidebar-menu">
-                {links.map((link) => (
-                  <li key={link.href}>
-                    <NavLink
-                      to={link.href}
-                      className={({ isActive }) => 
-                        `sidebar-menu-link${isActive ? ' sidebar-menu-link--active' : ''}`
-                      }
-                      onClick={closeMobile}
-                    >
-                      <span className="sidebar-menu-icon">
-                        <SideBarIcon type={link.icon} />
-                      </span>
-                      <span>{link.label}</span>
-                    </NavLink>
-                  </li>
-                ))}
+                <li>
+                  <NavLink
+                    to="/settings"
+                    className={({ isActive }) => 
+                      `sidebar-menu-link${isActive ? ' sidebar-menu-link--active' : ''}`
+                    }
+                    onClick={closeMobile}
+                  >
+                    <span className="sidebar-menu-icon">
+                      <SideBarIcon type="settings" />
+                    </span>
+                    <span>Settings</span>
+                  </NavLink>
+                </li>
               </ul>
-
-              <div className="sidebar-bottom">
-                <ul className="sidebar-menu">
-                  <li>
-                    <NavLink
-                      to="/settings"
-                      className={({ isActive }) => 
-                        `sidebar-menu-link${isActive ? ' sidebar-menu-link--active' : ''}`
-                      }
-                      onClick={closeMobile}
-                    >
-                      <span className="sidebar-menu-icon">
-                        <SideBarIcon type="settings" />
-                      </span>
-                      <span>Settings</span>
-                    </NavLink>
-                  </li>
-                </ul>
-              </div>
-            </>
+            </div>
           ) : (
-            <ul className="sidebar-menu sidebar-menu--auth">
-              <li>
-                <button className="sidebar-menu-link" type="button" onClick={onLogin}>
-                  <span>Log in</span>
-                </button>
-              </li>
-              <li>
-                <button className="sidebar-menu-link" type="button" onClick={onRegister}>
-                  <span>Register</span>
-                </button>
-              </li>
-            </ul>
+            <div className="sidebar-bottom">
+              <ul className="sidebar-menu sidebar-menu--auth">
+                <li>
+                  <button className="sidebar-menu-link" type="button" onClick={onLogin}>
+                    <span>Log in</span>
+                  </button>
+                </li>
+                <li>
+                  <button className="sidebar-menu-link" type="button" onClick={onRegister}>
+                    <span>Register</span>
+                  </button>
+                </li>
+              </ul>
+            </div>
           )}
         </div>
       </aside>

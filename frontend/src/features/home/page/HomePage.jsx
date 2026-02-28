@@ -6,6 +6,7 @@ import FolderCard from '../../file/components/FolderCard.jsx'
 import FileCard from '../../file/components/FileCard.jsx'
 import UploadModal from '../../file/components/UploadModal.jsx'
 import FilePreviewModal from '../../file/components/FilePreviewModal.jsx'
+import ParticlesBackground from '../../landing/components/particlesBackground/ParticlesBackground.jsx'
 import { fileService } from '../../file/services/fileService'
 import './HomePage.css'
 
@@ -114,6 +115,7 @@ function HomePage({ currentUser, onSignOut }) {
 
   return (
     <div className="home-page">
+      <ParticlesBackground />
       <SideBar isAuthenticated onNewClick={() => setShowUpload(true)} />
 
       <main className="home-page__content">

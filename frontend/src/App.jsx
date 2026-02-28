@@ -64,7 +64,7 @@ function App() {
         <Route 
           path="/" 
           element={
-            currentUser ? <Navigate to="/home" replace /> : <LandingPage onAuthSuccess={fetchCurrentUser} />
+            <LandingPage currentUser={currentUser} onAuthSuccess={fetchCurrentUser} onSignOut={handleSignOut} />
           } 
         />
         <Route 

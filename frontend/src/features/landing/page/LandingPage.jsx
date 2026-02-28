@@ -12,7 +12,7 @@ import ProfilePage from '../../profile/page/ProfilePage.jsx'
 import { featureCards, typewriterWords } from './landingData.js'
 import './LandingPage.css'
 
-function LandingPage({ onAuthSuccess }) {
+function LandingPage({ currentUser, onAuthSuccess, onSignOut }) {
   const [isRegisterOpen, setIsRegisterOpen] = useState(false)
   const [isLoginOpen, setIsLoginOpen] = useState(false)
 
@@ -42,7 +42,11 @@ function LandingPage({ onAuthSuccess }) {
     <div className={`landing ${isModalOpen ? 'is-modal-open' : ''}`}>
       <ParticlesBackground />
       <div className="landing-content">
-        <SideBar isAuthenticated={false} onLogin={openLogin} onRegister={openRegister} />
+        <SideBar 
+          isAuthenticated={Boolean(currentUser)} 
+          onLogin={openLogin} 
+          onRegister={openRegister} 
+        />
         <Hero words={typewriterWords} onStart={openRegister} />
         <FeaturesSection featureCards={featureCards} />
         <CtaSection onSignUp={openRegister} onSignIn={openLogin} />

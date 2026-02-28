@@ -86,65 +86,72 @@ function DashboardToolbar({
   }
 
   return (
-    <div className="dashboard-toolbar" role="region" aria-label="Dashboard toolbar">
-      <SearchInput
-        id="dashboard-search"
-        label="Search"
-        value={search}
-        onChange={onSearchChange}
-        placeholder="Search..."
-      />
-
-      <div className="dashboard-toolbar__modes">
-        <button 
-          className={`dashboard-toolbar__mode-btn ${searchMode === 'semantic' ? 'is-active' : ''}`} 
-          type="button" 
-          onClick={() => onModeChange?.(searchMode === 'semantic' ? 'name' : 'semantic')}
-          title="AI Semantic Search"
-        >
-          AI
-        </button>
-        <button 
-          className={`dashboard-toolbar__mode-btn is-deep ${searchMode === 'deep' ? 'is-active' : ''}`} 
-          type="button" 
-          onClick={() => onModeChange?.(searchMode === 'deep' ? 'name' : 'deep')}
-          title="Deep AI Search (GTP-4o)"
-        >
-          Deep
-        </button>
+    <div className="dashboard-toolbar-container">
+      <div className="dashboard-toolbar__header">
+        <span className="dashboard-toolbar__badge">AI POWERED</span>
+        <h2 className="dashboard-toolbar__title">Search your workspace intelligently with Zenith AI</h2>
       </div>
+      
+      <div className="dashboard-toolbar" role="region" aria-label="Dashboard toolbar">
+        <SearchInput
+          id="dashboard-search"
+          label="Search"
+          value={search}
+          onChange={onSearchChange}
+          placeholder="Search..."
+        />
 
-      <div
-        className={`dashboard-toolbar__profile-wrap${isProfileMenuOpen ? ' is-open' : ''}`}
-        ref={profileMenuRef}
-        onMouseEnter={openProfileMenu}
-        onMouseLeave={closeProfileMenu}
-      >
-        <button
-          className="dashboard-toolbar__profile"
-          type="button"
-          onClick={handleProfileButtonClick}
-          aria-label={profileLabel}
-          aria-expanded={isProfileMenuOpen}
-          aria-haspopup={hasProfileMenu ? 'menu' : undefined}
+        <div className="dashboard-toolbar__modes">
+          <button 
+            className={`dashboard-toolbar__mode-btn ${searchMode === 'semantic' ? 'is-active' : ''}`} 
+            type="button" 
+            onClick={() => onModeChange?.(searchMode === 'semantic' ? 'name' : 'semantic')}
+            title="AI Semantic Search"
+          >
+            AI
+          </button>
+          <button 
+            className={`dashboard-toolbar__mode-btn is-deep ${searchMode === 'deep' ? 'is-active' : ''}`} 
+            type="button" 
+            onClick={() => onModeChange?.(searchMode === 'deep' ? 'name' : 'deep')}
+            title="Deep AI Search (GTP-4o)"
+          >
+            Deep
+          </button>
+        </div>
+
+        <div
+          className={`dashboard-toolbar__profile-wrap${isProfileMenuOpen ? ' is-open' : ''}`}
+          ref={profileMenuRef}
+          onMouseEnter={openProfileMenu}
+          onMouseLeave={closeProfileMenu}
         >
-          <img src={userIcon} alt="" />
-        </button>
+          <button
+            className={`dashboard-toolbar__profile${isProfileMenuOpen ? ' is-active' : ''}`}
+            type="button"
+            onClick={handleProfileButtonClick}
+            aria-label={profileLabel}
+            aria-expanded={isProfileMenuOpen}
+            aria-haspopup={hasProfileMenu ? 'menu' : undefined}
+          >
+            <img src={userIcon} alt="" />
+          </button>
 
-        {hasProfileMenu ? (
-          <div className="dashboard-toolbar__profile-menu" role="menu" aria-label="Profile options">
-            {onViewProfile ? (
-              <button type="button" role="menuitem" onClick={handleViewProfile}>
-                View profile
-              </button>
-            ) : null}
-            {onSignOut ? (
-              <button type="button" role="menuitem" className="is-danger" onClick={handleSignOut}>
-                Sign out
-              </button>
-            ) : null}
-          </div>
-        ) : null}
+          {hasProfileMenu ? (
+            <div className="dashboard-toolbar__profile-menu" role="menu" aria-label="Profile options">
+              {onViewProfile ? (
+                <button type="button" role="menuitem" onClick={handleViewProfile}>
+                  View profile
+                </button>
+              ) : null}
+              {onSignOut ? (
+                <button type="button" role="menuitem" className="is-danger" onClick={handleSignOut}>
+                  Sign out
+                </button>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
       </div>
     </div>
   )
