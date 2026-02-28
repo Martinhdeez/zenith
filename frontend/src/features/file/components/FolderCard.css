@@ -1,0 +1,74 @@
+.folder-card {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  background: rgba(228, 233, 241, 0.08);
+  min-height: 74px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.folder-card:hover {
+  background: rgba(228, 233, 241, 0.12);
+  border-color: rgba(255, 255, 255, 0.18);
+  transform: translateY(-2px);
+}
+
+.folder-card__left {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.folder-card__icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(201, 95, 88, 0.18);
+  display: grid;
+  place-items: center;
+  color: rgba(253, 228, 223, 0.95);
+  flex-shrink: 0;
+}
+
+.folder-card__icon svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+.folder-card h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 620;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.folder-card p {
+  margin: 2px 0 0;
+  font-size: 0.86rem;
+  color: rgba(214, 223, 239, 0.72);
+}
+
+.card-menu {
+  border: 0;
+  background: transparent;
+  color: rgba(222, 228, 241, 0.86);
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.card-menu:hover {
+  background: rgba(255, 255, 255, 0.08);
+}

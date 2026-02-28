@@ -1,52 +1,66 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useCallback } from 'react'
 import SideBar from '../../shared/components/SideBar.jsx'
 import DashboardToolbar from '../../shared/components/DashboardToolbar.jsx'
+import FolderCard from '../../file/components/FolderCard.jsx'
+import FileCard from '../../file/components/FileCard.jsx'
+import { fileService } from '../../file/services/fileService'
 import './HomePage.css'
-
-const folderItems = [
-  { title: 'Hackathon Assets', subtitle: 'in My Drive' },
-  { title: 'UX References', subtitle: 'in Shared with me' },
-  { title: 'Research Notes', subtitle: 'in Shared with me' },
-]
-
-const fileItems = [
-  { name: 'Sprint brief v3', type: 'doc', activity: 'Opened · 25 Feb' },
-  { name: 'Architecture overview', type: 'slides', activity: 'Opened · 24 Feb' },
-  { name: 'Data model matrix', type: 'sheet', activity: 'Opened · 20 Feb' },
-  { name: 'API contract.pdf', type: 'pdf', activity: 'Opened · 19 Feb' },
-  { name: 'Roadmap timeline', type: 'sheet', activity: 'Opened · 18 Feb' },
-  { name: 'Onboarding notes', type: 'doc', activity: 'Opened · 17 Feb' },
-  { name: 'Research summary', type: 'doc', activity: 'Modified · 15 Feb' },
-  { name: 'Zenith pitch deck', type: 'slides', activity: 'Opened · 14 Feb' },
-  { name: 'Prototype demo', type: 'video', activity: 'Opened · 13 Feb' },
-  { name: 'Team planning', type: 'sheet', activity: 'Opened · 10 Feb' },
-]
 
 function HomePage({ currentUser, onSignOut, onViewProfile, onNavigate }) {
   const [search, setSearch] = useState('')
+  const [items, setItems] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  
   const normalizedSearch = search.trim().toLowerCase()
 
-  const visibleFolders = useMemo(
-    () =>
-      folderItems.filter((item) => {
-        if (!normalizedSearch) {
-          return true
-        }
-        return `${item.title} ${item.subtitle}`.toLowerCase().includes(normalizedSearch)
-      }),
-    [normalizedSearch],
-  )
+  // Fetch files on mount
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      const data = await fileService.getFiles('/')
+      setItems(data)
+    } catch (err) {
+      console.error('Error fetching files:', err)
+      setError('Failed to load files. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
-  const visibleFiles = useMemo(
-    () =>
-      fileItems.filter((item) => {
-        if (!normalizedSearch) {
-          return true
-        }
-        return `${item.name} ${item.type} ${item.activity}`.toLowerCase().includes(normalizedSearch)
-      }),
-    [normalizedSearch],
-  )
+  useEffect(() => {
+    fetchData()
+  }, [fetchData])
+
+  // Handle search (could be optimized with debounce)
+  useEffect(() => {
+    if (!normalizedSearch) {
+      fetchData()
+      return
+    }
+
+    const timer = setTimeout(async () => {
+      try {
+        setLoading(true)
+        // Default to semantic search for better experience
+        const results = await fileService.searchFiles(normalizedSearch, 'semantic')
+        // results represent the files found by semantic search
+        setItems(results.map(r => r.file || r))
+      } catch (err) {
+        console.error('Search error:', err)
+      } finally {
+        setLoading(false)
+      }
+    }, 500)
+
+    return () => clearTimeout(timer)
+  }, [normalizedSearch, fetchData])
+
+  const folders = useMemo(() => items.filter(i => i.file_type === 'dir'), [items])
+  const files = useMemo(() => items.filter(i => i.file_type === 'file'), [items])
+
+  const userChar = currentUser?.username?.trim()?.charAt(0).toUpperCase() || 'U'
 
   return (
     <div className="home-page">
@@ -56,7 +70,7 @@ function HomePage({ currentUser, onSignOut, onViewProfile, onNavigate }) {
         <DashboardToolbar
           search={search}
           onSearchChange={setSearch}
-          onAiClick={() => {}}
+          onAiClick={() => {}} // Could trigger "deep" search
           onViewProfile={onViewProfile}
           onSignOut={onSignOut}
           profileLabel={`${currentUser?.username || 'User'} profile`}
@@ -68,68 +82,58 @@ function HomePage({ currentUser, onSignOut, onViewProfile, onNavigate }) {
             <p>Your folders and recent files, organized in one place.</p>
           </header>
 
-          <section className="home-section" aria-label="Suggested folders">
-            <h2>Suggested folders</h2>
-            <div className="folder-grid">
-              {visibleFolders.map((folder) => (
-                <article key={folder.title} className="folder-card">
-                  <div className="folder-card__left">
-                    <span className="folder-card__icon" aria-hidden="true">
-                      <svg viewBox="0 0 24 24">
-                        <path d="M3 7.5A2.5 2.5 0 0 1 5.5 5h4.3l1.6 1.7h7.1A2.5 2.5 0 0 1 21 9.2v7.3a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 16.5V7.5Z" />
-                      </svg>
-                    </span>
-                    <div>
-                      <h3>{folder.title}</h3>
-                      <p>{folder.subtitle}</p>
-                    </div>
-                  </div>
-                  <button className="card-menu" type="button" aria-label={`Open ${folder.title} options`}>
-                    <span aria-hidden="true">⋯</span>
-                  </button>
-                </article>
-              ))}
-            </div>
-          </section>
+          {loading && <p className="status-msg">Loading your workspace...</p>}
+          {error && <p className="status-msg error">{error}</p>}
+          
+          {!loading && !error && items.length === 0 && (
+            <p className="status-msg">No files found. Try uploading something!</p>
+          )}
 
-          <section className="home-section" aria-label="Suggested files">
-            <div className="home-section__header">
-              <h2>Suggested files</h2>
-              <div className="view-toggle" aria-label="View mode">
-                <button type="button" aria-label="List view">
-                  ≡
-                </button>
-                <button type="button" className="is-active" aria-label="Grid view">
-                  ⊞
-                </button>
+          {!loading && folders.length > 0 && (
+            <section className="home-section" aria-label="Folders">
+              <h2>Folders</h2>
+              <div className="folder-grid">
+                {folders.map((folder) => (
+                  <FolderCard
+                    key={folder.id}
+                    title={folder.name}
+                    subtitle={folder.description || 'Folder'}
+                    onClick={() => console.log('Open folder', folder.id)}
+                  />
+                ))}
               </div>
-            </div>
+            </section>
+          )}
 
-            <div className="file-grid">
-              {visibleFiles.map((file) => (
-                <article key={file.name} className="file-card">
-                  <header className="file-card__header">
-                    <span className={`file-card__type file-card__type--${file.type}`}>{file.type.toUpperCase()}</span>
-                    <h3>{file.name}</h3>
-                    <button className="card-menu" type="button" aria-label={`Open ${file.name} options`}>
-                      <span aria-hidden="true">⋯</span>
-                    </button>
-                  </header>
-                  <div className={`file-card__preview file-card__preview--${file.type}`} />
-                  <footer className="file-card__meta">
-                    <span className="file-card__avatar" aria-hidden="true">
-                      {currentUser?.username?.trim()?.charAt(0).toUpperCase() || 'U'}
-                    </span>
-                    <span>{file.activity}</span>
-                  </footer>
-                </article>
-              ))}
-            </div>
-          </section>
+          {!loading && files.length > 0 && (
+            <section className="home-section" aria-label="Files">
+              <div className="home-section__header">
+                <h2>Recent files</h2>
+                <div className="view-toggle" aria-label="View mode">
+                  <button type="button" aria-label="List view">≡</button>
+                  <button type="button" className="is-active" aria-label="Grid view">⊞</button>
+                </div>
+              </div>
+
+              <div className="file-grid">
+                {files.map((file) => (
+                  <FileCard
+                    key={file.id}
+                    name={file.name}
+                    type={file.mime_type || file.format || 'file'}
+                    activity={file.updated_at ? `Modified · ${new Date(file.updated_at).toLocaleDateString()}` : 'New file'}
+                    userChar={userChar}
+                    onClick={() => console.log('Open file', file.id)}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
         </section>
       </main>
     </div>
   )
 }
+
 
 export default HomePage
