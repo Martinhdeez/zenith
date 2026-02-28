@@ -395,7 +395,7 @@ async def get_file_info(
 @router.get("/search", response_model=List[FileSearchResult])
 async def search(
     q: str = Query(..., min_length=1, description="Search query"),
-    mode: str = Query("name", description="Search mode: 'name', 'semantic', or 'deep'"),
+    mode: str = Query("deep", description="Search mode: 'name', 'semantic', or 'deep'"),
     path: str = Query("/", description="Base path for recursive search scope"),
     top_k: int = Query(default=10, ge=1, le=50, description="Max results"),
     current_user=Depends(get_current_user),
@@ -456,7 +456,7 @@ async def search(
             url=r.file.url,
             cloudinary_public_id=r.file.cloudinary_public_id,
             transcription=r.file.transcription,
-            user_id=rv.file.user_id,
+            user_id=r.file.user_id,
             uploaded_at=r.file.created_at,
             similarity=r.distance,
         )
