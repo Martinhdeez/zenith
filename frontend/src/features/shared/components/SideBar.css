@@ -172,6 +172,9 @@
   align-items: center;
   justify-content: center;
   gap: 12px;
+  /* Optically center the content by adding a bit of right padding 
+     since the left side feels heavier with the '+' sign */
+  padding-right: 16px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   margin-bottom: 32px; /* Increased spacing */
@@ -181,7 +184,7 @@
   min-height: 48px;
   width: 48px;        /* Force a square so it centers perfectly */
   border-radius: 14px;
-  padding: 0;
+  padding: 0;         /* Reset padding for perfect centering of the + */
   margin: 0 auto 32px auto; /* Centers the button itself inside the sidebar */
   justify-content: center;
 }
