@@ -149,12 +149,12 @@ function SideBar({ links = navLinks, isAuthenticated = true, onLogin, onRegister
               className="sidebar-menu-link"
               type="button"
               onClick={() => { onLogin(); closeMobile(); }}
-              title={isCollapsed ? 'Iniciar sesión' : ''}
+              title={isCollapsed ? 'Log in' : ''}
             >
               <span className="sidebar-menu-icon">
                 <SideBarIcon type="login" />
               </span>
-              {!isCollapsed && <span>Iniciar sesión</span>}
+              {!isCollapsed && <span>Log in</span>}
             </button>
           )}
 
@@ -182,12 +182,12 @@ function SideBar({ links = navLinks, isAuthenticated = true, onLogin, onRegister
                   className="sidebar-menu-link"
                   type="button"
                   onClick={() => { onRegister(); closeMobile(); }}
-                  title={isCollapsed ? 'Registrarse' : ''}
+                  title={isCollapsed ? 'Register' : ''}
                 >
                   <span className="sidebar-menu-icon">
                     <SideBarIcon type="register" />
                   </span>
-                  {!isCollapsed && <span>Registrarse</span>}
+                  {!isCollapsed && <span>Register</span>}
                 </button>
               </li>
             )}
