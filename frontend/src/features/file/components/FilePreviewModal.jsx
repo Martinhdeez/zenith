@@ -2,12 +2,11 @@ import { useEffect, useState, useCallback } from 'react'
 import { fileService } from '../services/fileService'
 import ReactMarkdown from 'react-markdown'
 import StudyPanel from './StudyPanel.jsx'
-import PdfViewer from './PdfViewer.jsx'
 import './FilePreviewModal.css'
 
 /**
  * FilePreviewModal — A Google Drive-style preview modal with AI Study Panel.
- * Supports images, text files, PDFs, and generic downloads.
+ * Supports images, text files, and generic downloads.
  */
 function FilePreviewModal({ file, onClose }) {
   const [content, setContent] = useState(null)
@@ -18,98 +17,76 @@ function FilePreviewModal({ file, onClose }) {
 
   const isImage = file.mime_type?.startsWith('image/') || 
                 ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(file.format?.toLowerCase());
-  const isPdf = file.mime_type === 'application/pdf' || file.format?.toLowerCase() === 'pdf';
-  const isVideo = !isPdf && !isImage && (file.mime_type?.startsWith('video/') ||
+  
+  const isVideo = !isImage && (file.mime_type?.startsWith('video/') ||
                 (['mp4', 'webm', 'mov', 'avi', 'mkv'].includes(file.format?.toLowerCase()) && file.format?.toLowerCase() !== 'ogg'));
-  const isAudio = !isPdf && !isImage && !isVideo && (file.mime_type?.startsWith('audio/') ||
+  
+  const isAudio = !isImage && !isVideo && (file.mime_type?.startsWith('audio/') ||
                 ['mp3', 'wav', 'ogg', 'flac', 'aac', 'm4a', 'wma'].includes(file.format?.toLowerCase()));
   
-  const isText = !isPdf && !isImage && !isVideo && !isAudio && (file.mime_type?.startsWith('text/') || 
-               ['txt', 'md', 'json', 'js', 'py'].includes(file.format?.toLowerCase()));
+  // Universal Text Fallback: If it's not a known media type, treat it as text-capable for preview
+  // Note: PDF is now excluded from specialized preview and handled as text or generic download
+  const isKnownMedia = isImage || isVideo || isAudio;
+  const isText = !isKnownMedia;
   
   const isMarkdown = file.mime_type === 'text/markdown' || file.format?.toLowerCase() === 'md';
 
-  const canStudy = isText || isPdf || isAudio || isVideo;
-
-  const [pdfUrl, setPdfUrl] = useState(null);
+  const canStudy = isText || isAudio || isVideo;
 
   const fetchContent = useCallback(async () => {
-    if (!isText && !isPdf) return;
+    if (!isText) return;
     try {
       setLoading(true);
       setError(null);
       setContent(null);
-      if (pdfUrl) URL.revokeObjectURL(pdfUrl);
-      setPdfUrl(null);
       
       const res = await fileService.downloadFile(file.id);
       
-      if (isPdf) {
-        try {
-          // Robust base64 to blob conversion for PDFs
-          const b64 = res.content.replace(/^data:.*?;base64,/, '').replace(/\s/g, '');
-          const byteCharacters = window.atob(b64);
-          const byteArrays = [];
-          
-          // Process in chunks for better performance with large PDFs
-          for (let offset = 0; offset < byteCharacters.length; offset += 512) {
-            const slice = byteCharacters.slice(offset, offset + 512);
-            const byteNumbers = new Array(slice.length);
-            for (let i = 0; i < slice.length; i++) {
-              byteNumbers[i] = slice.charCodeAt(i);
-            }
-            const byteArray = new Uint8Array(byteNumbers);
-            byteArrays.push(byteArray);
-          }
-          
-          const blob = new Blob(byteArrays, { type: 'application/pdf' });
-          const url = URL.createObjectURL(blob);
-          setPdfUrl(url);
-          return;
-        } catch (pdfErr) {
-          console.error('PDF Data Processing Error:', pdfErr);
-          throw new Error('Failed to process PDF data for preview.');
-        }
-      }
-
       const raw = res?.content || '';
       let result = raw;
       const b64Candidate = typeof raw === 'string' 
-        ? raw.replace(/^data:.*?;base64,/, '').replace(/\s/g, '')
-        : '';
+        ? raw.replace(/^data:.*?;base64,/, '').replace(/\s/g, '') : '';
         
       const isProbablyBase64 = b64Candidate.length > 0 && 
-                              /^[A-Za-z0-9+/]*={0,2}$/.test(b64Candidate) &&
-                              (b64Candidate.length % 4 === 0);
+                               /^[A-Za-z0-9+/]*={0,2}$/.test(b64Candidate) &&
+                               (b64Candidate.length % 4 === 0);
 
       if (isProbablyBase64) {
         try {
           const binary = window.atob(b64Candidate);
-          const bytes = new Uint8Array(binary.length);
-          for (let i = 0; i < binary.length; i++) {
-            bytes[i] = binary.charCodeAt(i);
+          let looksBinary = false;
+          for (let i = 0; i < Math.min(binary.length, 100); i++) {
+            if (binary.charCodeAt(i) === 0) {
+              looksBinary = true;
+              break;
+            }
           }
-          result = new TextDecoder('utf-8').decode(bytes);
-        } catch (atobErr) {
-          console.warn('Preview: atob failed despite check, using raw.', atobErr);
+
+          if (looksBinary) {
+            result = "[Binary content - preview not available as text]";
+          } else {
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) {
+              bytes[i] = binary.charCodeAt(i);
+            }
+            result = new TextDecoder('utf-8').decode(bytes);
+          }
+        } catch (err) {
+          result = "[Content could not be decoded]";
         }
       }
-      
       setContent(result);
     } catch (err) {
       console.error('FilePreview error:', err);
-      setError('Could not load file content preview.');
+      setError('Could not load file preview.');
     } finally {
       setLoading(false);
     }
-  }, [file.id, isText, isPdf, pdfUrl]);
+  }, [file.id, isText]);
 
   useEffect(() => {
     fetchContent();
-    return () => {
-      if (pdfUrl) URL.revokeObjectURL(pdfUrl);
-    };
-  }, [file.id]);
+  }, [file.id, fetchContent]);
 
   if (!file) return null;
 
@@ -119,7 +96,7 @@ function FilePreviewModal({ file, onClose }) {
         <header className="preview-header">
           <div className="preview-header__info">
             <span className="preview-icon">
-              {isImage ? '🖼️' : isVideo ? '🎬' : isAudio ? '🎵' : isText ? '📄' : isPdf ? '📋' : '📦'}
+              {isImage ? '🖼️' : isVideo ? '🎬' : isAudio ? '🎵' : isText ? '📄' : '📦'}
             </span>
             <div className="preview-titles">
               <h3>{file.name}</h3>
@@ -188,6 +165,10 @@ function FilePreviewModal({ file, onClose }) {
 
                   {isText && content && (
                     <div className={`preview-content preview-content--text ${isMarkdown ? 'markdown-view' : ''}`}>
+                      {!isMarkdown && !file.mime_type?.startsWith('text/') && 
+                       !['json', 'js', 'py', 'ts', 'jsx', 'tsx', 'css', 'html', 'sql', 'sh', 'env', 'log'].includes(file.format?.toLowerCase()) && (
+                        <div className="preview-content-label">Partial Text Preview</div>
+                      )}
                       {isMarkdown ? (
                         <div className="rendered-markdown">
                           <ReactMarkdown>{content}</ReactMarkdown>
@@ -195,12 +176,6 @@ function FilePreviewModal({ file, onClose }) {
                       ) : (
                         <pre>{content}</pre>
                       )}
-                    </div>
-                  )}
-
-                  {isPdf && pdfUrl && (
-                    <div className="preview-content preview-content--pdf">
-                      <PdfViewer url={pdfUrl} fileName={file.name} />
                     </div>
                   )}
 
