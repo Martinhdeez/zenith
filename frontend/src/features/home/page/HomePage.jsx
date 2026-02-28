@@ -54,12 +54,41 @@ function HomePage({ currentUser, onSignOut }) {
     try {
       setLoading(true)
       setError(null)
-      // If a single media/document category filter is active, let the backend handle it recursively
-      const backendCategory = activeFilters.length === 1 && activeFilters[0] !== 'folder'
-        ? activeFilters[0]
-        : null
-      const data = await fileService.getFiles(currentPath, 0, 100, backendCategory)
-      setItems(data)
+      const hasFilters = activeFilters.length > 0
+      const hasFolderFilter = activeFilters.includes('folder')
+      const fileCategoryFilters = activeFilters.filter((f) => f !== 'folder')
+
+      // No active filters: default path listing.
+      if (!hasFilters) {
+        const data = await fileService.getFiles(currentPath, 0, 100, null)
+        setItems(data)
+        return
+      }
+
+      // Single non-folder category: keep backend recursive category query.
+      if (!hasFolderFilter && fileCategoryFilters.length === 1) {
+        const data = await fileService.getFiles(currentPath, 0, 100, fileCategoryFilters[0])
+        setItems(data)
+        return
+      }
+
+      // Multiple filters => OR behavior:
+      // - fetch each selected file category recursively
+      // - include path listing if "folder" is selected
+      const requests = []
+      if (hasFolderFilter) {
+        requests.push(fileService.getFiles(currentPath, 0, 100, null))
+      }
+      fileCategoryFilters.forEach((category) => {
+        requests.push(fileService.getFiles(currentPath, 0, 100, category))
+      })
+
+      const responses = await Promise.all(requests)
+      const mergedById = new Map()
+      responses.flat().forEach((item) => {
+        mergedById.set(item.id, item)
+      })
+      setItems(Array.from(mergedById.values()))
     } catch (err) {
       console.error('Error fetching files:', err)
       setError('Failed to load files. Please try again.')
