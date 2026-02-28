@@ -164,7 +164,7 @@ function HomePage({ currentUser, onSignOut }) {
     const timer = setTimeout(async () => {
       try {
         setLoading(true)
-        const results = await fileService.searchFiles(normalizedSearch, searchMode, 10, currentPath)
+        const results = await fileService.searchFiles(normalizedSearch, searchMode === 'semantic' ? 'deep' : searchMode, 10, currentPath)
         setItems(results.map(r => r.file || r))
       } catch (err) {
         console.error('Search error:', err)

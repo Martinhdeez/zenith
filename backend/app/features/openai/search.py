@@ -77,7 +77,7 @@ async def search_files(
         )
 
     # Fetch more candidates if deep mode is on (for re-ranking)
-    fetch_k = top_k * 4 if deep else top_k
+    fetch_k = top_k * 6 if deep else top_k
     stmt = stmt.limit(fetch_k)
 
     result = await db.execute(stmt)
@@ -101,25 +101,38 @@ async def _rerank_with_llm(
     """
     Use GPT-4o to re-rank search candidates based on the user's intent.
 
-    Sends file metadata to the LLM and asks it to pick the most relevant ones.
+    Sends file metadata (including paths and transcriptions) to the LLM.
     """
     llm = get_llm()
 
-    # Build a concise file list for the LLM
-    file_list = "\n".join(
-        f"[{i}] {c.file.name} — {c.file.description or 'Sin descripción'} "
-        f"(distancia: {c.distance})"
-        for i, c in enumerate(candidates)
-    )
+    # Build a rich file list for the LLM context
+    file_info_blocks = []
+    for i, c in enumerate(candidates):
+        info = (
+            f"[{i}] Name: {c.file.name}\n"
+            f"    Path: {c.file.path}\n"
+            f"    Type: {c.file.mime_type or 'unknown'}\n"
+            f"    Description: {c.file.description or 'No desc'}"
+        )
+        if c.file.transcription:
+            # Provide first 300 chars of transcription as context
+            snippet = c.file.transcription[:300].strip()
+            info += f"\n    Content Snippet: {snippet}..."
+        
+        file_info_blocks.append(info)
 
-    prompt = f"""Eres un asistente de búsqueda de archivos. El usuario busca: "{query}"
+    file_list = "\n".join(file_info_blocks)
 
-Aquí tienes los archivos candidatos ordenados por similitud semántica:
+    prompt = f"""Eres el motor de búsqueda inteligente de Zenith. El usuario busca información sobre: "{query}"
+
+Tu tarea es re-ordenar los siguientes candidatos por relevancia real, considerando el nombre, la ubicación (PATH) y el contenido (Transcripción).
+Zenith usa la metodología PARA (Projects, Areas, Resources, Archive). Los archivos en /Projects suelen ser más relevantes que en /Archive a menos que se busque algo histórico.
+
+Candidatos:
 {file_list}
 
-Devuelve SOLO los índices (números entre corchetes) de los {top_k} archivos \
-más relevantes para la búsqueda del usuario, ordenados del más al menos relevante.
-Formato: solo números separados por comas, ejemplo: 0,3,1,7,2"""
+Responde EXCLUSIVAMENTE con los índices (números entre corchetes) de los {top_k} más relevantes, separados por comas.
+Ejemplo: 2,0,5,1"""
 
     response = llm.invoke([HumanMessage(content=prompt)])
 
