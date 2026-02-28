@@ -18,13 +18,13 @@ function FilePreviewModal({ file, onClose }) {
   const isImage = file.mime_type?.startsWith('image/') || 
                 ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(file.format?.toLowerCase());
   const isPdf = file.mime_type === 'application/pdf' || file.format?.toLowerCase() === 'pdf';
-  const isVideo = file.mime_type?.startsWith('video/') ||
-                ['mp4', 'webm', 'ogg', 'mov', 'avi', 'mkv'].includes(file.format?.toLowerCase());
-  const isAudio = file.mime_type?.startsWith('audio/') ||
-                ['mp3', 'wav', 'ogg', 'flac', 'aac', 'm4a', 'wma'].includes(file.format?.toLowerCase());
+  const isVideo = !isPdf && !isImage && (file.mime_type?.startsWith('video/') ||
+                ['mp4', 'webm', 'ogg', 'mov', 'avi', 'mkv'].includes(file.format?.toLowerCase()));
+  const isAudio = !isPdf && !isImage && !isVideo && (file.mime_type?.startsWith('audio/') ||
+                ['mp3', 'wav', 'ogg', 'flac', 'aac', 'm4a', 'wma'].includes(file.format?.toLowerCase()));
   
-  const isText = (file.mime_type?.startsWith('text/') || 
-               ['txt', 'md', 'json', 'js', 'py'].includes(file.format?.toLowerCase())) && !isPdf;
+  const isText = !isPdf && !isImage && !isVideo && !isAudio && (file.mime_type?.startsWith('text/') || 
+               ['txt', 'md', 'json', 'js', 'py'].includes(file.format?.toLowerCase()));
   
   const isMarkdown = file.mime_type === 'text/markdown' || file.format?.toLowerCase() === 'md';
 
