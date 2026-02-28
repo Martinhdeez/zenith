@@ -28,7 +28,7 @@ class File(Base):
     cloudinary_public_id = Column(String(255), unique=True, index=True, nullable=True)
 
     file_type = Column(String(50), nullable=False, default="file")  # "file" o "dir"
-    mime_type = Column(String(50), nullable=True)
+    mime_type = Column(String(255), nullable=True)
     path = Column(String(500), index=True, nullable=False, default="/")
 
     size = Column(Integer, nullable=True, default=0)
