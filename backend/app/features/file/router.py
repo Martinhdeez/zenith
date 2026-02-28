@@ -49,8 +49,16 @@ async def upload_file(
     current_user=Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """Upload a file to Cloudinary or create a folder."""
+    repo = FileRepository(db)
+
     if file_type == "dir":
+        existing_folder = await repo.get_folder_by_name_and_path(current_user.id, name, path)
+        if existing_folder:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"A folder named '{name}' already exists in this location."
+            )
+
         file_data = FileCreateDB(
             name=name,
             description=description,
@@ -112,7 +120,6 @@ async def upload_file(
                 detail=f"Error uploading file to Cloudinary: {str(e)}",
             )
 
-    repo = FileRepository(db)
     new_file = await repo.create(file_data.model_dump())
 
     # Trigger background folder summarization

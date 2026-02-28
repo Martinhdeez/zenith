@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.features.openai.client import get_llm
 from app.features.file.model import File
 from app.features.file.repository import FileRepository
+from app.features.openai.utils import fetch_file_text
 
 logger = logging.getLogger(__name__)
 
@@ -61,50 +62,6 @@ ALWAYS respond in the SAME LANGUAGE as the document content.
 }
 
 
-async def _fetch_file_text(file_obj: File) -> Optional[str]:
-    """
-    Get text content for AI study.
-    Prioritizes stored transcription (for audio/video) then downloads text/PDF.
-    """
-    # 1. If we already have a transcription (audio/video or even text), use it!
-    if file_obj.transcription:
-        return file_obj.transcription
-
-    if not file_obj.url:
-        return None
-
-    # 2. Otherwise, check if it's a direct text/PDF file we can download
-    mime = (file_obj.mime_type or "").lower()
-    fmt = (file_obj.format or "").lower()
-    
-    is_text = mime.startswith("text/") or fmt in (
-        "txt", "md", "json", "js", "py", "csv", "xml", "html", "css",
-    )
-    is_pdf = mime == "application/pdf" or fmt == "pdf"
-
-    if not is_text and not is_pdf:
-        # If it's not text/pdf AND has no transcription, we can't study it
-        return None
-
-    try:
-        async with httpx.AsyncClient() as client:
-            response = await client.get(file_obj.url, follow_redirects=True, timeout=30.0)
-            if response.status_code != 200:
-                return None
-
-            if is_pdf:
-                # For PDFs, we return raw text (Whisper doesn't apply here, just raw extract)
-                try:
-                    return response.text
-                except Exception:
-                    return response.content.decode("utf-8", errors="ignore")
-
-            return response.text
-    except Exception as e:
-        logger.warning("Failed to fetch file content for study: %s", e)
-        return None
-
-
 async def generate_study_material(
     file_id: int,
     mode: str,
@@ -132,7 +89,7 @@ async def generate_study_material(
         raise PermissionError("Not authorized to access this file.")
 
     # Fetch the file's text content
-    text_content = await _fetch_file_text(file_obj)
+    text_content = await fetch_file_text(file_obj)
 
     if not text_content or len(text_content.strip()) < 20:
         return (

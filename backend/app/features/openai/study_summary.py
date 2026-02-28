@@ -6,7 +6,7 @@ from sqlalchemy import select, or_
 
 from app.features.file.model import File
 from app.features.openai.client import get_llm
-from app.features.openai.study import _fetch_file_text
+from app.features.openai.utils import fetch_file_text
 
 logger = logging.getLogger(__name__)
 
@@ -77,7 +77,7 @@ async def generate_deep_study_summary(folder_id: int, user_id: int, db: AsyncSes
     # 3. Extract text from each file
     compiled_text = ""
     for file in files_only:
-        text = await _fetch_file_text(file)
+        text = await fetch_file_text(file)
         if text and text.strip():
             # Add clear delimiters so the AI knows where a document starts and ends
             compiled_text += f"\n\n--- ARCHIVO: {file.name} (Ruta: {file.path}) ---\n"
