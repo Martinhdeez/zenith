@@ -428,9 +428,7 @@ function HomePage({ currentUser, onSignOut }) {
                   viewMode === 'grid' ? (
                     <FileCard
                       key={file.id}
-                      name={file.name}
-                      type={file.mime_type || file.format || 'file'}
-                      activity={file.updated_at ? `Modified · ${new Date(file.updated_at).toLocaleDateString()}` : 'New file'}
+                      file={file}
                       userChar={userChar}
                       onClick={() => setPreviewFile(file)}
                       onRename={(newName) => handleRename(file.id, newName)}

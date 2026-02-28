@@ -4,10 +4,11 @@ import './FileCard.css'
 /**
  * FileCard component representing a file in the file system.
  */
-function FileCard({ name, type, activity, userChar = 'U', onClick, onMenuClick, onRename, onDelete }) {
+function FileCard({ file, userChar = 'U', onClick, onMenuClick, onRename, onDelete }) {
   const [isEditing, setIsEditing] = useState(false)
-  const [tempName, setTempName] = useState(name)
+  const [tempName, setTempName] = useState(file?.name || '')
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [imageError, setImageError] = useState(false)
   const inputRef = useRef(null)
   const menuRef = useRef(null)
 
@@ -36,7 +37,7 @@ function FileCard({ name, type, activity, userChar = 'U', onClick, onMenuClick, 
 
   const handleBlur = () => {
     setIsEditing(false)
-    if (tempName !== name) {
+    if (tempName !== file.name) {
       onRename?.(tempName)
     }
   }
@@ -44,12 +45,12 @@ function FileCard({ name, type, activity, userChar = 'U', onClick, onMenuClick, 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
       setIsEditing(false)
-      if (tempName !== name) {
+      if (tempName !== file.name) {
         onRename?.(tempName)
       }
     } else if (e.key === 'Escape') {
       setIsEditing(false)
-      setTempName(name)
+      setTempName(file.name)
     }
   }
 
@@ -75,7 +76,18 @@ function FileCard({ name, type, activity, userChar = 'U', onClick, onMenuClick, 
     return 'generic';
   };
 
-  const typeClass = getTypeClass(type);
+  const typeClass = getTypeClass(file?.mime_type || file?.format);
+  const isImage = typeClass === 'image' && file?.url && !imageError;
+  const isTextLike = typeClass === 'doc' || typeClass === 'pdf';
+  
+  // Create a shortened summary for the preview text
+  const previewText = file?.summary 
+    ? (file.summary.length > 120 ? file.summary.substring(0, 120) + '...' : file.summary)
+    : null;
+
+  const activity = file?.updated_at 
+    ? `Modified · ${new Date(file.updated_at).toLocaleDateString()}` 
+    : 'New file';
 
   return (
     <article className="file-card" onClick={onClick} role="button" tabIndex={0}>
@@ -94,13 +106,13 @@ function FileCard({ name, type, activity, userChar = 'U', onClick, onMenuClick, 
             onClick={(e) => e.stopPropagation()}
           />
         ) : (
-          <h3 onClick={handleNameClick}>{name}</h3>
+          <h3 onClick={handleNameClick}>{file.name}</h3>
         )}
         <div className="file-card__menu-container" ref={menuRef}>
           <button 
             className={`card-menu ${isMenuOpen ? 'is-active' : ''}`}
             type="button" 
-            aria-label={`Open ${name} options`}
+            aria-label={`Open ${file.name} options`}
             onClick={toggleMenu}
           >
             <span aria-hidden="true">⋯</span>
@@ -123,7 +135,21 @@ function FileCard({ name, type, activity, userChar = 'U', onClick, onMenuClick, 
         </div>
       </header>
       
-      <div className={`file-card__preview file-card__preview--${typeClass}`} />
+      <div className={`file-card__preview file-card__preview--${typeClass}`}>
+        {isImage && (
+          <img 
+            src={file.url} 
+            alt={file.name} 
+            className="file-card__preview-image" 
+            onError={() => setImageError(true)}
+          />
+        )}
+        {isTextLike && previewText && (
+          <div className="file-card__preview-text">
+            <p>{previewText}</p>
+          </div>
+        )}
+      </div>
       
       <footer className="file-card__meta">
         <span className="file-card__avatar" aria-hidden="true">
