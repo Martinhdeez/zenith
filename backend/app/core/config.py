@@ -42,10 +42,10 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     
     # Session
-    SESSION_SECRET: str
+    SESSION_SECRET: str = "default_unsafe_session_secret_for_dev_only"
     
     # Frontend URL for redirects
-    FRONTEND_URL: str
+    FRONTEND_URL: str = "http://localhost:5173"
     
     model_config = SettingsConfigDict(
         env_file=env_files,
