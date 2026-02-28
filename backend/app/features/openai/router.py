@@ -7,10 +7,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.features.auth.dependencies import get_current_user
 from app.features.openai.schemas import (
-    ChatRequest, ChatResponse, StudyRequest, StudyResponse,
+    ChatRequest, ChatResponse, StudyRequest, StudyResponse, ChatHistoryResponse, ChatHistoryMessage
 )
 from app.features.openai.chat import chat_with_assistant
 from app.features.openai.study import generate_study_material
+from app.features.openai.repository import ChatRepository
 from app.features.file.repository import FileRepository
 
 router = APIRouter()
@@ -43,6 +44,31 @@ async def chat(
     )
 
     return ChatResponse(reply=reply, files_used=files_used)
+
+
+@router.get("/history", response_model=ChatHistoryResponse)
+async def get_chat_history(
+    limit: int = 50,
+    current_user=Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Retrieve the recent chat history for the current user.
+    """
+    repo = ChatRepository(db)
+    messages = await repo.get_history(user_id=current_user.id, limit=limit)
+    
+    return ChatHistoryResponse(
+        messages=[
+            ChatHistoryMessage(
+                role=msg.role,
+                content=msg.content,
+                created_at=msg.created_at.isoformat(),
+                files_used=msg.files_used
+            )
+            for msg in messages
+        ]
+    )
 
 
 @router.post("/study", response_model=StudyResponse)

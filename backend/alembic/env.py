@@ -34,6 +34,7 @@ if config.config_file_name is not None:
 # Import all models here so Alembic can detect them
 from app.features.user.model import User  # noqa
 from app.features.file.model import File  # noqa
+from app.features.openai.model import ChatMessage  # noqa
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,

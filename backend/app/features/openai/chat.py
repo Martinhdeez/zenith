@@ -14,6 +14,7 @@ from sqlalchemy import select, func
 
 from app.features.openai.client import get_llm
 from app.features.openai.search import search_files
+from app.features.openai.repository import ChatRepository
 from app.features.file.model import File
 
 logger = logging.getLogger(__name__)
@@ -183,10 +184,19 @@ async def chat_with_assistant(
 
     # 4. Call GPT-4o
     llm = get_llm()
+    chat_repo = ChatRepository(db)
 
     try:
+        # Save user message
+        await chat_repo.add_message(user_id=user_id, role="user", content=message)
+        
         response = await llm.ainvoke(messages)
-        return response.content, file_count
+        reply = response.content
+        
+        # Save assistant message
+        await chat_repo.add_message(user_id=user_id, role="assistant", content=reply, files_used=file_count)
+        
+        return reply, file_count
     except Exception as e:
         logger.error("AI chat call failed: %s", e)
         return (

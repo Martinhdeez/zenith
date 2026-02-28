@@ -21,9 +21,19 @@ class ChatRequest(BaseModel):
 
 
 class ChatResponse(BaseModel):
-    """Response from the AI assistant."""
-    reply: str = Field(..., description="AI assistant response")
-    files_used: int = Field(description="Number of user files used as context")
+    reply: str
+    files_used: int = 0
+
+
+class ChatHistoryMessage(BaseModel):
+    role: str
+    content: str
+    created_at: str  # Formatted as string for easy UI handling
+    files_used: int = 0
+
+
+class ChatHistoryResponse(BaseModel):
+    messages: List[ChatHistoryMessage]
 
 
 class StudyRequest(BaseModel):
