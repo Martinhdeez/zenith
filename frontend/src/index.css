@@ -24,6 +24,12 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+html {
+  /* Keep a consistent scrollbar lane to avoid jumps while the page updates. */
+  overflow-y: scroll;
+  scrollbar-gutter: stable;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -35,6 +41,7 @@ body {
     radial-gradient(circle at 15% 70%, rgba(201, 95, 88, 0.06), transparent 40%),
     linear-gradient(160deg, var(--bg-1), var(--bg-0) 45%, #020408 100%);
   color: var(--text-primary);
+  overscroll-behavior-y: contain;
 }
 
 a {
