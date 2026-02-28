@@ -11,15 +11,16 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from sqlalchemy import select, update
-from app.core.database import async_session_factory
+from app.core.database import AsyncSessionLocal
 from app.features.file.model import File
+from app.features.user.model import User
 from app.features.openai.embedding import generate_embedding
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("index_files")
 
 async def index_files():
-    async with async_session_factory() as db:
+    async with AsyncSessionLocal() as db:
         async with db.begin():
             # Get all files without embeddings
             stmt = select(File).where(File.embedding.isnot(None) == False)
