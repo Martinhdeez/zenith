@@ -16,7 +16,18 @@ function formatDate(dateValue) {
   })
 }
 
-function ProfileOverviewCard({ user, loading, error, onRefresh }) {
+function ProfileOverviewCard({
+  user,
+  loading,
+  error,
+  formValues,
+  onFieldChange,
+  onReload,
+  onSave,
+  isSaving,
+  saveError,
+  saveSuccess,
+}) {
   if (loading) {
     return (
       <section className="profile-overview-card">
@@ -29,8 +40,8 @@ function ProfileOverviewCard({ user, loading, error, onRefresh }) {
     return (
       <section className="profile-overview-card">
         <p className="profile-overview-card__status profile-overview-card__status--error">{error}</p>
-        <button type="button" className="profile-overview-card__refresh" onClick={onRefresh}>
-          Try again
+        <button type="button" className="profile-overview-card__save" onClick={onReload}>
+          Reload profile
         </button>
       </section>
     )
@@ -44,39 +55,44 @@ function ProfileOverviewCard({ user, loading, error, onRefresh }) {
     )
   }
 
+  const displayName = formValues.username?.trim() || 'User'
+  const avatarLetter = displayName.charAt(0).toUpperCase() || 'U'
+
   return (
     <section className="profile-overview-card">
-      <header className="profile-overview-card__header">
-        <span className="profile-overview-card__avatar" aria-hidden="true">
-          {user.username?.charAt(0)?.toUpperCase() || 'U'}
-        </span>
-        <div>
-          <h2>{user.username || 'User'}</h2>
-          <p>{user.email}</p>
-        </div>
-      </header>
+      <div className="profile-overview-card__form">
+        <label>
+          Username
+          <input
+            type="text"
+            name="username"
+            value={formValues.username}
+            onChange={onFieldChange}
+            placeholder="username"
+            autoComplete="username"
+          />
+        </label>
 
-      <dl className="profile-overview-card__details">
-        <div>
-          <dt>User ID</dt>
-          <dd>{user.id ?? 'Not available'}</dd>
-        </div>
-        <div>
-          <dt>Status</dt>
-          <dd>{user.is_active ? 'Active' : 'Inactive'}</dd>
-        </div>
-        <div>
-          <dt>Created at</dt>
-          <dd>{formatDate(user.created_at)}</dd>
-        </div>
-        <div>
-          <dt>Updated at</dt>
-          <dd>{formatDate(user.updated_at)}</dd>
-        </div>
-      </dl>
+        <label>
+          Email
+          <input
+            type="email"
+            name="email"
+            value={formValues.email}
+            onChange={onFieldChange}
+            placeholder="name@email.com"
+            autoComplete="email"
+          />
+        </label>
+      </div>
 
-      <button type="button" className="profile-overview-card__refresh" onClick={onRefresh}>
-        Refresh profile
+      <p className="profile-overview-card__meta">Created at: {formatDate(user.created_at)}</p>
+
+      {saveError ? <p className="profile-overview-card__status profile-overview-card__status--error">{saveError}</p> : null}
+      {saveSuccess ? <p className="profile-overview-card__status profile-overview-card__status--success">{saveSuccess}</p> : null}
+
+      <button type="button" className="profile-overview-card__save" onClick={onSave} disabled={isSaving}>
+        {isSaving ? 'Saving...' : 'Save'}
       </button>
     </section>
   )
