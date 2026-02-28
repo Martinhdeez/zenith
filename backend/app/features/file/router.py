@@ -4,7 +4,7 @@ File router — CRUD operations, download, and search.
 import logging
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status, UploadFile, File as FastAPIFile, Form
+from fastapi import APIRouter, Depends, HTTPException, Query, status, UploadFile, File as FastAPIFile, Form, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 import cloudinary
 import cloudinary.uploader
@@ -25,6 +25,7 @@ from app.features.openai.search import search_files
 from app.features.openai.organizer import suggest_file_path
 from app.features.openai.transcription import transcribe_media, is_transcribable
 from app.features.openai.embedding import generate_embedding
+from app.features.openai.summarizer import start_folder_summary_update
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +38,7 @@ router = APIRouter()
 
 @router.post("/", response_model=FileResponse, status_code=status.HTTP_201_CREATED)
 async def upload_file(
+    background_tasks: BackgroundTasks,
     file: Optional[UploadFile] = FastAPIFile(None),
     name: str = Form(...),
     description: Optional[str] = Form(None),
@@ -110,6 +112,11 @@ async def upload_file(
 
     repo = FileRepository(db)
     new_file = await repo.create(file_data.model_dump())
+
+    # Trigger background folder summarization
+    if file_type == "file":
+        background_tasks.add_task(start_folder_summary_update, new_file.id)
+
     return new_file
 
 
@@ -119,6 +126,7 @@ async def upload_file(
 
 @router.post("/smart-upload", response_model=SmartUploadResponse, status_code=status.HTTP_201_CREATED)
 async def smart_upload(
+    background_tasks: BackgroundTasks,
     file: UploadFile = FastAPIFile(...),
     name: str = Form(...),
     description: Optional[str] = Form(None),
@@ -376,7 +384,7 @@ async def search(
             url=r.file.url,
             cloudinary_public_id=r.file.cloudinary_public_id,
             transcription=r.file.transcription,
-            user_id=r.file.user_id,
+            user_id=rv.file.user_id,
             uploaded_at=r.file.created_at,
             similarity=r.distance,
         )

@@ -68,6 +68,7 @@ class FileResponse(FileBase):
     format: Optional[str]
     mime_type: Optional[str]
     transcription: Optional[str]
+    summary: Optional[str] = None
     created_at: datetime
     updated_at: Optional[datetime]
 

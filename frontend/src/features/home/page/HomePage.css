@@ -163,6 +163,76 @@
   opacity: 0.4;
 }
 
+/* ── Folder Context Area (Description & Summary) ── */
+
+.folder-context-area {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.folder-sumup-card {
+  background: linear-gradient(135deg, rgba(201, 95, 88, 0.08), rgba(255, 133, 122, 0.03));
+  border: 1px solid rgba(255, 133, 122, 0.15);
+  border-radius: 16px;
+  padding: 20px;
+  backdrop-filter: blur(12px);
+  animation: fadeIn 0.4s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.folder-sumup-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(180deg, #ff857a, transparent);
+  border-radius: 4px 0 0 4px;
+}
+
+.folder-sumup-card__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.folder-sumup-card__header h4 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #ff857a;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.folder-sumup-card__content {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: rgba(236, 241, 251, 0.9);
+}
+
+.folder-sumup-card__content p {
+  margin: 0 0 10px 0;
+}
+
+.folder-sumup-card__content p:last-child {
+  margin-bottom: 0;
+}
+
+.folder-sumup-card__content strong {
+  color: #fff;
+}
+
+.folder-sumup-card__content ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(-4px); }
   to { opacity: 1; transform: translateY(0); }
