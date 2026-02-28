@@ -1,6 +1,5 @@
 from fastapi import FastAPI, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
-from starlette.middleware.sessions import SessionMiddleware
 
 from app.core.config import settings
 from app.features.auth.router import router as auth_router
@@ -21,9 +20,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Sesiones para OAuth2 state management
-app.add_middleware(SessionMiddleware, secret_key=settings.SESSION_SECRET)
 
 # Base API Router
 api_router = APIRouter()
