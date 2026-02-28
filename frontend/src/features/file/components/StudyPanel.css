@@ -382,6 +382,35 @@
   line-height: 1.5;
 }
 
+
+/* ── Transcription Box ─────────────────────────── */
+.study-transcription-box {
+  margin-top: 24px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  text-align: left;
+  animation: resultFadeIn 0.4s ease;
+}
+
+.study-transcription-box h4 {
+  margin: 0 0 10px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #ff857a;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.study-transcription-box p {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.65;
+  color: rgba(220, 228, 242, 0.7);
+  white-space: pre-wrap;
+}
+
 /* ── Responsive ───────────────────────────────── */
 @media (max-width: 900px) {
   .study-panel {
@@ -391,3 +420,4 @@
     border-top: 1px solid rgba(255, 255, 255, 0.08);
   }
 }
+
