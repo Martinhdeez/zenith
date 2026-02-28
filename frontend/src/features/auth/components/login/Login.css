@@ -148,9 +148,15 @@
 
 .login-error {
   margin: 14px 0 0;
+  border: 1px solid rgba(255, 125, 125, 0.35);
+  border-radius: 10px;
+  background: rgba(255, 104, 104, 0.08);
+  padding: 10px 12px;
   text-align: center;
   font-size: 13px;
-  color: #ff9f9f;
+  line-height: 1.45;
+  color: #ffc2bc;
+  white-space: pre-line;
 }
 
 .gsi-material-button {

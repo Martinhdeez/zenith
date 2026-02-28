@@ -1,19 +1,39 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import githubLogo from '../../../../assets/icons/GitHub_Invertocat_White.png'
+import { getAuthErrorMessage } from '../../utils/authErrorMessages.js'
 import './Register.css'
 
 function Register({ isOpen, onClose, onSignIn }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [formKey, setFormKey] = useState(0)
+  const shouldCloseOnClickRef = useRef(false)
+
+  useEffect(() => {
+    if (isOpen) {
+      return
+    }
+
+    setLoading(false)
+    setError(null)
+    setFormKey((prev) => prev + 1)
+  }, [isOpen])
 
   if (!isOpen) {
     return null
   }
 
+  const isValidEmail = (value) => /.+@.+\..+/.test(value)
+
+  const handleOverlayMouseDown = (event) => {
+    shouldCloseOnClickRef.current = event.target === event.currentTarget
+  }
+
   const handleOverlayClick = (event) => {
-    if (event.target === event.currentTarget) {
+    if (event.target === event.currentTarget && shouldCloseOnClickRef.current) {
       onClose?.()
     }
+    shouldCloseOnClickRef.current = false
   }
 
   const handleSubmit = async (event) => {
@@ -29,7 +49,22 @@ function Register({ isOpen, onClose, onSignIn }) {
     const confirmPassword = String(formData.get('confirmPassword') || '')
 
     if (!username || !email || !password || !confirmPassword) {
-      setError('Please complete all fields.')
+      setError('Complete all fields before creating your account.')
+      return
+    }
+
+    if (username.length < 3) {
+      setError('Username is too short. Use at least 3 characters.')
+      return
+    }
+
+    if (!isValidEmail(email)) {
+      setError('Email is not valid. Example: name@email.com')
+      return
+    }
+
+    if (password.length < 8) {
+      setError('Password is too short. Use at least 8 characters.')
       return
     }
 
@@ -56,21 +91,43 @@ function Register({ isOpen, onClose, onSignIn }) {
       })
 
       if (!response.ok) {
-        const errorText = await response.text()
-        throw new Error(errorText || 'Registration failed')
+        let payload = null
+        try {
+          payload = await response.json()
+        } catch {
+          payload = await response.text()
+        }
+
+        throw new Error(
+          getAuthErrorMessage({
+            mode: 'register',
+            status: response.status,
+            payload,
+          }),
+        )
       }
 
       onClose?.()
       onSignIn?.()
     } catch (err) {
-      setError(err.message || 'Registration failed. Please try again.')
+      if (err?.name === 'TypeError') {
+        setError('Cannot connect to the server. Make sure backend is running.')
+      } else {
+        setError(err.message || 'Registration failed. Please try again.')
+      }
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="register-overlay" role="dialog" aria-modal="true" onClick={handleOverlayClick}>
+    <div
+      className="register-overlay"
+      role="dialog"
+      aria-modal="true"
+      onMouseDown={handleOverlayMouseDown}
+      onClick={handleOverlayClick}
+    >
       <div className="register-card">
         <button className="register-close" type="button" onClick={onClose} aria-label="Close register modal">
           x
@@ -81,7 +138,7 @@ function Register({ isOpen, onClose, onSignIn }) {
           <p>Join Zenith and start competing in real challenges.</p>
         </div>
 
-        <form className="register-form" onSubmit={handleSubmit}>
+        <form key={formKey} className="register-form" onSubmit={handleSubmit}>
           <label>
             Username
             <input type="text" name="username" placeholder="yourname" autoComplete="username" />
