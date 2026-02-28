@@ -89,3 +89,10 @@ class FileSearchResult(BaseModel):
     similarity: float = Field(description="Cosine distance: 0.0 = identical, 2.0 = opposite")
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class SmartUploadResponse(FileResponse):
+    """Response for smart-upload — includes AI classification metadata."""
+    suggested_path: str = Field(description="Path suggested by GPT-4o")
+    created_new_folder: bool = Field(description="Whether a new folder was created")
+    ai_reason: str = Field(description="Brief reasoning from the AI")
