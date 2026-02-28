@@ -38,16 +38,14 @@ function HomePage({ currentUser, onSignOut }) {
   
   const normalizedSearch = search.trim().toLowerCase()
 
-  // Handle URL query parameters for direct path navigation
+  // Handle URL query parameters to make the URL the source of truth for the folder path
   useEffect(() => {
     const params = new URLSearchParams(location.search)
-    const targetPath = params.get('path')
-    if (targetPath && targetPath.startsWith('/')) {
-      setCurrentPath(targetPath)
-      // Clean up the URL so back navigation doesn't get stuck
-      navigate('/home', { replace: true })
+    const urlPath = params.get('path') || '/'
+    if (urlPath !== currentPath) {
+      setCurrentPath(urlPath)
     }
-  }, [location.search, navigate])
+  }, [location.search, currentPath])
 
   // Fetch files based on current path and active filters
   const fetchData = useCallback(async () => {
@@ -100,10 +98,10 @@ function HomePage({ currentUser, onSignOut }) {
     }
   }, [fetchData, fetchRecentFiles, currentPath])
 
-  // Handle folder navigation
+  // Handle folder navigation via query parameters
   const handleFolderClick = (folderName) => {
     const newPath = currentPath === '/' ? `/${folderName}` : `${currentPath}/${folderName}`
-    setCurrentPath(newPath)
+    navigate(`/home?path=${encodeURIComponent(newPath)}`)
   }
 
   const handleGoBack = () => {
@@ -111,17 +109,17 @@ function HomePage({ currentUser, onSignOut }) {
     const parts = currentPath.split('/').filter(Boolean)
     parts.pop()
     const newPath = parts.length === 0 ? '/' : `/${parts.join('/')}`
-    setCurrentPath(newPath)
+    navigate(newPath === '/' ? '/home' : `/home?path=${encodeURIComponent(newPath)}`)
   }
 
   const handleBreadcrumbClick = (index) => {
     if (index === -1) {
-      setCurrentPath('/')
+      navigate('/home')
       return
     }
     const parts = currentPath.split('/').filter(Boolean)
     const newPath = '/' + parts.slice(0, index + 1).join('/')
-    setCurrentPath(newPath)
+    navigate(`/home?path=${encodeURIComponent(newPath)}`)
   }
 
   // Handle search (could be optimized with debounce)
