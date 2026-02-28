@@ -33,6 +33,7 @@ function HomePage({ currentUser, onSignOut }) {
   const [activeFilters, setActiveFilters] = useState([]) // filter keys: 'document', 'image', 'video', 'audio', 'folder'
   const [searchMode, setSearchMode] = useState('name') // 'name', 'semantic'
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false)
+  const [showStudySumupModal, setShowStudySumupModal] = useState(false)
   
   const normalizedSearch = search.trim().toLowerCase()
 
@@ -238,6 +239,7 @@ function HomePage({ currentUser, onSignOut }) {
     if (!currentFolder) return
     try {
       setIsGeneratingSummary(true)
+      // setShowStudySumupModal(false) // Removed as per instruction
       await chatService.generateFolderStudySummary(currentFolder.id)
       // Refresh the view so the newly created summary file appears
       fetchData()
@@ -250,6 +252,7 @@ function HomePage({ currentUser, onSignOut }) {
       alert("Error generating study guide.")
     } finally {
       setIsGeneratingSummary(false)
+      setShowStudySumupModal(false) // Close modal here after attempt
     }
   }
 
@@ -498,24 +501,59 @@ function HomePage({ currentUser, onSignOut }) {
       )}
 
       {/* Floating Action Button for Study Summary */}
-      {currentPath !== '/' && currentFolder && (
-        <button 
-          className="fab-study-summary" 
-          onClick={handleGenerateStudySummary}
-          disabled={isGeneratingSummary}
-          title="Generar Guía de Estudio Exahustiva"
-        >
-          {isGeneratingSummary ? (
-            <span className="fab-spinner">↻</span>
-          ) : (
-             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-               <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
-               <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
-             </svg>
-          )}
-          <span>{isGeneratingSummary ? 'Analyzing...' : 'Study Sumup'}</span>
-        </button>
-      )}
+        {currentPath !== '/' && currentFolder && (
+          <>
+            <button 
+              className="fab-study-summary" 
+              onClick={() => setShowStudySumupModal(true)}
+              disabled={isGeneratingSummary}
+              title="Generate Study Guide"
+            >
+              {isGeneratingSummary ? (
+                <div className="fab-spinner"></div>
+              ) : (
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                </svg>
+              )}
+              <span>{isGeneratingSummary ? 'Generating...' : 'Study Sumup'}</span>
+            </button>
+
+            {showStudySumupModal && (
+              <div className="upload-overlay" onClick={() => setShowStudySumupModal(false)} role="dialog" aria-modal="true" style={{zIndex: 9999}}>
+                <div className="upload-modal" onClick={(e) => e.stopPropagation()} style={{maxWidth: '450px', padding: '32px', textAlign: 'center'}}>
+                  <div style={{color: '#ff857a', marginBottom: '16px'}}>
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                      <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                  </div>
+                  <h2 style={{margin: '0 0 8px', fontSize: '1.4rem', color: '#fff'}}>Generate Study Sumup?</h2>
+                  <p style={{margin: '0 0 24px', color: 'var(--text-muted)', lineHeight: '1.5'}}>
+                    This action will read all files inside <strong>{currentFolder?.name}</strong> and create a comprehensive markdown study guide. This might take a few moments.
+                  </p>
+                  <div style={{display: 'flex', gap: '12px'}}>
+                    <button 
+                      className="upload-btn upload-btn--manual" 
+                      style={{flex: 1, padding: '12px'}} 
+                      onClick={() => setShowStudySumupModal(false)}
+                    >
+                      Cancel
+                    </button>
+                    <button 
+                      className="upload-btn upload-btn--smart" 
+                      style={{flex: 1, padding: '12px'}} 
+                      onClick={handleGenerateStudySummary}
+                    >
+                      Generate
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
+        )}
     </div>
 
 
@@ -524,4 +562,3 @@ function HomePage({ currentUser, onSignOut }) {
 
 
 export default HomePage
-
