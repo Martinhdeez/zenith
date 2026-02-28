@@ -255,6 +255,7 @@ async def get_my_files(
     db: AsyncSession = Depends(get_db),
 ):
     """List the current user's files in a given directory path."""
+    repo = FileRepository(db)
     return await repo.get_files_by_path(
         user_id=current_user.id, path=path, skip=skip, limit=limit
     )
