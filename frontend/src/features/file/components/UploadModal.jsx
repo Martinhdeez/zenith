@@ -108,6 +108,17 @@ function UploadModal({ currentPath = '/', onUpload, onClose }) {
          setResult(res)
          setSmartState('initial')
       } else if (mode === 'pending') {
+         // Ensure /Pending folder exists
+         try {
+           const rootFiles = await fileService.getFiles('/');
+           const hasPending = rootFiles.some(f => f.name.toLowerCase() === 'pending' && f.file_type === 'dir');
+           if (!hasPending) {
+             await fileService.createFolder('Pending', '/', 'Files pending organization');
+           }
+         } catch (e) {
+           console.warn('Could not verify/create Pending folder:', e);
+         }
+
          // Bypass everything and just dump it in the /Pending folder
          const uploadMode = tab === 'folder' ? 'folder' : 'manual'
          const res = await onUpload(uploadMode, uploadFile, name.trim(), description.trim(), '/Pending')
