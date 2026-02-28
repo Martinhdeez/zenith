@@ -79,13 +79,14 @@ async def upload_file(
             )
         try:
             # Force .ogg to be treated as audio/ogg if it's not already
+            effective_mime = file.content_type
             if file.filename and file.filename.lower().endswith(".ogg"):
-                file.content_type = "audio/ogg"
+                effective_mime = "audio/ogg"
                 
             # Transcribe audio or video before Cloudinary upload (needs file bytes)
             transcription = None
-            if file.content_type and is_transcribable(file.content_type):
-                logger.info("Media file detected (%s). Transcribing: %s", file.content_type, name)
+            if effective_mime and is_transcribable(effective_mime):
+                logger.info("Media file detected (%s). Transcribing: %s", effective_mime, name)
                 file_bytes = await file.read()
                 transcription = transcribe_media(file_bytes, file.filename or name)
                 file.file.seek(0)
@@ -103,7 +104,7 @@ async def upload_file(
                 description=description,
                 path=path,
                 file_type="file",
-                mime_type=file.content_type,
+                mime_type=effective_mime,
                 user_id=current_user.id,
                 url=result["secure_url"],
                 cloudinary_public_id=result["public_id"],
