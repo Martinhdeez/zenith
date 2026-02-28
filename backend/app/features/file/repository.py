@@ -53,6 +53,45 @@ class FileRepository(BaseRepository[File]):
         result = await self.db.execute(query)
         return list(result.scalars().all())
 
+    async def get_all_files(
+        self,
+        user_id: int,
+        skip: int = 0,
+        limit: int = 50,
+        category: Optional[str] = None,
+        mime_type: Optional[str] = None,
+    ) -> List[File]:
+        query = select(self.model).where(self.model.user_id == user_id).where(self.model.file_type == "file")
+
+        if category:
+            if category == "image":
+                query = query.where(self.model.mime_type.ilike("image/%"))
+            elif category == "video":
+                query = query.where(self.model.mime_type.ilike("video/%"))
+            elif category == "audio":
+                query = query.where(self.model.mime_type.ilike("audio/%"))
+            elif category == "document":
+                query = query.where(
+                    or_(
+                        self.model.mime_type.ilike("text/%"),
+                        self.model.mime_type == "application/pdf",
+                        self.model.mime_type.ilike("application/vnd.ms-%"),
+                        self.model.mime_type.ilike("application/vnd.openxmlformats-officedocument%"),
+                    )
+                )
+        
+        if mime_type:
+            if "%" in mime_type or "*" in mime_type:
+                query = query.where(self.model.mime_type.ilike(mime_type.replace("*", "%")))
+            else:
+                query = query.where(self.model.mime_type == mime_type)
+
+        query = query.order_by(self.model.name.asc()).offset(skip)
+        query = query.limit(limit)
+
+        result = await self.db.execute(query)
+        return list(result.scalars().all())
+
     async def search_by_name(
         self, user_id: int, query: str, skip: int = 0, limit: int = 20
     ) -> List[File]:
@@ -99,3 +138,5 @@ class FileRepository(BaseRepository[File]):
         )
         result = await self.db.execute(stmt)
         return list(result.scalars().all())
+
+    
