@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import ReactMarkdown from 'react-markdown'
 import { chatService } from '../../assistant/services/chatService.js'
 import './StudyPanel.css'
@@ -6,12 +6,58 @@ import './StudyPanel.css'
 /**
  * StudyPanel — AI-powered side panel for generating study material from files.
  */
-function StudyPanel({ file, onClose }) {
+function StudyPanel({ file, onClose, onFullscreenToggle }) {
   const [content, setContent] = useState(null)
   const [loading, setLoading] = useState(false)
   const [activeMode, setActiveMode] = useState(null)
   const [customPrompt, setCustomPrompt] = useState('')
   const [showCustomInput, setShowCustomInput] = useState(false)
+  
+  // Resize and Fullscreen State
+  const [width, setWidth] = useState(380)
+  const [isFullscreen, setIsFullscreen] = useState(false)
+  const isResizing = useRef(false)
+  const panelRef = useRef(null)
+
+  const startResizing = useCallback((e) => {
+    isResizing.current = true
+    document.body.style.cursor = 'col-resize'
+    document.body.style.userSelect = 'none'
+  }, [])
+
+  const stopResizing = useCallback(() => {
+    isResizing.current = false
+    document.body.style.cursor = 'default'
+    document.body.style.userSelect = 'auto'
+  }, [])
+
+  const resize = useCallback((e) => {
+    if (!isResizing.current) return
+    
+    // Calculate new width (the panel is on the right, so we subtract from window width or similar)
+    // Actually, it's easier to just use the mouse X position relative to the right edge
+    const newWidth = window.innerWidth - e.clientX
+    
+    // Constraints
+    if (newWidth > 300 && newWidth < window.innerWidth * 0.8) {
+      setWidth(newWidth)
+    }
+  }, [])
+
+  useEffect(() => {
+    window.addEventListener('mousemove', resize)
+    window.addEventListener('mouseup', stopResizing)
+    return () => {
+      window.removeEventListener('mousemove', resize)
+      window.removeEventListener('mouseup', stopResizing)
+    }
+  }, [resize, stopResizing])
+
+  const toggleFullscreen = () => {
+    const newState = !isFullscreen
+    setIsFullscreen(newState)
+    if (onFullscreenToggle) onFullscreenToggle(newState)
+  }
 
   const handleGenerate = async (mode, prompt = null) => {
     setLoading(true)
@@ -78,7 +124,13 @@ function StudyPanel({ file, onClose }) {
   ]
 
   return (
-    <aside className="study-panel">
+    <aside 
+      ref={panelRef}
+      className={`study-panel ${isFullscreen ? 'study-panel--fullscreen' : ''}`}
+      style={!isFullscreen ? { width: `${width}px` } : {}}
+    >
+      <div className="study-panel__resize-handle" onMouseDown={startResizing} />
+      
       <header className="study-panel__header">
         <div className="study-panel__title">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ff857a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -86,12 +138,29 @@ function StudyPanel({ file, onClose }) {
           </svg>
           <h3>AI Study</h3>
         </div>
-        <button className="study-panel__close" onClick={onClose} aria-label="Close panel">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="18" y1="6" x2="6" y2="18" />
-            <line x1="6" y1="6" x2="18" y2="18" />
-          </svg>
-        </button>
+        <div className="study-panel__header-actions">
+          <button 
+            className="study-panel__icon-btn" 
+            onClick={toggleFullscreen} 
+            title={isFullscreen ? "Restore size" : "Maximize panel"}
+          >
+            {isFullscreen ? (
+               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3" />
+               </svg>
+            ) : (
+               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+               </svg>
+            )}
+          </button>
+          <button className="study-panel__close" onClick={onClose} aria-label="Close panel">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
       </header>
 
       <div className="study-panel__actions">

@@ -12,6 +12,7 @@ function FilePreviewModal({ file, onClose }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [showStudyPanel, setShowStudyPanel] = useState(false)
+  const [isStudyFullscreen, setIsStudyFullscreen] = useState(false)
 
   const isImage = file.mime_type?.startsWith('image/') || 
                 ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(file.format?.toLowerCase());
@@ -139,60 +140,69 @@ function FilePreviewModal({ file, onClose }) {
         </header>
 
         <div className="preview-layout">
-          <main className="preview-body">
-            {loading && (
-              <div className="preview-status">
-                <div className="preview-spinner" />
-                <p>Loading content...</p>
-              </div>
-            )}
+          {!isStudyFullscreen && (
+            <main className="preview-body">
+              {loading && (
+                <div className="preview-status">
+                  <div className="preview-spinner" />
+                  <p>Loading content...</p>
+                </div>
+              )}
 
-            {error && (
-              <div className="preview-status error">
-                <p>{error}</p>
-              </div>
-            )}
+              {error && (
+                <div className="preview-status error">
+                  <p>{error}</p>
+                </div>
+              )}
 
-            {!loading && !error && (
-              <>
-                {isImage && (
-                  <div className="preview-content preview-content--image">
-                    <img src={file.url} alt={file.name} />
-                  </div>
-                )}
+              {!loading && !error && (
+                <>
+                  {isImage && (
+                    <div className="preview-content preview-content--image">
+                      <img src={file.url} alt={file.name} />
+                    </div>
+                  )}
 
-                {isText && content && (
-                  <div className="preview-content preview-content--text">
-                    <pre>{content}</pre>
-                  </div>
-                )}
+                  {isText && content && (
+                    <div className="preview-content preview-content--text">
+                      <pre>{content}</pre>
+                    </div>
+                  )}
 
-                {isPdf && pdfUrl && (
-                  <div className="preview-content preview-content--pdf">
-                    <iframe 
-                      src={pdfUrl} 
-                      title={file.name}
-                      width="100%" 
-                      height="100%" 
-                    />
-                  </div>
-                )}
+                  {isPdf && pdfUrl && (
+                    <div className="preview-content preview-content--pdf">
+                      <iframe 
+                        src={pdfUrl} 
+                        title={file.name}
+                        width="100%" 
+                        height="100%" 
+                      />
+                    </div>
+                  )}
 
-                {!isImage && !isText && !isPdf && (
-                  <div className="preview-content preview-content--generic">
-                    <div className="generic-preview-icon">📦</div>
-                    <p>Preview not available for this file type.</p>
-                    <a href={file.url} className="upload-btn upload-btn--smart" target="_blank" rel="noopener noreferrer">
-                      Open in new tab
-                    </a>
-                  </div>
-                )}
-              </>
-            )}
-          </main>
+                  {!isImage && !isText && !isPdf && (
+                    <div className="preview-content preview-content--generic">
+                      <div className="generic-preview-icon">📦</div>
+                      <p>Preview not available for this file type.</p>
+                      <a href={file.url} className="upload-btn upload-btn--smart" target="_blank" rel="noopener noreferrer">
+                        Open in new tab
+                      </a>
+                    </div>
+                  )}
+                </>
+              )}
+            </main>
+          )}
 
           {showStudyPanel && (
-            <StudyPanel file={file} onClose={() => setShowStudyPanel(false)} />
+            <StudyPanel 
+              file={file} 
+              onClose={() => {
+                setShowStudyPanel(false)
+                setIsStudyFullscreen(false)
+              }} 
+              onFullscreenToggle={setIsStudyFullscreen}
+            />
           )}
         </div>
       </div>

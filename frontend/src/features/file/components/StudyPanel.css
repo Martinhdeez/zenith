@@ -8,6 +8,36 @@
   border-left: 1px solid rgba(255, 255, 255, 0.08);
   overflow-y: auto;
   animation: panelSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  z-index: 10;
+}
+
+.study-panel--fullscreen {
+  position: absolute;
+  inset: 0;
+  width: 100% !important;
+  z-index: 1000;
+  background: rgba(8, 14, 24, 0.98);
+  border-left: none;
+}
+
+.study-panel__resize-handle {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  cursor: col-resize;
+  z-index: 20;
+  transition: background 0.2s;
+}
+
+.study-panel__resize-handle:hover {
+  background: rgba(201, 95, 88, 0.3);
+}
+
+.study-panel__resize-handle:active {
+  background: #ff857a;
 }
 
 @keyframes panelSlideIn {
@@ -20,8 +50,14 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20px 20px 16px;
+  padding: 16px 20px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.study-panel__header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .study-panel__title {
@@ -40,7 +76,8 @@
   background-clip: text;
 }
 
-.study-panel__close {
+.study-panel__close,
+.study-panel__icon-btn {
   background: rgba(255, 255, 255, 0.05);
   border: none;
   color: var(--text-muted);
@@ -56,6 +93,11 @@
 .study-panel__close:hover {
   background: rgba(219, 90, 79, 0.15);
   color: #ff857a;
+}
+
+.study-panel__icon-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--text-primary);
 }
 
 /* ── Action Buttons ───────────────────────────── */
