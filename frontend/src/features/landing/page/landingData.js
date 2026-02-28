@@ -1,41 +1,42 @@
-﻿export const typewriterWords = [
-  'fast',
-  'competitive',
-  'collaborative',
-  'real',
-  'measurable',
-  'fun',
+export const typewriterWords = [
+  'notes',
+  'voice memos',
+  'links',
+  'documents',
+  'ideas',
+  'tasks',
+  'youtube urls'
 ]
 
 export const featureCards = [
   {
-    title: 'Endless challenges',
+    title: 'Efficient capture',
     description:
-      'A vast library of challenges across languages and levels.',
+      'Collect notes, voice clips, links, videos, and documents in one inbox.',
     icon: 'challenges',
   },
   {
-    title: 'Instant feedback',
+    title: 'Classification and processing',
     description:
-      'Run tests, review performance, and get clear suggestions to improve on every attempt.',
+      'Transform scattered input into structured knowledge with context and purpose.',
     icon: 'feedback',
   },
   {
-    title: 'Teams and community',
+    title: 'Persistent knowledge access',
     description:
-      'Build teams, share solutions, and learn from other devs with practical discussions and guides.',
+      'Find and reuse key information quickly as permanent notes and technical documentation.',
     icon: 'community',
   },
   {
-    title: 'Skill tracks',
+    title: 'AI-assisted actions',
     description:
-      'Front, back, data, or algos: follow a path with goals and progressive challenges.',
+      'Boost productivity with smart suggestions, semantic understanding, and automated actions.',
     icon: 'tracks',
   },
 ]
 
 export const stats = [
-  { label: 'Active challenges', value: '120+' },
-  { label: 'Devs competing', value: '8.4k' },
-  { label: 'Different languages', value: '20' },
+  { label: 'Input channels', value: '5' },
+  { label: 'Knowledge outputs', value: '4' },
+  { label: 'Bonus tracks', value: '5' },
 ]

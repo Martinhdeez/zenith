@@ -75,9 +75,9 @@ function Register({ isOpen, onClose, onSignIn }) {
           x
         </button>
         <div className="register-header">
-          <div className="register-badge">DA</div>
+          <div className="register-badge">ZE</div>
           <h2>Create account</h2>
-          <p>Join DevArena and start competing in real challenges.</p>
+          <p>Join Zenith and start competing in real challenges.</p>
         </div>
 
         <form className="register-form" onSubmit={handleSubmit}>

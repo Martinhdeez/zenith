@@ -23,8 +23,8 @@ function ParticlesBackground() {
       fpsLimit: 60,
       particles: {
         number: { value: 120, density: { enable: true, area: 900 } },
-        color: { value: '#62f0ff' },
-        links: { enable: true, color: '#62f0ff', opacity: 0.25, distance: 130 },
+        color: { value: ['#b24f49', '#c95f58', '#e07a6d'] },
+        links: { enable: true, color: '#c95f58', opacity: 0.28, distance: 130 },
         opacity: { value: 0.65 },
         size: { value: { min: 1, max: 2 } },
         move: { enable: true, speed: 0.5 },

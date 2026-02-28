@@ -1,7 +1,9 @@
-﻿.hero {
+.hero {
   display: flex;
   justify-content: center;
   padding: 72px 6vw 0;
+  --hero-red: #c95f58;
+  --hero-red-strong: #e07a6d;
 }
 
 .hero-centered {
@@ -27,15 +29,25 @@
   color: var(--text-muted);
 }
 
+.hero-brand {
+  margin: 0;
+  font-size: clamp(4.4rem, 10vw, 8.2rem);
+  line-height: 0.9;
+  letter-spacing: 0.01em;
+  font-weight: 780;
+  color: var(--text-primary);
+  text-shadow: 0 14px 34px rgba(3, 9, 20, 0.48);
+}
+
 .hero h1 {
   margin: 0;
-  font-size: clamp(2.8rem, 4vw, 4.6rem);
-  line-height: 1.02;
+  font-size: clamp(2rem, 2.9vw, 3.1rem);
+  line-height: 1.08;
 }
 
 .hero h1 .accent {
   display: block;
-  color: var(--primary);
+  color: var(--hero-red-strong);
 }
 
 .hero-subtitle {
@@ -44,35 +56,27 @@
   color: var(--text-muted);
 }
 
+.hero-subtitle .typewriter {
+  color: var(--hero-red-strong);
+}
+
 .hero-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 16px;
 }
 
-.hero-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 16px;
-  width: 100%;
-}
-
-.stat-card {
-  padding: 16px 18px;
-  border-radius: 16px;
-  background: var(--surface);
-  border: 1px solid var(--outline);
-  box-shadow: var(--shadow);
-}
-
-.stat-value {
-  font-size: 1.35rem;
+.hero .hero-actions .btn {
+  padding: 16px 34px;
+  min-height: 58px;
+  font-size: clamp(1.02rem, 1.6vw, 1.15rem);
   font-weight: 700;
 }
 
-.stat-label {
-  font-size: 0.85rem;
-  color: var(--text-muted);
+.hero .btn.primary {
+  background: linear-gradient(130deg, var(--hero-red), var(--hero-red-strong));
+  color: #230f0f;
+  box-shadow: 0 14px 30px rgba(201, 95, 88, 0.32);
 }
 
 .scroll-indicator {

@@ -1,9 +1,9 @@
-﻿.cta {
+.cta {
   padding: 0 6vw 80px;
 }
 
 .cta-card {
-  background: linear-gradient(120deg, rgba(98, 240, 255, 0.18), rgba(255, 179, 91, 0.16));
+  background: linear-gradient(120deg, rgba(201, 95, 88, 0.2), rgba(224, 122, 109, 0.16));
   border-radius: 26px;
   padding: 48px;
   border: 1px solid rgba(255, 255, 255, 0.16);
