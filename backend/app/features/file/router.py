@@ -255,12 +255,35 @@ async def get_my_files(
     skip: int = 0,
     limit: int = 20,
     current_user=Depends(get_current_user),
-    db: AsyncSession = Depends(get_get_db if 'get_get_db' in globals() else get_db), # Just being safe with potential overrides although get_db is standard
+    db: AsyncSession = Depends(get_db),
 ):
     """List the current user's files in a given directory path or by category."""
     repo = FileRepository(db)
     return await repo.get_files_by_path(
         user_id=current_user.id, path=path, skip=skip, limit=limit, category=category
+    )
+
+
+@router.get("/all", response_model=List[FileResponse])
+async def get_all_files(
+    category: Optional[str] = Query(None, description="Filter by category: image, video, audio, document"),
+    mime_type: Optional[str] = Query(None, description="Filter by specific MIME type (supports * wildcard)"),
+    skip: int = 0,
+    limit: int = 50,
+    current_user=Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Get all user files across all paths (flat view).
+    Supports filtering by category or specific MIME type.
+    """
+    repo = FileRepository(db)
+    return await repo.get_all_files(
+        user_id=current_user.id,
+        skip=skip,
+        limit=limit,
+        category=category,
+        mime_type=mime_type
     )
 
 
