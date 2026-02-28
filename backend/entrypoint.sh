@@ -44,4 +44,5 @@ echo "================================"
 cd /app
 
 # Start the application
-exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+# Incluimos --proxy-headers y --forwarded-allow-ips='*' para soportar proxies inversos (Nginx/Traefik)
+exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --proxy-headers --forwarded-allow-ips='*' --reload
