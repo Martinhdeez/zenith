@@ -33,6 +33,7 @@
 .home-shell--recents {
   background: linear-gradient(180deg, rgba(12, 19, 31, 0.48), rgba(8, 14, 24, 0.38));
   margin-top: 24px;
+  gap: 12px;
 }
 
 .home-shell__header {
@@ -61,6 +62,10 @@
   transition: all 0.2s;
 }
 
+.breadcrumb-nav .breadcrumb-item:first-child {
+  padding-left: 0;
+}
+
 .breadcrumb-item:hover {
   background: rgba(255, 255, 255, 0.06);
   color: var(--text-primary);
@@ -69,6 +74,8 @@
 .breadcrumb-item.is-active {
   color: #ff857a;
   cursor: default;
+  font-weight: bolder;
+  font-size: 1.60rem;
 }
 
 .breadcrumb-item.is-active:hover {
@@ -219,11 +226,18 @@
   margin-bottom: 8px;
 }
 
+.home-shell--recents .home-section__header h2 {
+  margin: 0;
+  font-size: 1.18rem;
+  font-weight: 630;
+  color: rgba(236, 241, 251, 0.95);
+}
+
 .recent-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 16px;
-  margin-top: 8px;
+  margin-top: 0;
 }
 
 .recent-card {
@@ -357,4 +371,3 @@
 
 /* ── FAB Upload Button ─────────────────────── */
 /* Removed as requested - functionality moved to Sidebar */
-
