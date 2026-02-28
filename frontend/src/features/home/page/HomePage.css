@@ -1,3 +1,11 @@
+/*
+SPDX-FileCopyrightText: 2026 Martín Hernández González <m.hernandezg@udc.es>
+SPDX-FileCopyrightText: 2026 Alex Mosquera Gundín <alex.mosquera@udc.es>
+SPDX-FileCopyrightText: 2026 Alberto Paz Pérez <a.pazp@udc.es>
+
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
 .home-page {
   position: relative;
   min-height: 100vh;
@@ -489,5 +497,64 @@
   to { transform: rotate(360deg); }
 }
 
+/* ── Neural File Galaxy Mode ────────────────── */
 
+.home-page--graph-mode {
+  overflow: hidden;
+  height: 100vh;
+}
 
+.home-page--graph-mode .home-page__content {
+  padding-top: 0;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.neural-galaxy-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto; /* Allow interacting with 3D graph */
+}
+
+.neural-galaxy-placeholder {
+  background: rgba(14, 22, 35, 0.4);
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  border: 1px solid rgba(138, 99, 255, 0.3);
+  box-shadow: 0 0 60px rgba(138, 99, 255, 0.1), inset 0 0 20px rgba(138, 99, 255, 0.05);
+  border-radius: 20px;
+  padding: 40px 60px;
+  text-align: center;
+  animation: pulseGalaxy 4s ease-in-out infinite alternate;
+}
+
+.neural-galaxy-placeholder h3 {
+  margin: 0 0 10px 0;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  background: linear-gradient(90deg, #fff, #b08cff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.neural-galaxy-placeholder p {
+  margin: 0;
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.6);
+  letter-spacing: 0.1em;
+}
+
+@keyframes pulseGalaxy {
+  0% { transform: scale(0.98); box-shadow: 0 0 40px rgba(138, 99, 255, 0.1); }
+  100% { transform: scale(1.02); box-shadow: 0 0 80px rgba(138, 99, 255, 0.2), inset 0 0 30px rgba(138, 99, 255, 0.1); }
+}

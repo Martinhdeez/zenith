@@ -1,3 +1,9 @@
+// SPDX-FileCopyrightText: 2026 Martín Hernández González <m.hernandezg@udc.es>
+// SPDX-FileCopyrightText: 2026 Alex Mosquera Gundín <alex.mosquera@udc.es>
+// SPDX-FileCopyrightText: 2026 Alberto Paz Pérez <a.pazp@udc.es>
+//
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import { useEffect, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import zenithLogo from '../../../assets/logo/LOGO-DEFINITIVO.png'
@@ -64,7 +70,7 @@ export function SideBarIcon({ type }) {
   )
 }
 
-function SideBar({ links = navLinks, isAuthenticated = true, onLogin, onRegister, onNewClick, onSignOut }) {
+function SideBar({ links = navLinks, isAuthenticated = true, onLogin, onRegister, onNewClick, onSignOut, isGraphMode = false }) {
   const [isMobileOpen, setIsMobileOpen] = useState(false)
   const [isCollapsed, setIsCollapsed] = useState(() => {
     const saved = localStorage.getItem('sidebar-collapsed')
@@ -112,7 +118,7 @@ function SideBar({ links = navLinks, isAuthenticated = true, onLogin, onRegister
 
       <aside 
         id="logo-sidebar" 
-        className={`sidebar${isMobileOpen ? ' sidebar--open' : ''}${isCollapsed ? ' sidebar--collapsed' : ''}`} 
+        className={`sidebar${isMobileOpen ? ' sidebar--open' : ''}${isCollapsed ? ' sidebar--collapsed' : ''}${isGraphMode ? ' sidebar--graph-mode' : ''}`} 
         aria-label="Sidebar"
       >
         <div className="sidebar-scroll">

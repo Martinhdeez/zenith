@@ -1,3 +1,9 @@
+// SPDX-FileCopyrightText: 2026 Martín Hernández González <m.hernandezg@udc.es>
+// SPDX-FileCopyrightText: 2026 Alex Mosquera Gundín <alex.mosquera@udc.es>
+// SPDX-FileCopyrightText: 2026 Alberto Paz Pérez <a.pazp@udc.es>
+//
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { fileService } from '../services/fileService'
 import './FileCard.css'
@@ -28,7 +34,8 @@ function FileCard({ file, userChar = 'U', onClick, onMenuClick, onRename, onDele
     if (typeLower.includes('pdf')) return 'pdf';
     if (typeLower.includes('sheet') || typeLower.includes('xls')) return 'sheet';
     if (typeLower.includes('slides') || typeLower.includes('ppt')) return 'slides';
-    if (typeLower.includes('doc') || typeLower.includes('txt') || typeLower === 'md' || typeLower.includes('markdown')) return 'doc';
+    if (typeLower.includes('doc') || typeLower.includes('txt') || typeLower === 'md' || typeLower.includes('markdown') || 
+        ['json', 'js', 'py', 'ts', 'jsx', 'tsx', 'css', 'html', 'sql', 'sh', 'env', 'log'].includes(typeLower)) return 'doc';
     if (typeLower.includes('video') || typeLower.includes('mp4')) return 'video';
     if (typeLower.includes('image') || typeLower.includes('jpg') || typeLower.includes('png') || typeLower.includes('webp')) return 'image';
     return 'generic';
@@ -36,9 +43,15 @@ function FileCard({ file, userChar = 'U', onClick, onMenuClick, onRename, onDele
 
   const typeClass = getTypeClass(file?.mime_type || file?.format);
   const isImage = typeClass === 'image' && file?.url && !imageError;
-  const isTextLike = typeClass === 'doc';
+  const isPdf = typeClass === 'pdf';
+  const isVideo = typeClass === 'video';
+  const isAudio = typeClass === 'audio';
+  
+  // Universal Text Fallback for Card SNIPPETS
+  const isKnownMedia = isImage || isPdf || isVideo || isAudio;
+  const isTextLike = !isKnownMedia;
 
-  // Fetch text preview if it's a doc and there is no summary
+  // Fetch text preview if it's a doc (or unknown) and there is no summary
   const fetchTextContent = useCallback(async () => {
     if (!isTextLike || file?.summary || textContent || !file?.id) return;
     try {
@@ -61,8 +74,8 @@ function FileCard({ file, userChar = 'U', onClick, onMenuClick, onRename, onDele
             bytes[i] = binary.charCodeAt(i);
           }
           result = new TextDecoder('utf-8').decode(bytes);
-        } catch (atobErr) {
-          // Fallback to raw if decoding fails
+        } catch (decodeErr) {
+          console.warn('FileCard decode error:', decodeErr);
         }
       }
       
