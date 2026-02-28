@@ -4,7 +4,7 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { useEffect, useMemo, useState, useCallback } from 'react'
+import { useEffect, useMemo, useState, useCallback, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import ReactMarkdown from 'react-markdown'
 import SideBar from '../../shared/components/SideBar.jsx'
@@ -30,7 +30,9 @@ function HomePage({ currentUser, onSignOut, onAuthSuccess }) {
   const [items, setItems] = useState([])
   const [recentFiles, setRecentFiles] = useState([])
   const [loading, setLoading] = useState(true)
+  const [initialLoad, setInitialLoad] = useState(true)
   const [error, setError] = useState(null)
+  const prevItemsRef = useRef([])
   const [showUpload, setShowUpload] = useState(false)
   const [currentPath, setCurrentPath] = useState(() => {
     const params = new URLSearchParams(window.location.search)
@@ -85,42 +87,39 @@ function HomePage({ currentUser, onSignOut, onAuthSuccess }) {
       const hasFolderFilter = activeFilters.includes('folder')
       const fileCategoryFilters = activeFilters.filter((f) => f !== 'folder')
 
+      let newItems;
+
       // No active filters: default path listing.
       if (!hasFilters) {
-        const data = await fileService.getFiles(currentPath, 0, 100, null)
-        setItems(data)
-        return
+        newItems = await fileService.getFiles(currentPath, 0, 100, null)
+      } else if (!hasFolderFilter && fileCategoryFilters.length === 1) {
+        // Single non-folder category: keep backend recursive category query.
+        newItems = await fileService.getFiles(currentPath, 0, 100, fileCategoryFilters[0])
+      } else {
+        // Multiple filters => OR behavior
+        const requests = []
+        if (hasFolderFilter) {
+          requests.push(fileService.getFiles(currentPath, 0, 100, null))
+        }
+        fileCategoryFilters.forEach((category) => {
+          requests.push(fileService.getFiles(currentPath, 0, 100, category))
+        })
+        const responses = await Promise.all(requests)
+        const mergedById = new Map()
+        responses.flat().forEach((item) => {
+          mergedById.set(item.id, item)
+        })
+        newItems = Array.from(mergedById.values())
       }
 
-      // Single non-folder category: keep backend recursive category query.
-      if (!hasFolderFilter && fileCategoryFilters.length === 1) {
-        const data = await fileService.getFiles(currentPath, 0, 100, fileCategoryFilters[0])
-        setItems(data)
-        return
-      }
-
-      // Multiple filters => OR behavior:
-      // - fetch each selected file category recursively
-      // - include path listing if "folder" is selected
-      const requests = []
-      if (hasFolderFilter) {
-        requests.push(fileService.getFiles(currentPath, 0, 100, null))
-      }
-      fileCategoryFilters.forEach((category) => {
-        requests.push(fileService.getFiles(currentPath, 0, 100, category))
-      })
-
-      const responses = await Promise.all(requests)
-      const mergedById = new Map()
-      responses.flat().forEach((item) => {
-        mergedById.set(item.id, item)
-      })
-      setItems(Array.from(mergedById.values()))
+      prevItemsRef.current = newItems
+      setItems(newItems)
     } catch (err) {
       console.error('Error fetching files:', err)
       setError('Failed to load files. Please try again.')
     } finally {
       setLoading(false)
+      setInitialLoad(false)
     }
   }, [currentPath, activeFilters])
 
@@ -134,6 +133,9 @@ function HomePage({ currentUser, onSignOut, onAuthSuccess }) {
   }, [])
 
   useEffect(() => {
+    // Skip if search is active — the search effect handles that case
+    if (normalizedSearch) return
+
     fetchData()
     setIsEditingDescription(false)
     if (currentPath === '/') {
@@ -154,11 +156,13 @@ function HomePage({ currentUser, onSignOut, onAuthSuccess }) {
       }
       fetchFolderInfo()
     }
-  }, [fetchData, fetchRecentFiles, currentPath])
+  }, [fetchData, fetchRecentFiles, currentPath, normalizedSearch])
 
   // Handle folder navigation via query parameters
   const handleFolderClick = (folderName) => {
     const newPath = currentPath === '/' ? `/${folderName}` : `${currentPath}/${folderName}`
+    // Clear stale items immediately so old content doesn't flash
+    setItems([])
     setCurrentPath(newPath)
     navigate(`/home?path=${encodeURIComponent(newPath)}`)
   }
@@ -172,23 +176,26 @@ function HomePage({ currentUser, onSignOut, onAuthSuccess }) {
     const parts = currentPath.split('/').filter(Boolean)
     parts.pop()
     const newPath = parts.length === 0 ? '/' : `/${parts.join('/')}`
+    setItems([])
     navigate(newPath === '/' ? '/home' : `/home?path=${encodeURIComponent(newPath)}`)
   }
 
   const handleBreadcrumbClick = (index) => {
     if (index === -1) {
+      setItems([])
       navigate('/home')
       return
     }
     const parts = currentPath.split('/').filter(Boolean)
     const newPath = '/' + parts.slice(0, index + 1).join('/')
+    setItems([])
     navigate(`/home?path=${encodeURIComponent(newPath)}`)
   }
 
-  // Handle search (could be optimized with debounce)
+  // Handle search — only runs when search text/mode changes
   useEffect(() => {
     if (!normalizedSearch) {
-      fetchData()
+      // Search was cleared — main effect will handle re-fetching
       return
     }
 
@@ -205,7 +212,7 @@ function HomePage({ currentUser, onSignOut, onAuthSuccess }) {
     }, 500)
 
     return () => clearTimeout(timer)
-  }, [normalizedSearch, searchMode, fetchData, currentPath])
+  }, [normalizedSearch, searchMode, currentPath])
 
   // Handle upload from modal
   const handleUpload = useCallback(async (mode, file, name, description, manualPath) => {
@@ -497,81 +504,85 @@ function HomePage({ currentUser, onSignOut, onAuthSuccess }) {
             </div>
           )}
 
-          {loading && <p className="status-msg">Loading your workspace...</p>}
+          {initialLoad && loading && <p className="status-msg">Loading your workspace...</p>}
           {error && <p className="status-msg error">{error}</p>}
-          
-          {!loading && !error && items.length === 0 && (
-            <p className="status-msg">No files found here. Try uploading something!</p>
-          )}
 
-          {!loading && folders.length > 0 && (
-            <section className="home-section" aria-label="Folders">
-              <h2>Folders</h2>
-              <div className="folder-grid">
-                {folders.map((folder) => (
-                  <FolderCard
-                    key={folder.id}
-                    title={folder.name}
-                    subtitle={folder.description || 'Folder'}
-                    onClick={() => handleFolderClick(folder.name)}
-                    onRename={(newName) => handleRename(folder.id, newName)}
-                    onDelete={() => handleDelete(folder.id)}
-                  />
-                ))}
-              </div>
-            </section>
-          )}
+          {!initialLoad && (
+            <div className={`home-content-area ${loading ? 'is-loading' : 'is-loaded'}`}>
+              {!error && items.length === 0 && !loading && (
+                <p className="status-msg">No files found here. Try uploading something!</p>
+              )}
 
-          {!loading && files.length > 0 && (
-            <section className="home-section" aria-label="Files">
-              <div className="home-section__header">
-                <h2>Files</h2>
-                <div className="view-toggle" aria-label="View mode">
-                  <button 
-                    type="button" 
-                    className={viewMode === 'list' ? 'is-active' : ''} 
-                    aria-label="List view"
-                    onClick={() => setViewMode('list')}
-                  >
-                    ≡
-                  </button>
-                  <button 
-                    type="button" 
-                    className={viewMode === 'grid' ? 'is-active' : ''} 
-                    aria-label="Grid view"
-                    onClick={() => setViewMode('grid')}
-                  >
-                    ⊞
-                  </button>
-                </div>
-              </div>
+              {folders.length > 0 && (
+                <section className="home-section home-section--animated" aria-label="Folders">
+                  <h2>Folders</h2>
+                  <div className="folder-grid">
+                    {folders.map((folder) => (
+                      <FolderCard
+                        key={folder.id}
+                        title={folder.name}
+                        subtitle={folder.description || 'Folder'}
+                        onClick={() => handleFolderClick(folder.name)}
+                        onRename={(newName) => handleRename(folder.id, newName)}
+                        onDelete={() => handleDelete(folder.id)}
+                      />
+                    ))}
+                  </div>
+                </section>
+              )}
 
-              <div className={viewMode === 'grid' ? 'file-grid' : 'file-list'}>
-                {files.map((file) => (
-                  viewMode === 'grid' ? (
-                    <FileCard
-                      key={file.id}
-                      file={file}
-                      userChar={userChar}
-                      onClick={() => setPreviewFile(file)}
-                      onRename={(newName) => handleRename(file.id, newName)}
-                      onDelete={() => handleDelete(file.id)}
-                    />
-                  ) : (
-                    <FileRow
-                      key={file.id}
-                      name={file.name}
-                      type={file.mime_type || file.format || 'file'}
-                      activity={file.updated_at ? `Modified · ${new Date(file.updated_at).toLocaleDateString()}` : 'New file'}
-                      userChar={userChar}
-                      onClick={() => setPreviewFile(file)}
-                      onRename={(newName) => handleRename(file.id, newName)}
-                      onDelete={() => handleDelete(file.id)}
-                    />
-                  )
-                ))}
-              </div>
-            </section>
+              {files.length > 0 && (
+                <section className="home-section home-section--animated" aria-label="Files">
+                  <div className="home-section__header">
+                    <h2>Files</h2>
+                    <div className="view-toggle" aria-label="View mode">
+                      <button 
+                        type="button" 
+                        className={viewMode === 'list' ? 'is-active' : ''} 
+                        aria-label="List view"
+                        onClick={() => setViewMode('list')}
+                      >
+                        ≡
+                      </button>
+                      <button 
+                        type="button" 
+                        className={viewMode === 'grid' ? 'is-active' : ''} 
+                        aria-label="Grid view"
+                        onClick={() => setViewMode('grid')}
+                      >
+                        ⊞
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className={viewMode === 'grid' ? 'file-grid' : 'file-list'}>
+                    {files.map((file) => (
+                      viewMode === 'grid' ? (
+                        <FileCard
+                          key={file.id}
+                          file={file}
+                          userChar={userChar}
+                          onClick={() => setPreviewFile(file)}
+                          onRename={(newName) => handleRename(file.id, newName)}
+                          onDelete={() => handleDelete(file.id)}
+                        />
+                      ) : (
+                        <FileRow
+                          key={file.id}
+                          name={file.name}
+                          type={file.mime_type || file.format || 'file'}
+                          activity={file.updated_at ? `Modified · ${new Date(file.updated_at).toLocaleDateString()}` : 'New file'}
+                          userChar={userChar}
+                          onClick={() => setPreviewFile(file)}
+                          onRename={(newName) => handleRename(file.id, newName)}
+                          onDelete={() => handleDelete(file.id)}
+                        />
+                      )
+                    ))}
+                  </div>
+                </section>
+              )}
+            </div>
           )}
 
         </section>
@@ -611,7 +622,7 @@ function HomePage({ currentUser, onSignOut, onAuthSuccess }) {
       {showUpload && (
         <UploadModal 
           onClose={() => setShowUpload(false)} 
-          onSuccess={fetchData}
+          onUpload={handleUpload}
           currentPath={currentPath}
         />
       )}

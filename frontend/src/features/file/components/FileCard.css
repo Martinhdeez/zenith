@@ -15,6 +15,18 @@ SPDX-License-Identifier: GPL-3.0-or-later
   grid-template-rows: auto 142px auto;
   cursor: pointer;
   transition: all 0.2s ease;
+  animation: cardFadeIn 0.3s ease-out both;
+}
+
+@keyframes cardFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .file-card:hover {

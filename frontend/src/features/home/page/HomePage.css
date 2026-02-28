@@ -262,6 +262,37 @@ SPDX-License-Identifier: GPL-3.0-or-later
   gap: 12px;
 }
 
+/* ── Smooth Loading Transitions ── */
+
+.home-content-area {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  will-change: opacity;
+}
+
+.home-content-area.is-loading {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.home-content-area.is-loaded {
+  opacity: 1;
+}
+
+.home-section--animated {
+  animation: sectionFadeIn 0.35s ease-out both;
+}
+
+@keyframes sectionFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .home-section h2 {
   margin: 0;
   font-size: 1.18rem;
