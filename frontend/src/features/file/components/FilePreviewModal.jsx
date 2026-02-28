@@ -186,16 +186,25 @@ function FilePreviewModal({ file, onClose }) {
 
                   {isVideo && (
                     <div className="preview-content preview-content--video">
-                      <video
-                        controls
-                        autoPlay
-                        playsInline
-                        preload="metadata"
-                        controlsList="nodownload"
-                      >
-                        <source src={file.url} type={file.mime_type || 'video/mp4'} />
-                        Your browser does not support video playback.
-                      </video>
+                      <div style={{ width: '100%' }}>
+                        <video
+                          controls
+                          autoPlay
+                          playsInline
+                          preload="metadata"
+                          controlsList="nodownload"
+                          style={{ width: '100%', borderRadius: '20px', boxShadow: '0 40px 100px rgba(0,0,0,.8)', border: '1px solid rgba(255,255,255,.1)', background: '#000', outline: 'none' }}
+                        >
+                          <source src={file.url} type={file.mime_type || 'video/mp4'} />
+                          Your browser does not support video playback.
+                        </video>
+                        {file.transcription && (
+                          <div className="audio-transcription" style={{ marginTop: '20px' }}>
+                            <h5>Transcription</h5>
+                            <p>{file.transcription}</p>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
 
