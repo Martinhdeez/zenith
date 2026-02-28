@@ -1,18 +1,37 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import githubLogo from '../../../../assets/icons/GitHub_Invertocat_White.png'
+import { getAuthErrorMessage } from '../../utils/authErrorMessages.js'
 import './Login.css'
 
 function Login({ isOpen = true, onClose, onSignUp, onLoginSuccess }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [formKey, setFormKey] = useState(0)
+  const shouldCloseOnClickRef = useRef(false)
+
+  useEffect(() => {
+    if (isOpen) {
+      return
+    }
+
+    setLoading(false)
+    setError(null)
+    setFormKey((prev) => prev + 1)
+  }, [isOpen])
 
   if (!isOpen) {
     return null
   }
 
+  const handleOverlayMouseDown = (event) => {
+    shouldCloseOnClickRef.current = event.target === event.currentTarget
+  }
+
   const handleOverlayClick = (event) => {
-    if (event.target === event.currentTarget) {
+    if (event.target === event.currentTarget && shouldCloseOnClickRef.current) {
       onClose?.()
     }
+    shouldCloseOnClickRef.current = false
   }
 
   const handleSubmit = async (event) => {
@@ -49,8 +68,20 @@ function Login({ isOpen = true, onClose, onSignUp, onLoginSuccess }) {
       })
 
       if (!response.ok) {
-        const errorText = await response.text()
-        throw new Error(errorText || 'Invalid credentials')
+        let payload = null
+        try {
+          payload = await response.json()
+        } catch {
+          payload = await response.text()
+        }
+
+        throw new Error(
+          getAuthErrorMessage({
+            mode: 'login',
+            status: response.status,
+            payload,
+          }),
+        )
       }
 
       const data = await response.json()
@@ -63,14 +94,24 @@ function Login({ isOpen = true, onClose, onSignUp, onLoginSuccess }) {
       onLoginSuccess?.(data)
       onClose?.()
     } catch (err) {
-      setError(err.message || 'Login failed. Please try again.')
+      if (err?.name === 'TypeError') {
+        setError('Cannot connect to the server. Make sure backend is running.')
+      } else {
+        setError(err.message || 'Login failed. Please try again.')
+      }
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="login-overlay" role="dialog" aria-modal="true" onClick={handleOverlayClick}>
+    <div
+      className="login-overlay"
+      role="dialog"
+      aria-modal="true"
+      onMouseDown={handleOverlayMouseDown}
+      onClick={handleOverlayClick}
+    >
       <div className="login-card">
         <button className="login-close" type="button" onClick={onClose} aria-label="Close login modal">
           x
@@ -81,7 +122,7 @@ function Login({ isOpen = true, onClose, onSignUp, onLoginSuccess }) {
           <p>Access your Zenith account and keep competing.</p>
         </div>
 
-        <form className="login-form" onSubmit={handleSubmit}>
+        <form key={formKey} className="login-form" onSubmit={handleSubmit}>
           <label>
             Username or email
             <input type="text" name="identifier" placeholder="yourname or name@email.com" autoComplete="username" />
@@ -133,6 +174,13 @@ function Login({ isOpen = true, onClose, onSignUp, onLoginSuccess }) {
             <span className="gsi-material-button-contents">Sign in with Google</span>
             <span className="gsi-hidden-text">Sign in with Google</span>
           </div>
+        </button>
+
+        <button className="oauth-github-button" type="button" disabled={loading}>
+          <span className="oauth-github-button__icon" aria-hidden="true">
+            <img src={githubLogo} alt="" />
+          </span>
+          <span>Continue with GitHub</span>
         </button>
 
         {error ? <p className="login-error">{error}</p> : null}
