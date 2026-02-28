@@ -56,7 +56,7 @@ async def search_files(
     stmt = (
         select(File, distance_expr.label("distance"))
         .where(File.embedding.isnot(None))
-        .where(distance_expr <= 0.5)  # Threshold: only show relevant results
+        .where(distance_expr <= 0.65)  # Threshold: only show relevant results
         .order_by(distance_expr)
     )
 
