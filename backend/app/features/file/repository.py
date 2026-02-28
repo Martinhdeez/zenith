@@ -107,11 +107,16 @@ class FileRepository(BaseRepository[File]):
         self, user_id: int, query: str, skip: int = 0, limit: int = 20,
         base_path: str = "/",
     ) -> List[File]:
-        """Search files by name using case-insensitive ILIKE matching, scoped to base_path recursively."""
+        """Search files by name or summary using case-insensitive ILIKE matching, scoped to base_path recursively."""
         stmt = (
             select(self.model)
             .where(self.model.user_id == user_id)
-            .where(self.model.name.ilike(f"%{query}%"))
+            .where(
+                or_(
+                    self.model.name.ilike(f"%{query}%"),
+                    self.model.summary.ilike(f"%{query}%")
+                )
+            )
         )
         # Scope to current subtree
         if base_path != "/":
