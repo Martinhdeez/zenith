@@ -15,6 +15,7 @@ from sqlalchemy import select, func
 from app.features.openai.client import get_llm
 from app.features.openai.search import search_files
 from app.features.openai.repository import ChatRepository
+from app.features.openai.utils import fetch_file_text
 from app.features.file.model import File
 
 logger = logging.getLogger(__name__)
@@ -45,6 +46,7 @@ Rules:
 - NEVER invent files that don't exist.
 - Use markdown formatting when it helps readability (bold for filenames, lists for multiple results).
 - IMPORTANT: Whenever you mention a folder or file path, ALWAYS format it as a clickable markdown link pointing to that path. Example: `[Nombre de la carpeta](/ruta/a/la/carpeta)`.
+- For the top most relevant files, you will be provided with their actual raw text content. Read it carefully to answer questions about the specific text, data, or concepts inside those files.
 
 ── GENERAL FILE OVERVIEW ──
 {file_overview}
@@ -134,11 +136,26 @@ async def _search_relevant_files(
         size_str = f" ({f.size} bytes)" if f.size else ""
         desc_str = f" — {f.description}" if f.description else ""
         similarity_pct = max(0, (1 - r.distance)) * 100
-        lines.append(
+        
+        file_info = (
             f"{i}. {icon} **{f.name}** at `{f.path}` "
             f"[{f.mime_type or f.file_type}]{size_str}{desc_str} "
             f"(relevance: {similarity_pct:.0f}%)"
         )
+        lines.append(file_info)
+
+        # Inject actual file content for the top 3 files to give precise context
+        if i <= 3 and f.file_type != "dir":
+            content = await fetch_file_text(f)
+            if content:
+                # Truncate content to avoid blowing up the token window
+                max_chars = 6000
+                if len(content) > max_chars:
+                    content = content[:max_chars] + "\n...[CONTENT TRUNCATED]..."
+                
+                lines.append(f"   --- START OF FILE CONTENT ({f.name}) ---")
+                lines.append(f"   {content}")
+                lines.append(f"   --- END OF FILE CONTENT ---")
 
     return "\n".join(lines), len(results)
 
