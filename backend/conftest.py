@@ -5,6 +5,7 @@ Uses settings from config.py (which loads the .env file).
 import pytest
 import asyncio
 import os
+import sqlalchemy
 from pathlib import Path
 from typing import AsyncGenerator
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
@@ -20,6 +21,11 @@ load_dotenv(env_path)
 # Now import settings (env vars already loaded)
 from app.core.database import Base
 from app.core.config import settings
+
+# EXPLICITLY IMPORT ALL MODELS SO THEY ARE REGISTERED WITH BASE.METADATA
+from app.features.user.model import User
+from app.features.file.model import File
+from app.features.openai.model import ChatMessage
 
 # Use test database URL from settings or override
 TEST_DATABASE_URL = os.getenv(
@@ -52,8 +58,9 @@ async def db_session() -> AsyncGenerator[AsyncSession, None]:
     Create a test database session with automatic cleanup.
     Uses real PostgreSQL with transaction rollback - no data persists.
     """
-    # Create tables
+    # Ensure pgvector extension is enabled
     async with test_engine.begin() as conn:
+        await conn.execute(sqlalchemy.text("CREATE EXTENSION IF NOT EXISTS vector"))
         await conn.run_sync(Base.metadata.create_all)
     
     # Create session for test
