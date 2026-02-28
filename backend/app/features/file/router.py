@@ -203,6 +203,7 @@ async def smart_upload(
         embedding=generate_embedding(
             f"{name} {description or ''} {transcription or ''}"
         ),
+        transcription=transcription,
     )
     new_file = await repo.create(file_data.model_dump())
 
@@ -218,6 +219,7 @@ async def smart_upload(
         cloudinary_public_id=new_file.cloudinary_public_id,
         size=new_file.size,
         format=new_file.format,
+        transcription=new_file.transcription,
         created_at=new_file.created_at,
         updated_at=new_file.updated_at,
         suggested_path=suggestion.path,

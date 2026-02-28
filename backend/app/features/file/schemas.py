@@ -18,6 +18,7 @@ class FileBase(BaseModel):
     path: str = Field("/", description="Path where the file is stored, e.g. /my_folder/")
     file_type: str = Field("file", description="Type: 'file' or 'dir'")
     mime_type: Optional[str] = Field(None, description="MIME type, e.g. image/png")
+    transcription: Optional[str] = Field(None, description="Transcription for audio/video files")
 
 
 # ──────────────────────────────────────────────
@@ -37,6 +38,7 @@ class FileCreateDB(FileBase):
     size: Optional[int] = 0
     format: Optional[str] = None
     embedding: Optional[list[float]] = None
+    transcription: Optional[str] = None
 
 
 class FolderCreate(BaseModel):
@@ -65,6 +67,7 @@ class FileResponse(FileBase):
     size: Optional[int]
     format: Optional[str]
     mime_type: Optional[str]
+    transcription: Optional[str]
     created_at: datetime
     updated_at: Optional[datetime]
 

@@ -169,7 +169,7 @@ async def test_smart_upload_audio_with_transcription(test_client, auth_headers, 
         
         assert response.status_code == 201
         res_data = response.json()
-        assert "transcription" not in res_data
+        assert res_data["transcription"] == transcript_text
         assert res_data["path"] == "/Audios"
 
 
