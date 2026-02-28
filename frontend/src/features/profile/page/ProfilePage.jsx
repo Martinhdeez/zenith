@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
 import SideBar from '../../shared/components/SideBar.jsx'
-import DashboardToolbar from '../../shared/components/DashboardToolbar.jsx'
 import ProfileOverviewCard from '../components/ProfileOverviewCard.jsx'
 import './ProfilePage.css'
 
@@ -71,7 +70,6 @@ function getProfileSaveErrorMessage(status, payload) {
 }
 
 function ProfilePage({ currentUser, onSignOut }) {
-  const [search, setSearch] = useState('')
   const [profile, setProfile] = useState(currentUser || null)
   const [formValues, setFormValues] = useState({
     username: currentUser?.username || '',
@@ -234,11 +232,6 @@ function ProfilePage({ currentUser, onSignOut }) {
       <SideBar isAuthenticated onSignOut={onSignOut} />
 
       <main className="profile-page__content">
-        <DashboardToolbar
-          search={search}
-          onSearchChange={setSearch}
-        />
-
         <section className="profile-shell">
           <header className="profile-shell__header">
             <h1>Profile</h1>
