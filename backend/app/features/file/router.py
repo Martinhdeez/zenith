@@ -120,6 +120,31 @@ async def upload_file(
                 detail=f"Error uploading file to Cloudinary: {str(e)}",
             )
 
+        # Ensure parent folder exists if path is not root
+        if path != "/":
+            parts = [p for p in path.split("/") if p]
+            if parts:
+                folder_name = parts[-1]
+                parent_path = "/" + "/".join(parts[:-1]) if len(parts) > 1 else "/"
+                
+                existing_folder = await repo.get_folder_by_name_and_path(
+                    user_id=current_user.id, name=folder_name, path=parent_path
+                )
+                if not existing_folder:
+                    new_folder_data = FileCreateDB(
+                        name=folder_name,
+                        description="Auto-created folder",
+                        path=parent_path,
+                        file_type="dir",
+                        user_id=current_user.id,
+                        url=None,
+                        cloudinary_public_id=None,
+                        size=0,
+                        format=None,
+                        mime_type=None,
+                    )
+                    await repo.create(new_folder_data.model_dump())
+
     new_file = await repo.create(file_data.model_dump())
 
     # Trigger background folder summarization
