@@ -30,7 +30,7 @@ api_router.include_router(file_router, prefix="/files", tags=["files"])
 # Include everything with /api prefix
 app.include_router(api_router, prefix="/api")
 
-@app.get("/")
+@app.get("/api")
 async def root():
     return {"message": "Zenith API - Bienvenido"}
 
