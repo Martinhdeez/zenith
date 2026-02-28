@@ -28,18 +28,20 @@ const apiUpload = async (endpoint, formData) => {
  */
 export const fileService = {
     /**
-     * Get files and folders by path.
+     * Get files and folders by path, optionally filtered by category.
      */
-    async getFiles(path = '/', skip = 0, limit = 100) {
-        const queryParams = new URLSearchParams({ path, skip, limit });
+    async getFiles(path = '/', skip = 0, limit = 100, category = null) {
+        const params = { path, skip, limit };
+        if (category) params.category = category;
+        const queryParams = new URLSearchParams(params);
         return api(`/files/?${queryParams.toString()}`);
     },
 
     /**
-     * Search files using different modes.
+     * Search files using different modes, scoped to a base path.
      */
-    async searchFiles(q, mode = 'name', top_k = 10) {
-        const queryParams = new URLSearchParams({ q, mode, top_k });
+    async searchFiles(q, mode = 'name', top_k = 10, path = '/') {
+        const queryParams = new URLSearchParams({ q, mode, top_k, path });
         return api(`/files/search?${queryParams.toString()}`);
     },
 

@@ -307,22 +307,23 @@ async def get_file_info(
 async def search(
     q: str = Query(..., min_length=1, description="Search query"),
     mode: str = Query("name", description="Search mode: 'name', 'semantic', or 'deep'"),
+    path: str = Query("/", description="Base path for recursive search scope"),
     top_k: int = Query(default=10, ge=1, le=50, description="Max results"),
     current_user=Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """
-    Search files with multiple modes:
+    Search files with multiple modes, scoped to the given path and its subdirectories.
 
     - **name**: Fast text search by file name (ILIKE).
     - **semantic**: AI-powered search using embeddings + pgvector.
     - **deep**: Semantic search + GPT-4o re-ranking for maximum accuracy.
     """
-    logger.info(f"Search request: user_id={current_user.id}, query='{q}', mode='{mode}'")
+    logger.info(f"Search request: user_id={current_user.id}, query='{q}', mode='{mode}', path='{path}'")
     if mode == "name":
         repo = FileRepository(db)
         files = await repo.search_by_name(
-            user_id=current_user.id, query=q, limit=top_k
+            user_id=current_user.id, query=q, limit=top_k, base_path=path,
         )
         return [
             FileSearchResult(
@@ -347,6 +348,7 @@ async def search(
         user_id=current_user.id,
         top_k=top_k,
         deep=(mode == "deep"),
+        base_path=path,
     )
     return [
         FileSearchResult(

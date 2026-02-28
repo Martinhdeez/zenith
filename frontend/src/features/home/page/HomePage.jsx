@@ -44,12 +44,16 @@ function HomePage({ currentUser, onSignOut }) {
     }
   }, [location.search, navigate])
 
-  // Fetch files based on current path
+  // Fetch files based on current path and active filters
   const fetchData = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
-      const data = await fileService.getFiles(currentPath)
+      // If a single media/document category filter is active, let the backend handle it recursively
+      const backendCategory = activeFilters.length === 1 && activeFilters[0] !== 'folder'
+        ? activeFilters[0]
+        : null
+      const data = await fileService.getFiles(currentPath, 0, 100, backendCategory)
       setItems(data)
     } catch (err) {
       console.error('Error fetching files:', err)
@@ -57,7 +61,7 @@ function HomePage({ currentUser, onSignOut }) {
     } finally {
       setLoading(false)
     }
-  }, [currentPath])
+  }, [currentPath, activeFilters])
 
   const fetchRecentFiles = useCallback(async () => {
     try {
@@ -125,7 +129,7 @@ function HomePage({ currentUser, onSignOut }) {
     const timer = setTimeout(async () => {
       try {
         setLoading(true)
-        const results = await fileService.searchFiles(normalizedSearch, searchMode)
+        const results = await fileService.searchFiles(normalizedSearch, searchMode, 10, currentPath)
         setItems(results.map(r => r.file || r))
       } catch (err) {
         console.error('Search error:', err)
@@ -135,7 +139,7 @@ function HomePage({ currentUser, onSignOut }) {
     }, 500)
 
     return () => clearTimeout(timer)
-  }, [normalizedSearch, searchMode, fetchData])
+  }, [normalizedSearch, searchMode, fetchData, currentPath])
 
   // Handle upload from modal
   const handleUpload = useCallback(async (mode, file, name, description, manualPath) => {
