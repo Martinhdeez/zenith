@@ -28,7 +28,7 @@ def test_get_llm_returns_chat_model():
     """Verify the LLM is configured with the correct model."""
     get_llm.cache_clear()
     llm = get_llm()
-    assert llm.model_name == "gpt-4o"
+    assert llm.model_name == "gpt-4o-mini"
     assert llm.temperature == 0
     get_llm.cache_clear()
 

@@ -1,0 +1,43 @@
+# Stage 1: Build the backend environment (optimized layer caching)
+FROM python:3.11-slim AS builder
+
+WORKDIR /app
+
+# Install native dependencies required for some Python packages (like pgvector/psycopg2 or audio processing)
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libpq-dev \
+    gcc \
+    ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements and install
+COPY backend/requirements.txt .
+
+# Install dependencies into the system directly (since we're isolated in Docker)
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Stage 2: Final lightweight image
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Copy system libraries needed for runtime
+RUN apt-get update && apt-get install -y \
+    libpq5 \
+    ffmpeg \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy python packages from the builder stage
+COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
+
+# Copy app source code, but not everything inside the git tree
+COPY backend/app/ ./app/
+COPY backend/alembic/ ./alembic/
+COPY backend/alembic.ini ./
+
+# Run migrations automatically before starting the server (optional, but good for single-node deploys)
+# Let's write a simple shell script or just run uvicorn
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2", "--proxy-headers"]
