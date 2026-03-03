@@ -1,0 +1,84 @@
+# SPDX-FileCopyrightText: 2026 Martín Hernández González <m.hernandezg@udc.es>
+# SPDX-FileCopyrightText: 2026 Alex Mosquera Gundín <alex.mosquera@udc.es>
+# SPDX-FileCopyrightText: 2026 Alberto Paz Pérez <a.pazp@udc.es>
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+services:
+  # Base de datos PostgreSQL
+  db:
+    build:
+      context: ..
+      dockerfile: docker/db/Dockerfile.dev
+    container_name: zenith_db_remote
+    restart: always
+    env_file:
+      - ../backend/.env.dev
+    environment:
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data_remote:/var/lib/postgresql/data
+      - ./db/init-scripts:/docker-entrypoint-initdb.d:ro
+    networks:
+      - zenith_remote_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Backend FastAPI
+  backend:
+    build:
+      context: ..
+      dockerfile: docker/backend/Dockerfile.prod
+    container_name: zenith_backend_remote
+    restart: always
+    env_file:
+      - ../backend/.env.dev
+    volumes:
+      - zenith_storage_remote:/app/storage
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - zenith_remote_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    labels:
+      - "com.zenith.environment=production"
+
+  # Frontend Nginx + React
+  frontend:
+    build:
+      context: ..
+      dockerfile: docker/frontend/Dockerfile.prod
+    container_name: zenith_frontend_remote
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - zenith_remote_network
+    labels:
+      - "com.zenith.environment=production"
+
+networks:
+  zenith_remote_network:
+    driver: bridge
+
+volumes:
+  postgres_data_remote:
+    name: zenith_remote_postgres_data
+  zenith_storage_remote:
+    name: zenith_remote_storage
