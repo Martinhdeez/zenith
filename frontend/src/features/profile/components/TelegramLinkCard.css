@@ -1,0 +1,169 @@
+/*
+SPDX-FileCopyrightText: 2026 Martín Hernández González <m.hernandezg@udc.es>
+SPDX-FileCopyrightText: 2026 Alex Mosquera Gundín <alex.mosquera@udc.es>
+SPDX-FileCopyrightText: 2026 Alberto Paz Pérez <a.pazp@udc.es>
+
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+.tg-card {
+  width: min(100%, 600px);
+  margin: 0 auto;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 20px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.02);
+  display: grid;
+  gap: 16px;
+}
+
+.tg-card__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tg-card__icon {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: rgba(41, 182, 246, 0.15);
+  border: 1px solid rgba(41, 182, 246, 0.25);
+  display: grid;
+  place-items: center;
+  color: #29b6f6;
+}
+
+.tg-card__icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.tg-card__title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 650;
+  color: rgba(241, 246, 255, 0.97);
+}
+
+.tg-card__subtitle {
+  margin: 3px 0 0;
+  font-size: 0.82rem;
+  color: rgba(201, 211, 230, 0.66);
+}
+
+.tg-card__badge {
+  margin-left: auto;
+  font-size: 0.76rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.tg-card__badge--linked {
+  background: rgba(88, 201, 136, 0.14);
+  border: 1px solid rgba(88, 201, 136, 0.35);
+  color: #92e4bb;
+}
+
+.tg-card__badge--unlinked {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(201, 211, 230, 0.6);
+}
+
+.tg-card__info {
+  margin: 0;
+  font-size: 0.9rem;
+  color: rgba(216, 224, 239, 0.82);
+  line-height: 1.55;
+}
+
+.tg-card__error {
+  margin: 0;
+  font-size: 0.86rem;
+  color: #ffc2bc;
+  background: rgba(255, 104, 104, 0.08);
+  border: 1px solid rgba(255, 125, 125, 0.3);
+  border-radius: 8px;
+  padding: 8px 11px;
+}
+
+.tg-card__linked,
+.tg-card__unlinked {
+  display: grid;
+  gap: 14px;
+}
+
+.tg-card__steps {
+  margin: 0;
+  padding: 0 0 0 18px;
+  display: grid;
+  gap: 10px;
+  font-size: 0.88rem;
+  color: rgba(205, 215, 233, 0.8);
+  line-height: 1.55;
+}
+
+.tg-card__steps strong {
+  color: rgba(241, 246, 255, 0.95);
+}
+
+.tg-card__steps code {
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 5px;
+  padding: 1px 5px;
+  font-size: 0.84rem;
+  color: #a5d8ff;
+}
+
+.tg-card__command {
+  margin-top: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 7px 12px;
+}
+
+.tg-card__command code {
+  background: none;
+  padding: 0;
+  color: #a5d8ff;
+  font-size: 0.86rem;
+}
+
+.tg-card__btn {
+  border: 1px solid rgba(41, 182, 246, 0.4);
+  border-radius: 12px;
+  background: rgba(41, 182, 246, 0.12);
+  min-height: 38px;
+  color: rgba(247, 250, 255, 0.95);
+  font-size: 0.9rem;
+  font-weight: 580;
+  padding: 0 16px;
+  justify-self: start;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.tg-card__btn:hover:not(:disabled) {
+  background: rgba(41, 182, 246, 0.2);
+  border-color: rgba(41, 182, 246, 0.6);
+}
+
+.tg-card__btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.tg-card__btn--danger {
+  border-color: rgba(201, 95, 88, 0.44);
+  background: rgba(201, 95, 88, 0.1);
+}
+
+.tg-card__btn--danger:hover:not(:disabled) {
+  background: rgba(201, 95, 88, 0.2);
+  border-color: rgba(224, 122, 109, 0.6);
+}

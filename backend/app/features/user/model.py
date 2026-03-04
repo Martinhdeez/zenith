@@ -30,6 +30,9 @@ class User(Base):
     auth_provider = Column(String(50), default="local", nullable=False)
     auth_provider_id = Column(String(255), nullable=True, index=True)
     
+    # Integrations
+    telegram_chat_id = Column(String, nullable=True, unique=True, index=True)
+
     # Status
     is_active = Column(Boolean, default=True, nullable=False)
     has_completed_tutorial = Column(Boolean, default=False, nullable=False)

@@ -36,9 +36,10 @@ class UserRead(UserBase):
     id: int
     is_active: bool
     has_completed_tutorial: bool
+    telegram_chat_id: str | None = None
     created_at: datetime
     updated_at: datetime | None = None
-    
+
     model_config = ConfigDict(from_attributes=True)
 
 

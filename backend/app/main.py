@@ -12,6 +12,7 @@ from app.features.auth.router import router as auth_router
 from app.features.user.router import router as user_router
 from app.features.file.router import router as file_router
 from app.features.openai.router import router as ai_router
+from app.features.webhooks.telegram import router as telegram_router
 
 app = FastAPI(
     title="Zenith API",
@@ -36,6 +37,9 @@ api_router.include_router(ai_router, prefix="/ai", tags=["ai"])
 
 # Include everything with /api prefix
 app.include_router(api_router, prefix="/api")
+
+# Webhooks (registered directly, not under /api to keep URLs clean)
+app.include_router(telegram_router, prefix="/api/webhooks", tags=["webhooks"])
 
 @app.get("/api")
 async def root():

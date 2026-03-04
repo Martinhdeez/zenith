@@ -162,6 +162,16 @@ async def update_user(
         )
 
 
+@router.delete("/me/telegram", status_code=status.HTTP_204_NO_CONTENT)
+async def unlink_telegram(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    """Remove the Telegram link from the current user's account."""
+    repo = UserRepository(db)
+    await repo.update(current_user.id, {"telegram_chat_id": None})
+
+
 @router.patch("/me/tutorial-complete", response_model=UserRead)
 async def complete_tutorial(
     db: AsyncSession = Depends(get_db),

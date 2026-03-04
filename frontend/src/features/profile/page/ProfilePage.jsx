@@ -7,6 +7,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import SideBar from '../../shared/components/SideBar.jsx'
 import ProfileOverviewCard from '../components/ProfileOverviewCard.jsx'
+import TelegramLinkCard from '../components/TelegramLinkCard.jsx'
 import './ProfilePage.css'
 
 function normalizeText(value) {
@@ -256,6 +257,13 @@ function ProfilePage({ currentUser, onSignOut }) {
             saveError={saveError}
             saveSuccess={saveSuccess}
           />
+
+          {profile && (
+            <TelegramLinkCard
+              user={profile}
+              onUnlinked={() => void fetchProfile()}
+            />
+          )}
         </section>
       </main>
     </div>
