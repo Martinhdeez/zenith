@@ -111,10 +111,17 @@ async def upload_file(
                 file.file.seek(0)
 
             cloudinary.config(cloudinary_url=settings.CLOUDINARY_URL)
+            # PDFs must be uploaded as "raw" — Cloudinary's image CDN requires
+            # a paid "PDF delivery" add-on to serve PDFs via /image/upload/.
+            # Raw resources are served as-is and are always publicly accessible.
+            cld_resource_type = "raw" if (
+                effective_mime == "application/pdf"
+                or (file.filename or "").lower().endswith(".pdf")
+            ) else "auto"
             result = cloudinary.uploader.upload(
                 file.file,
                 folder="zenith_files",
-                resource_type="auto",
+                resource_type=cld_resource_type,
                 use_filename=True,
                 unique_filename=True,
             )
@@ -287,10 +294,14 @@ async def smart_upload(
 
     try:
         cloudinary.config(cloudinary_url=settings.CLOUDINARY_URL)
+        cld_resource_type = "raw" if (
+            file.content_type == "application/pdf"
+            or (file.filename or "").lower().endswith(".pdf")
+        ) else "auto"
         result = cloudinary.uploader.upload(
             file.file,
             folder="zenith_files",
-            resource_type="auto",
+            resource_type=cld_resource_type,
             use_filename=True,
             unique_filename=True,
         )
@@ -504,6 +515,42 @@ async def search(
 import cloudinary
 import cloudinary.utils
 import httpx
+from fastapi.responses import StreamingResponse
+
+
+@router.get("/{file_id}/proxy")
+async def proxy_file(
+    file_id: int,
+    current_user=Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Proxy file bytes from Cloudinary — handles auth transparently."""
+    repo = FileRepository(db)
+    file_obj = await repo.get_or_fail(file_id)
+
+    if file_obj.user_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
+
+    if not file_obj.url:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File has no URL")
+
+    # Raw resources (including PDFs) are publicly accessible via their stored URL
+    async with httpx.AsyncClient() as client:
+        response = await client.get(file_obj.url, follow_redirects=True, timeout=30.0)
+
+    if response.status_code != 200:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"Cloudinary error {response.status_code}: {response.text[:300]}",
+        )
+
+    content_type = response.headers.get("content-type", file_obj.mime_type or "application/octet-stream")
+    return StreamingResponse(
+        iter([response.content]),
+        media_type=content_type,
+        headers={"Cache-Control": "private, max-age=3600"},
+    )
+
 
 @router.get("/{file_id}/download", response_model=FileContent)
 async def download_file(
@@ -532,39 +579,23 @@ async def download_file(
             # First attempt: Direct fetch (as Cloudinary URLs are usually public)
             response = await client.get(file_obj.url, follow_redirects=True, timeout=30.0)
             
-            # If 401, asset might be "authenticated" or "private". Try signed URL.
-            if response.status_code == 401:
-                logger.warning("Direct fetch for file %s returned 401. Attempting signed URL fallback.", file_id)
+            # If 401 or 404, use Cloudinary's private_download_url which authenticates
+            # via API credentials instead of URL signatures — works for all delivery types.
+            if response.status_code in (401, 404):
+                logger.warning("Direct fetch for file %s returned 401. Attempting private download URL fallback.", file_id)
                 cloudinary.config(cloudinary_url=settings.CLOUDINARY_URL)
-                
-                # Cloudinary SDK generates a signature for restricted assets
+
                 res_type = _resolve_resource_type(file_obj)
-                
-                # Use public_id and original format to regenerate a signed URL
-                # Note: 'authenticated' type is common if security is enabled
-                signed_url, _ = cloudinary.utils.cloudinary_url(
+
+                dl_url = cloudinary.utils.private_download_url(
                     file_obj.cloudinary_public_id,
+                    file_obj.format or "",
                     resource_type=res_type,
-                    secure=True, 
-                    sign_url=True,
-                    # We try both public and authenticated if we are unsure
-                    type="upload" 
+                    attachment=False,
                 )
-                
-                logger.info("Retrying with signed URL: %s", signed_url)
-                response = await client.get(signed_url, follow_redirects=True, timeout=30.0)
-                
-                # If still failing, try type='authenticated' as a last resort
-                if response.status_code == 401:
-                    signed_url_auth, _ = cloudinary.utils.cloudinary_url(
-                        file_obj.cloudinary_public_id,
-                        resource_type=res_type,
-                        secure=True, 
-                        sign_url=True,
-                        type="authenticated" 
-                    )
-                    logger.info("Retrying with authenticated signed URL: %s", signed_url_auth)
-                    response = await client.get(signed_url_auth, follow_redirects=True, timeout=30.0)
+
+                logger.warning("Retrying with private download URL: %s", dl_url)
+                response = await client.get(dl_url, follow_redirects=True, timeout=30.0)
             
             if response.status_code != 200:
                 logger.error("Download from Cloudinary failed for file %s (ID: %s). Status: %s. Response: %s", 
@@ -653,7 +684,13 @@ async def delete_file(
 
 
 def _resolve_resource_type(file_obj) -> str:
-    """Determine Cloudinary resource type from MIME type or file format."""
+    """Determine Cloudinary resource type from the stored URL (most reliable)
+    or fall back to MIME type / file format."""
+    # The stored URL always contains the resource type segment: /image/, /video/, /raw/
+    if file_obj.url:
+        for segment in ("/image/", "/video/", "/raw/"):
+            if segment in file_obj.url:
+                return segment.strip("/")
     if file_obj.mime_type:
         if file_obj.mime_type.startswith("image/"):
             return "image"

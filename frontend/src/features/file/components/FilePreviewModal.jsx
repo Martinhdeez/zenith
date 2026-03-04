@@ -8,7 +8,15 @@ import { useEffect, useState, useCallback } from 'react'
 import { fileService } from '../services/fileService'
 import ReactMarkdown from 'react-markdown'
 import StudyPanel from './StudyPanel.jsx'
+import { Document, Page, pdfjs } from 'react-pdf'
+import 'react-pdf/dist/Page/AnnotationLayer.css'
+import 'react-pdf/dist/Page/TextLayer.css'
 import './FilePreviewModal.css'
+
+pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+  'pdfjs-dist/build/pdf.worker.min.mjs',
+  import.meta.url,
+).toString()
 
 /**
  * FilePreviewModal — A Google Drive-style preview modal with AI Study Panel.
@@ -20,6 +28,9 @@ function FilePreviewModal({ file, onClose }) {
   const [error, setError] = useState(null)
   const [showStudyPanel, setShowStudyPanel] = useState(false)
   const [isStudyFullscreen, setIsStudyFullscreen] = useState(false)
+  const [numPages, setNumPages] = useState(null)
+  const [pageNumber, setPageNumber] = useState(1)
+  const [pdfData, setPdfData] = useState(null)
 
   const extension = file.name?.split('.').pop()?.toLowerCase() || '';
 
@@ -35,34 +46,43 @@ function FilePreviewModal({ file, onClose }) {
                 ['mp3', 'wav', 'ogg', 'flac', 'aac', 'm4a', 'wma'].includes(file.format?.toLowerCase()) ||
                 ['mp3', 'wav', 'ogg', 'flac', 'aac', 'm4a', 'wma'].includes(extension));
   
-  // Universal Text Fallback: If it's not a known media type, treat it as text-capable for preview
-  // Note: PDF is now excluded from specialized preview and handled as text or generic download
+  const isPdf = file.mime_type === 'application/pdf' || file.format?.toLowerCase() === 'pdf' || extension === 'pdf';
+
+  // Universal Text Fallback: If it's not a known media type or PDF, treat it as text-capable for preview
   const isKnownMedia = isImage || isVideo || isAudio;
-  const isText = !isKnownMedia;
-  const isPdf = file.mime_type === 'application/pdf' || file.format?.toLowerCase() === 'pdf';
-  
+  const isText = !isKnownMedia && !isPdf;
+
   const isMarkdown = file.mime_type === 'text/markdown' || file.format?.toLowerCase() === 'md';
 
-  const canStudy = isText || isAudio || isVideo;
+  const canStudy = isText || isAudio || isVideo || isPdf;
 
   const fetchContent = useCallback(async () => {
-    if (!isText) return;
+    if (!isText && !isPdf) return;
     try {
       setLoading(true);
       setError(null);
       setContent(null);
-      
+      setPdfData(null);
+
+      if (isPdf) {
+        // Load PDF via backend proxy (handles Cloudinary auth)
+        const token = localStorage.getItem('token');
+        const proxyUrl = `/api/files/${file.id}/proxy`;
+        setPdfData({ url: proxyUrl, httpHeaders: { Authorization: `Bearer ${token}` } });
+        return;
+      }
+
       const res = await fileService.downloadFile(file.id);
-      
+
       const raw = res?.content || '';
-      let result = raw;
-      const b64Candidate = typeof raw === 'string' 
+      const b64Candidate = typeof raw === 'string'
         ? raw.replace(/^data:.*?;base64,/, '').replace(/\s/g, '') : '';
-        
-      const isProbablyBase64 = b64Candidate.length > 0 && 
+
+      const isProbablyBase64 = b64Candidate.length > 0 &&
                                /^[A-Za-z0-9+/]*={0,2}$/.test(b64Candidate) &&
                                (b64Candidate.length % 4 === 0);
 
+      let result = raw;
       if (isProbablyBase64) {
         try {
           const binary = window.atob(b64Candidate);
@@ -94,7 +114,7 @@ function FilePreviewModal({ file, onClose }) {
     } finally {
       setLoading(false);
     }
-  }, [file.id, isText]);
+  }, [file.id, isText, isPdf]);
 
   useEffect(() => {
     fetchContent();
@@ -108,7 +128,7 @@ function FilePreviewModal({ file, onClose }) {
         <header className="preview-header">
           <div className="preview-header__info">
             <span className="preview-icon">
-              {isImage ? '🖼️' : isVideo ? '🎬' : isAudio ? '🎵' : isText ? '📄' : '📦'}
+              {isImage ? '🖼️' : isVideo ? '🎬' : isAudio ? '🎵' : isPdf ? '📕' : isText ? '📄' : '📦'}
             </span>
             <div className="preview-titles">
               <h3>{file.name}</h3>
@@ -268,6 +288,47 @@ function FilePreviewModal({ file, onClose }) {
                           </div>
                         )}
                       </div>
+                    </div>
+                  )}
+
+                  {isPdf && (
+                    <div className="preview-content preview-content--pdf">
+                      <Document
+                        file={pdfData}
+                        onLoadSuccess={({ numPages }) => { setNumPages(numPages); setPageNumber(1); }}
+                        onLoadError={() => setError('No se pudo cargar el PDF.')}
+                        loading={<div className="preview-status"><div className="preview-spinner" /><p>Cargando PDF...</p></div>}
+                      >
+                        <Page
+                          pageNumber={pageNumber}
+                          renderTextLayer={true}
+                          renderAnnotationLayer={true}
+                          className="pdf-page"
+                        />
+                      </Document>
+                      {numPages && (
+                        <div className="pdf-pagination">
+                          <button
+                            className="pdf-pagination__btn"
+                            onClick={() => setPageNumber(p => Math.max(1, p - 1))}
+                            disabled={pageNumber <= 1}
+                            aria-label="Página anterior"
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                          </button>
+                          <span className="pdf-pagination__info">
+                            {pageNumber} <span className="pdf-pagination__sep">/</span> {numPages}
+                          </span>
+                          <button
+                            className="pdf-pagination__btn"
+                            onClick={() => setPageNumber(p => Math.min(numPages, p + 1))}
+                            disabled={pageNumber >= numPages}
+                            aria-label="Página siguiente"
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                          </button>
+                        </div>
+                      )}
                     </div>
                   )}
 
